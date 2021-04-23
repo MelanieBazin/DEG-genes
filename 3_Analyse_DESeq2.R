@@ -36,7 +36,7 @@ base_img_dir=paste0("Analyse_DESeq2/",condition,"_", type,"/Images/")
 dir.create(base_img_dir,recursive=T,showWarnings=F)
 
 base_res_dir=paste0("Analyse_DESeq2/",condition,"_", type,"/")
-dir.create(base_res_dir, showWarnings = FALSE,recursive=T)
+dir.create(base_res_dir, recursive=T,showWarnings=F)
 #####
 
 
@@ -93,6 +93,7 @@ comparisons = list(
   "LATE" = unique(time_points[grep("LATE",time_points)])
 )
 
+regulation=c("Up-regulated","Down-regulated")
 
 significant_up=list()
 significant_down=list()
@@ -196,32 +197,19 @@ for(i in names(comparisons)) {
       
       
       ###### Création des heatmap pour cette comparaison ####
-      if(nrow(res[res$REGULATION=="Up-regulated",]) >2) {
-        regulation="Up-regulated"
-        data=countsTableNorm[rownames(res[res$REGULATION==regulation,]),]
-        hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-        
-        png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+      for (r in regulation){
+        if(nrow(res[res$REGULATION==r,]) >2) {
+          data=countsTableNorm[rownames(res[res$REGULATION==r,]),]
+          hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
+          
+          png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
           par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
           heatmap.2(as.matrix(log2(data+1)),
                     Rowv=as.dendrogram(hcGenes), Colv=NULL, 
                     scale="row", labRow="",trace="none", col = hmcol,
-                    dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
-        dev.off()
-      }
-      
-      if(nrow(res[res$REGULATION=="Down-regulated",]) >2) {
-        regulation="Down-regulated"
-        data=countsTableNorm[rownames(res[res$REGULATION==regulation,]),]
-        hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-        
-        png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-          par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-          heatmap.2(as.matrix(log2(data+1)),
-                    Rowv=as.dendrogram(hcGenes), Colv=NULL, 
-                    scale="row", labRow="", trace="none", col = hmcol,
-                    dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
-        dev.off()  
+                    dendrogram = c("none"),main=paste(i," ",r,"N=",dim(data)[1]))
+          dev.off()
+        }
       }
       #####
     }
@@ -272,41 +260,24 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
     ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
   dev.off()
   
-  
-  regulation="Up-regulated"
-  data=countsTableNorm[significant_up_ids,]
-  hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-  
-  png(paste(img_dir,"heatmap_",condition,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+  for (r in regulation){
+    data=countsTableNorm[significant_up_ids,]
+    hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
+    
+    png(paste(img_dir,"heatmap_",condition,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
     par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
     heatmap.2(as.matrix(log2(data+1)),
               Rowv=as.dendrogram(hcGenes), Colv=NULL,
               scale="row", labRow="",trace="none", col = hmcol,
-              dendrogram = c("none"),main=paste(regulation,"N=",dim(data)[1]))
-  dev.off()
+              dendrogram = c("none"),main=paste(r,"N=",dim(data)[1]))
+    dev.off()
+    
+    pdf(paste(img_dir,"boxplot_",condition,"_",dname,"_",r,".pdf",sep=""))
+      par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+      boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
+    dev.off()
+  }
   
-  pdf(paste(img_dir,"boxplot_",condition,"_",dname,"_",regulation,".pdf",sep=""))
-    par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-    boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
-  dev.off()
-  
-  
-  regulation="Down-regulated"
-  data=countsTableNorm[significant_down_ids,]
-  hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-  
-  png(paste(img_dir,"heatmap_",condition,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-    par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-    heatmap.2(as.matrix(log2(data+1)),
-              Rowv=as.dendrogram(hcGenes), Colv=NULL, 
-              scale="row", labRow="",trace="none", col = hmcol,
-              dendrogram = c("none"),main=paste(regulation,"N=",dim(data)[1]))
-  dev.off()
-  
-  pdf(paste(img_dir,"boxplot_",condition,"_",dname,"_",regulation,".pdf",sep=""))
-    par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-    boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
-  dev.off()
   #####
   
   

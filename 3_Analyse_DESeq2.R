@@ -15,6 +15,7 @@ dir.create(base_res_dir, showWarnings = FALSE,recursive=T)
 library(FactoMineR)
 library(factoextra)
 library(DESeq2)
+library(gplots)
 
 ##### Analyse DESeq2 ###########
   
@@ -44,6 +45,8 @@ time_points = c(paste("CTRL", timing_ctrl, sep = "_" ),paste(condition, timing_r
 # Extraction des données de comptage de DESeq2
 geneNormCountsTable=counts(deseq,normalized=T)
 meanGeneNormCountsTable =data.frame(ID=rownames(geneNormCountsTable))
+
+countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE)) #Mise en forme des donnée pour les heatmap
 
 # Calcule des moyennes ==> Pourquoi utiliser cette partie du code au lieu de la fonction collapseReplicates de DESeq2 ?
 for(p in unique(time_points)) {
@@ -130,6 +133,7 @@ for(i in names(comparisons)) {
     res.annot= merge(res,annotation,by.x="row.names",by.y="ID")
     res.annot=res.annot[order(res.annot$padj), ]
     colnames(res.annot)[1]="ID"
+    
     write.table(res.annot,paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,".tab"),sep="\t",quote=F,row.names=F)
     #####
     
@@ -144,59 +148,65 @@ for(i in names(comparisons)) {
       res_vp[which(is.element(rownames(res_vp),rownames(res))),]$SIGNIFICANT=TRUE
       
       ##### Création des volcanoplot pour cette comparaison ####
-      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,".png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,".png"), width = 6, height = 6, units = 'in', res = 300)
+        plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       dev.off()
       
       # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
-      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-      for(s in annotation_synonyms$ID) {
-        if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
-          points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
-          text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$SYNONYMS[grep(s,annotation_synonyms$ID)])
+      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300)
+        plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+        for(s in annotation_synonyms$ID) {
+          if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
+            points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
+            text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$SYNONYMS[grep(s,annotation_synonyms$ID)])
+          }
         }
-      }
       dev.off()
       
       # Variables "genes" non définie pour le volcanoplot
       # png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-      # plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-      # for(id in names(genes)) {
-      #   #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
-      #   points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
-      #   text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),genes[[id]])
-      #   #}
-      # }
+      #   plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      #   for(id in names(genes)) {
+      #     #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
+      #     points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
+      #     text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),genes[[id]])
+      #     #}
+      #   }
       # dev.off()
       #####
       
       
-      ##### Création des heat map pour cette comparaison ####
-      if(length(rownames(res[res$REGULATION=="Up-regulated",])) >2) {
+      ##### Création des heatmap pour cette comparaison ####
+      if(nrow(res[res$REGULATION=="Up-regulated",]) >2) {
         regulation="Up-regulated"
         data=countsTableNorm[rownames(res[res$REGULATION==regulation,]),]
         hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
         
-        png(paste(img_dir,"heatmap_",analysis_name,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-        par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-        heatmap.2(as.matrix(log2(data+1)),Rowv=as.dendrogram(hcGenes), Colv=NULL, scale="row", labRow="", col=hmcol,trace="none",dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
+        png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+          par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+          heatmap.2(as.matrix(log2(data+1)),
+                    Rowv=as.dendrogram(hcGenes), Colv=NULL, 
+                    scale="row", labRow="",trace="none",
+                    dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
         dev.off()
       }
       
-      if(length(rownames(res[res$REGULATION=="Down-regulated",])) >2) {
+      if(nrow(res[res$REGULATION=="Down-regulated",]) >2) {
         regulation="Down-regulated"
         data=countsTableNorm[rownames(res[res$REGULATION==regulation,]),]
         hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
         
-        png(paste(img_dir,"heatmap_",analysis_name,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-        par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-        heatmap.2(as.matrix(log2(data+1)),Rowv=as.dendrogram(hcGenes), Colv=NULL, scale="row", labRow="", col=hmcol,trace="none",dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
+        png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",regulation,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+          par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+          heatmap.2(as.matrix(log2(data+1)),
+                    Rowv=as.dendrogram(hcGenes), Colv=NULL, 
+                    scale="row", labRow="", trace="none",
+                    dendrogram = c("none"),main=paste(i," ",regulation,"N=",dim(data)[1]))
         dev.off()  
       }
+      #####
     }
-  }  
-  
-}
+  }# Fin de la boucle pour chaque filtre  
+}# Fin de la boucle pour chaque condition
 
 

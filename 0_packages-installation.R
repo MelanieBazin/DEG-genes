@@ -19,6 +19,9 @@ BiocManager::install("latticeExtra")
 BiocManager::install("lifecycle")
 BiocManager::install("heatmaps")
 
+if (!require(devtools)) install.packages("devtools")
+devtools::install_github("yanlinlin82/ggvenn")
+
 options(stringsAsFactors = FALSE)
 
 annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')

@@ -337,9 +337,9 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
     
   }
   
-  ###########################################
-  # AUTOGAMY GENES
-  ############################################
+  ##################
+  # AUTOGAMY GENES #
+  ##################
 
   profiles=c("Early peak","Intermediate peak","Late peak" ,"Late induction", "Early repression","Late repression" ,"none")
   profiles=c("Early repression","Late repression" ,"Early peak","Late peak" ,"Late induction","Intermediate peak","none")
@@ -376,9 +376,6 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
             ylab="Developmental gene proportion (%)")
   dev.off()
   
-  
-  
-  
   significant=merge(countsTableNorm[significant_ids,],wt_autogamy[,c("ID","EXPRESSION_PROFIL")],all.x=T,by="row.names")
   
   prop=data.frame()
@@ -401,9 +398,9 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
     legend("topleft",legend=rev(profiles[-length(profiles)]),col=rev(colors[-length(profiles)]),bty="n",pch=15,cex=1.3)
   dev.off()
   
-  ###########################################
-  # IES
-  ############################################
+  #############
+  #    IES    #
+  #############
   
   gene_with_IES_ids=annotation[annotation$NB_IES!=0,]$ID
   prop=c(

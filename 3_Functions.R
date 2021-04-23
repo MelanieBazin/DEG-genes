@@ -1,4 +1,16 @@
 options(stringsAsFactors = FALSE)
+
+##### Chragement des libraies necessaire à l'analyse ####
+library(FactoMineR)
+library(factoextra)
+library(DESeq2)
+library(gplots)
+library(seqinr)
+library("ggvenn")
+library("RColorBrewer")
+library("pheatmap")
+#####
+
 # Variable pour l'enrichissement en gène de l'autogamie
 wt_autogamy =read.table("./DATA/autogamy_ptetraurelia_mac_51_annotation_v2.0_significant.tab",h=T,sep="\t")
 rownames(wt_autogamy)=wt_autogamy$ID

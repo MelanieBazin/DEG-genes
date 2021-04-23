@@ -1,5 +1,7 @@
 source("2_Mise_en_forme_des_donnees.R")
 
+annotation_synonyms = annotation[annotation$SYNONYMS != "",]
+
 ##### Création des dossier pour ranger les données #############
 
 base_img_dir=paste0("Analyse_DESeq2/",condition,"_", type,"/Images/")
@@ -94,15 +96,21 @@ for(i in names(comparisons)) {
     # boxplot(log2FC, main = paste("log2FC","\n",i), horizontal=F)
     ##############
 
-  # first dataset => no remove ==> "Filtering" n'est pas définie
+  # Initialisation du 1er set de data : sn  as filtre => aucun gènes supprimés
   datasets=list("NoFilter"=resContrast_sig)
-  for(fname in names(Filtering)) {
-
-    datasets[[fname]]=resContrast_sig[setdiff(rownames(resContrast_sig),Filtering[[fname]]),]
-    #print(paste(i,fname,nrow(resContrast_sig),length(Filtering[[fname]]),dim(datasets[[fname]])[1]))
-  }
   
-  # for each Filtering Datasets
+  # ==> "Filtering" n'est pas définie,
+  # Réponse d'Olivier Pour certaine conditions 
+  # j'ai par exemple envie de retirer les gènes qui sont DE pendant une manip de silencing,
+  # ou entre plusieurs manip control... en gros des faux positifs
+  
+  # for(fname in names(Filtering)) {  
+  # 
+  #   datasets[[fname]]=resContrast_sig[setdiff(rownames(resContrast_sig),Filtering[[fname]]),]
+  #   #print(paste(i,fname,nrow(resContrast_sig),length(Filtering[[fname]]),dim(datasets[[fname]])[1]))
+  # }
+  
+  # Pour chacun des jeux de données filtrés ou non
   for(dname in names(datasets)) {
     
     img_dir=paste0(base_img_dir,"/",dname,"/")
@@ -113,6 +121,7 @@ for(i in names(comparisons)) {
     
     res=as.data.frame(datasets[[dname]])
     #print(paste(i,dname,dim(res)[1]))
+    
     res=res[,c("baseMean","log2FoldChange","padj")]
     res$REGULATION=ifelse(res$log2FoldChange>0,"Up-regulated","Down-regulated")
     res.annot= merge(res,annotation,by.x="row.names",by.y="ID")
@@ -136,13 +145,13 @@ for(i in names(comparisons)) {
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       dev.off()
       
-      
+      ### On considère que synonyms contine l'équivalment de la colonne synonyms dans annotation
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-      for(s in 1:length(synonyms$ID)) {
-        if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
-          points(res_vp[synonyms[s,]$ID,]$log2FoldChange,-log(res_vp[synonyms[s,]$ID,]$padj),col="green")
-          text(res_vp[synonyms[s,]$ID,]$log2FoldChange+1,-log(res_vp[synonyms[s,]$ID,]$padj),substr(ifelse(sum(grep("PTET.51.1.",synonyms[s,]$NAME))==1,synonyms[s,]$SYNONYMS,synonyms[s,]$NAME),0,7))
+      for(s in annotation_synonyms$ID) {
+        if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
+          points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
+          text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$SYNONYMS[grep(s,annotation_synonyms$ID)])
         }
       }
       dev.off()

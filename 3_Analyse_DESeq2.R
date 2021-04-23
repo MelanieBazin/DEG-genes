@@ -1,43 +1,42 @@
-source("2_Mise_en_forme_des_donnees.R")
 source("3_Functions.R")
 
-##### Chargement des librairies pour l'analyse #############
-library(FactoMineR)
-library(factoextra)
-library(DESeq2)
-library(gplots)
-library(seqinr)
-library("ggvenn")
-library("RColorBrewer")
-library("pheatmap")
-#####
+#### Initatiosation des variables ####
+type = "EXPRESSION" #3 possibiltées : "RPM","RPKM", "EXPRESSION"
+
+condition = "KU80c" #4 possibilitées : "CTIP", "XRCC4", "PGM", KU80c"
+
+path = paste0("./DATA/",type)
+analyseName = "101genes"
+source("2_Mise_en_forme_des_donnees.R")
 
 
-#### Initatiosation de variable ###
-annotation_synonyms = annotation[annotation$SYNONYMS != "",]
+# Definiton des variables DESeq2
+FC = 1.1
+pvalue = 0.2
 
+### Création  de liste de gènes filtrés (retirés de l'analyse) ###
 Filtering= list()
 Filtering= NULL
-# ==> "Filtering" n'est pas définie,
-# Réponse d'Olivier Pour certaine conditions 
-# j'ai par exemple envie de retirer les gènes qui sont DE pendant une manip de silencing,
-# ou entre plusieurs manip control... en gros des faux positifs
+# par exemple : retirer les gènes qui sont DE pendant une manip de silencing, 
+# ou entre plusieurs manip control ==> des faux positifs
 
 
-# Vecteur de couleur pour les heatmap
+### Vecteur de couleur pour les heatmap
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
 
+### Limiter le fichier annotation aux gènes avec synonyme ###
+annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 
-##### Création des dossier pour ranger les données #############
-
-base_img_dir=paste0("Analyse_DESeq2/",condition,"_", type,"/Images/")
+### Création des dossier pour ranger les données ###
+base_img_dir=paste0("Analyse_DESeq2_",analyseName,"/",condition,"_", type,"/Images/")
 dir.create(base_img_dir,recursive=T,showWarnings=F)
 
-base_res_dir=paste0("Analyse_DESeq2/",condition,"_", type,"/")
+base_res_dir=paste0("Analyse_DESeq2_",analyseName,"/",condition,"_", type,"/")
 dir.create(base_res_dir, recursive=T,showWarnings=F)
-#####
+
+####
 
 
 ##### Analyse DESeq2 ###########
@@ -334,7 +333,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
  
   
   for(p in profiles) {
-    print(p)
+    #print(p)
     apply(autog_enrichment[2:4,c(p,"NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c(p,"NB")]))
   }
   

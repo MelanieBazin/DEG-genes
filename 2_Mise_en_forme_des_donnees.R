@@ -1,96 +1,36 @@
-options(stringsAsFactors = FALSE)
+source("2_Fonction.R")
 
 annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
 
-type = "EXPRESSION" #3 possibiltées : "RPM","RPKM", "EXPRESSION"
-
-condition = "CTIP"
-
-#### Ouverture des fichiers ####
-files = list.files(path = paste0("./DATA/",type))
-
-
 #### Definition des paramètres selon l'ARNi étudier ########
-
 if (condition == "CTIP") {
-  #Ouverture des fichiers
-  files = files[grep(condition,files)]
-  control = read.table(paste0("./DATA/", type,"/",files[grep("CTRL",files)]),h = T,sep = "\t")
-  rnai = read.table(paste0("./DATA/", type,"/",files[setdiff(1:length(files),grep("CTRL",files))]),h = T,sep = "\t")
-  
-  
   # Sélectionner les points à regrouper comme faisant parti du même timing
   timing_ctrl = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",2))
   timing_rnai = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",1))
-  
-  # Réordonner les colonne du tableau pour les mettre dans l'ordre de la cinétique
-  control = control[,c(1,7,2:6)]
-  rnai = rnai[,c(1,6,2:5)]
-  
-  # Definiton des variables DESeq2
-  FC = 1.1
-  pvalue = 0.2
-  
+
 }else if (condition == "XRCC4"){
-  #Ouverture des fichiers
-  files = files[grep(condition,files)]
-  control = read.table(paste0("./DATA/", type,"/",files[grep("CTRL",files)]),h = T,sep = "\t")
-  rnai = read.table(paste0("./DATA/", type,"/",files[setdiff(1:length(files),grep("CTRL",files))]),h = T,sep = "\t")
-  
-  
   # Sélectionner les points à regrouper comme faisant parti du même timing
   timing_ctrl = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2))
   timing_rnai = timing_ctrl
-  
-  # Réordonner les colonne du tableau pour les mettre dans l'ordre de la cinétique
-  control = control[,c(1,6,2:5)]
-  rnai = rnai[,c(1,6,2:5)]
-  
-  # Definiton des variables DESeq2
-  FC = 1.1
-  pvalue = 0.2
+
 }else if (condition == "PGM"){
-  #Ouverture des fichiers
-  control_nd7 = read.table(paste0("./DATA/", type,"/",files[grep("ND7",files)]),h = T,sep = "\t")
-  control_icl7 = read.table(paste0("./DATA/", type,"/",files[grep("ICL7",files)]),h = T,sep = "\t")
-  rnai = read.table(paste0("./DATA/", type,"/",files[grep(condition,files)]),h = T,sep = "\t")
-  
-  # Réordonner les colonne du tableau pour les mettre dans l'ordre de la cinétique
-  control_nd7 = control_nd7[,c(1,8,2:7)]
-  control_icl7 = control_icl7[,c(1,8,2:7)]
-  rnai = rnai[,c(1,8,2:7)]
-  
   # Sélectionner les points à regrouper comme faisant parti du même timing
   timing_ctrl_nd7 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
   timing_ctrl_icl7 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
+  timing_ctrl = c(timing_ctrl_nd7, timing_ctrl_icl7)
   timing_rnai = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
-
-  # Definiton des variables DESeq2
-  FC = 1.1
-  pvalue = 0.2
-  
   
 }else if (condition == "KU80c"){
-  #Ouverture des fichiers
-  control_nd7 = read.table(paste0("./DATA/", type,"/",files[grep("ND7",files)]),h = T,sep = "\t")
-  control_icl7 = read.table(paste0("./DATA/", type,"/",files[grep("ICL7",files)]),h = T,sep = "\t")
-  rnai = read.table(paste0("./DATA/", type,"/",files[grep(condition,files)]),h = T,sep = "\t")
-  
-  # Réordonner les colonne du tableau pour les mettre dans l'ordre de la cinétique
-  control_nd7 = control_nd7[,c(1,8,2:7)]
-  control_icl7 = control_icl7[,c(1,8,2:7)]
-  rnai = rnai[,c(1,8,2:7)]
-  
   # Sélectionner les points à regrouper comme faisant parti du même timing
   timing_ctrl_nd7 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
   timing_ctrl_icl7 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
+  timing_ctrl = c(timing_ctrl_nd7, timing_ctrl_icl7)
   timing_rnai = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3))
 
-  
-  # Definiton des variables DESeq2
-  FC = 1.1
-  pvalue = 0.2
 }
+
+#Ouverture des fichier et cré ation de l'objet countdata
+countdata = OpenDataCount(path, condition)
 
 ####### Sélection de gènes #####
 selection = c("Ku","ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
@@ -101,25 +41,20 @@ for(i in selection){
   selection_ID = c(selection_ID,annotation$ID[grep(i,annotation$SYNONYMS)])
   
 }
-control = control[is.element(control$ID, selection_ID),]
-rnai = rnai[is.element(rnai$ID, selection_ID),]
+countdata = countdata[is.element(rownames(countdata), selection_ID),]
+
 
 ####### Mise en forme des données pour DESeq2 ##############
-# Fusion des tableau de comptage controle et ARNi
-colnames(control) = paste(colnames(control),"CTRL", sep = "_" )
-colnames(rnai) = paste(colnames(rnai),"RNAi", sep = "_" )
-countdata=merge(control, rnai, by.x = "ID_CTRL", by.y = "ID_RNAi")
-
-row.names(countdata) = countdata$ID_CTRL
-countdata = as.matrix(countdata[,-1])
+countdata =  as.matrix(countdata)
 
 # Création du tableau avec les info des colonnes
 infodata = matrix(NA,nrow = ncol(countdata), ncol = 4)
 row.names(infodata) = colnames(countdata)
 colnames(infodata) = c("Noms", "Feeding", "Timing", "Conditions")
 infodata[,"Noms"] = colnames(countdata)
-infodata[,"Feeding"] = c(rep("controle",ncol(control)-1),
-                            rep(paste("RNAi",condition),ncol(rnai)-1))
+
+infodata[,"Feeding"] = c(rep("controle",length(grep("CTRL", colnames(countdata)))),
+                         rep(paste("RNAi",condition),length(grep("RNAi", colnames(countdata)))))
 infodata[,"Timing"] = c(timing_ctrl,timing_rnai)
 infodata[,"Conditions"] = c(paste("CTRL", timing_ctrl, sep = "_" ),paste(condition, timing_rnai, sep = "_" ))
 

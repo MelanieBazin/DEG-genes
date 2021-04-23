@@ -113,12 +113,15 @@ for(i in names(comparisons)) {
   # Pour chacun des jeux de données filtrés ou non
   for(dname in names(datasets)) {
     
+    #### Créaction des dossiers d'enregistrement ####
     img_dir=paste0(base_img_dir,"/",dname,"/")
     dir.create(img_dir,recursive=T,showWarnings=F)
     
     res_dir=paste0(base_res_dir,"/",dname,"/")
     dir.create(res_dir, showWarnings = FALSE,recursive=T)
+    #####
     
+    #### Création du tableau contennat les gènes significativement identifier comme déréguler ####
     res=as.data.frame(datasets[[dname]])
     #print(paste(i,dname,dim(res)[1]))
     
@@ -128,7 +131,7 @@ for(i in names(comparisons)) {
     res.annot=res.annot[order(res.annot$padj), ]
     colnames(res.annot)[1]="ID"
     write.table(res.annot,paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,".tab"),sep="\t",quote=F,row.names=F)
-    
+    #####
     
     
     significant_up[[dname]]=c(significant_up[[dname]],rownames(res[res$REGULATION=="Up-regulated",]))
@@ -140,12 +143,12 @@ for(i in names(comparisons)) {
       res_vp$SIGNIFICANT=FALSE
       res_vp[which(is.element(rownames(res_vp),rownames(res))),]$SIGNIFICANT=TRUE
       
-      # volcano plot for this comparison
+      ##### Création des volcanoplot pour cette comparaison ####
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,".png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       dev.off()
       
-      ### On considère que synonyms contine l'équivalment de la colonne synonyms dans annotation
+      # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       for(s in annotation_synonyms$ID) {
@@ -156,17 +159,20 @@ for(i in names(comparisons)) {
       }
       dev.off()
       
+      # Variables "genes" non définie pour le volcanoplot
+      # png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
+      # plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      # for(id in names(genes)) {
+      #   #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
+      #   points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
+      #   text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),genes[[id]])
+      #   #}
+      # }
+      # dev.off()
+      #####
       
-      png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-      for(id in names(genes)) {
-        #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
-        points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
-        text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),genes[[id]])
-        #}
-      }
-      dev.off()
       
+      ##### Création des heat map pour cette comparaison ####
       if(length(rownames(res[res$REGULATION=="Up-regulated",])) >2) {
         regulation="Up-regulated"
         data=countsTableNorm[rownames(res[res$REGULATION==regulation,]),]

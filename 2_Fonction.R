@@ -44,3 +44,33 @@ OpenDataCount <- function(path, condition){
   return(countdata)
 }
 
+
+CreationInfoData <- function(countdata){
+  infodata = matrix(NA,nrow = ncol(countdata), ncol = 3)
+  
+  row.names(infodata) = colnames(countdata)
+  colnames(infodata) = c("Noms", "Feeding", "Timing")
+  
+  
+  timing = sub("RNAi","",colnames(countdata))
+  timing = sub("CTRL","",timing)
+  timing = sub("ND7","",timing)
+  timing = sub("ICL7","",timing)
+  timing = gsub("_","",timing)
+  
+  if (condition == "PGM"|condition=="KU80c"){
+    infodata[,"Feeding"] = c(rep("ND7 PGM/KU80c",length(grep("ND7", colnames(countdata)))),
+                             rep("ICL7 PGM/KU80c",length(grep("ICL7", colnames(countdata)))),
+                             rep(paste("RNAi",condition),length(grep("RNAi", colnames(countdata))))) 
+  }else{
+    infodata[,"Feeding"] = c(rep(paste("ND7", condition),length(grep("CTRL", colnames(countdata)))),
+                             rep(paste("RNAi",condition),length(grep("RNAi", colnames(countdata)))))
+  }
+  
+  
+  infodata[,"Noms"] = colnames(countdata)
+  infodata[,"Timing"] = timing
+  
+  return(infodata)
+}
+

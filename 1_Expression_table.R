@@ -13,10 +13,10 @@ name = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL )
 dir.create("1_EXPRESSION")
 
 for (i in 1:length(data_directories)){
-  list= list.files(data_directories[i])
+  list= list.files(paste0("DATA/RNAseq/",data_directories[i]))
   table = NULL
   for(j in list){
-    tab = read.table(paste0(data_directories[i],"/",j))
+    tab = read.table(paste0("DATA/RNAseq/",data_directories[i],"/",j))
     table = cbind(table, tab[,2])
   }
   table = cbind(as.character(tab[,1]), table)

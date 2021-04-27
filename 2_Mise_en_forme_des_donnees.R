@@ -29,19 +29,19 @@ if (condition == "CTIP") {
 
 }
 
-#Ouverture des fichier et cré ation de l'objet countdata
+#Ouverture des fichier et création de l'objet countdata
 countdata = OpenDataCount(path, condition)
 
 ####### Sélection de gènes #####
-selection = c("Ku","ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
-
-selection_ID =c()
-
-for(i in selection){
-  selection_ID = c(selection_ID,annotation$ID[grep(i,annotation$SYNONYMS)])
-  
-}
-countdata = countdata[is.element(rownames(countdata), selection_ID),]
+# selection = c("Ku","ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
+# 
+# selection_ID =c()
+# 
+# for(i in selection){
+#   selection_ID = c(selection_ID,annotation$ID[grep(i,annotation$SYNONYMS)])
+#   
+# }
+# countdata = countdata[is.element(rownames(countdata), selection_ID),]
 
 
 ####### Mise en forme des données pour DESeq2 ##############

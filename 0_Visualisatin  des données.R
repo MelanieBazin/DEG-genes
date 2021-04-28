@@ -1,39 +1,81 @@
-source("0_Visualisatin  des données_fonction.R")
+source("0_Visualisatin  des données_fonction.R", encoding = "UTF-8")
+
+analyseName = "Test_normalisation"
+condition = c("CTIP", "XRCC4", "PGM", "KU80c")
+condition = "PGM" #4 possibilitées : "CTIP", "XRCC4", "PGM", "KU80c"
+
+
 #######################################################
 # Partie 1 : Comparaison des méthodes de normalisaion #
 #######################################################
-analyseName = "Test_normalisation"
-
-# RPM
-
-# RPKM
+# Comptage
+Type = c("EXPRESSION","RPM", "RPKM")
+pdf(paste(analyseName,"Boxplot_Normalsation1.pdf", sep="_"))
+for (i in Type){
+  tab = ConcatTab(i)
+  rownames(tab)=tab$ID
+  tab = tab[,-1]
+    if (i == "EXPRESSION"){type = "raw data"}else{type = i}
+  CountBoxplot(tab, type)
+}
 
 ############ Normalisation DESeq2 ############
 source("2_Fonction.R")
 
-condition = c("CTIP", "XRCC4", "PGM", "KU80c")
-condition = "PGM" #4 possibilitées : "CTIP", "XRCC4", "PGM", "KU80c"
 
 #Ouverture des fichiers et création de l'objet countdata
-countdata = OpenDataCount("./DATA/EXPRESSION", condition)
+countdata = ConcatTab("EXPRESSION")
+row.names(countdata)=countdata$ID
+countdata=countdata[,-1]
 countdata =  as.matrix(countdata)
 
 # Création du tableau avec les info des colonnes
-infodata = CreationInfoData(countdata)
+infodata=matrix(NA,nrow = ncol(countdata), ncol=3)
+row.names(infodata) = colnames(countdata)
+colnames(infodata) = c("Name","RNAi","Timing")
+infodata[,"Name"] = row.names(infodata)
+
+
+
+CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
+CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
+ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
+KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
+XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
+XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
+
+infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+
+condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
+l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+rnai = c()
+for (i in 1:length(l)){
+  rnai = c(rnai, rep(condi[i],length(l[[i]])))
+}
+infodata[,"RNAi"] = rnai
 infodata = as.data.frame(infodata)
 
 # Mise en forme des données
 library(DESeq2)
 deseq = DESeqDataSetFromMatrix(countData = countdata,
                                colData  = infodata,
-                               design   = ~ Feeding + Timing)
+                               design   = ~ RNAi + Timing)
 
 
 # Analyse DESeq2
 deseq = DESeq(deseq)
 
 # Récupération des données de comptage normalisées
-geneNormCountsTable=counts(deseq,normalized=T)
+tab=counts(deseq,normalized=T)
+CountBoxplot(tab, "DESeq2")
+
+# Graphique du paramètre de dispersion
+plotDispEsts(deseq, ylim = c(1e-6, 1e1))
+
+dev.off()
+
 
 
 ########################################################

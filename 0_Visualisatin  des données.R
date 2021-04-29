@@ -1,101 +1,100 @@
 source("0_Visualisatin  des données_fonction.R", encoding = "UTF-8")
-
-analyseName = "Test_normalisation"
-condition = c("CTIP", "XRCC4", "PGM", "KU80c")
-condition = "PGM" #4 possibilitées : "CTIP", "XRCC4", "PGM", "KU80c"
-
+path = "./Graph/Normalisations/"
 
 #######################################################
 # Partie 1 : Comparaison des méthodes de normalisaion #
 #######################################################
 # Comptage
 Type = c("EXPRESSION","RPM", "RPKM")
-pdf(paste(analyseName,"Boxplot_Normalsation1.pdf", sep="_"))
 for (i in Type){
-  tab = ConcatTab(i)
-  rownames(tab)=tab$ID
-  tab = tab[,-1]
+  png(paste0(path,i,"_Boxplot.png"))
+    tab = ConcatTab(i)
+    rownames(tab)=tab$ID
+    tab = tab[,-1]
     if (i == "EXPRESSION"){type = "raw data"}else{type = i}
   CountBoxplot(tab, type)
+  dev.off()
 }
-
-############ Normalisation DESeq2 ############
-source("2_Fonction.R")
-
-
-#Ouverture des fichiers et création de l'objet countdata
-countdata = ConcatTab("EXPRESSION")
-row.names(countdata)=countdata$ID
-countdata=countdata[,-1]
-countdata =  as.matrix(countdata)
-
-# Création du tableau avec les info des colonnes
-infodata=matrix(NA,nrow = ncol(countdata), ncol=3)
-row.names(infodata) = colnames(countdata)
-colnames(infodata) = c("Name","RNAi","Timing")
-infodata[,"Name"] = row.names(infodata)
-
-
-
-CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
-CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
-ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
-KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
-XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
-XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
-
-infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
-
-condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
-l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
-rnai = c()
-for (i in 1:length(l)){
-  rnai = c(rnai, rep(condi[i],length(l[[i]])))
-}
-infodata[,"RNAi"] = rnai
-infodata = as.data.frame(infodata)
-
-# Mise en forme des données
-library(DESeq2)
-deseq = DESeqDataSetFromMatrix(countData = countdata,
-                               colData  = infodata,
-                               design   = ~ RNAi + Timing)
-
-
-# Analyse DESeq2
-deseq = DESeq(deseq)
-
-# Récupération des données de comptage normalisées
-tab=counts(deseq,normalized=T)
-CountBoxplot(tab, "DESeq2")
-
-# Graphique du paramètre de dispersion
-plotDispEsts(deseq, ylim = c(1e-6, 1e1))
-
+  
+# Récupération des données de comptage normalisées DESeq2
+tab = list.files("./DATA/DESeq2/")[grep("tout",list.files("./DATA/DESeq2/"))]
+tab = tab[grep("normalisation", tab)]
+tab = read.table(paste0("./DATA/DESeq2/", tab), header = T, sep = "\t")
+  
+png(paste0(path,"DESeq2_Boxplot.png"))
+  CountBoxplot(tab, "DESeq2")
 dev.off()
-
-
 
 ########################################################
 # Partie 2 : Visualisation des données pour clustering #
 ########################################################
-distance_methode =  c("Euclidean", "Correlation")
-method_utilisee = c("kmeans", "HCL")
+Type = c("RPM", "RPKM","DESeq2")
+# RNAi à analyser ensemble
+tout = sub(paste0("_expression_table_RPKM.tab"),"",list.files("./DATA/RPKM/"))
+rnai_list = list(
+  sequencage_2014 = tout[which(is.element(tout,c("ICL7","KU80c","ND7","PGM" )))],
+  sequencage_2020 = tout[which(is.element(tout,c("CTIP","CTIP_CTRL","XRCC4","XRCC4_CTRL")))],
+  controles = tout[which(is.element(tout,c("ND7", "ICL7", "CTIP_CTRL","XRCC4_CTRL")))],
+  XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
+  XRCC4ctrl2020 = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL","CTIP_CTRL")))],
+  XRCC4tousctrl = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL","ND7", "ICL7", "CTIP_CTRL")))],
+  XRCC4xseq2014 = tout[which(is.element(tout,c("XRCC4","XRCC4_CTRL","ICL7","KU80c","ND7","PGM" )))],
+  CTIPseul = tout[which(is.element(tout, c("CTIP","CTIP_CTRL")))],
+  CTIPctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL","XRCC4_CTRL")))],
+  CTIPtousctrl = tout[which(is.element(tout,c("CTIP","ND7", "ICL7", "CTIP_CTRL","XRCC4_CTRL")))],
+  tout = tout
+)
 
 
-nb_cluster = 4 #VEG, EARLY, INTERMEDIATE, LATE
-graph_type = c("heatmap","profils")
+type = Type[1]
+i = names(rnai_list)[4]
+distance_methode = "Euclidean"
+method_utilisee = "kmeans"
 
-#### Visualisation donnée de clustering
 
-pdf(paste0("Lvl3_profil_",sub(".txt","",Nom_de_fichier),"_",nb_cluster,"clusters_",method_utilisee,"_",distance_methode,".pdf"))
 
-Clustering(Nom_de_fichier = Mon_fichier_S,
-           distance = distance_methode,
-           nb_cluster = nb_cluster,
-           method = method_utilisee,
-           graph_type = graph_type)
+for (type in Type){
+  for (i in names(rnai_list)){
+    # Création du tableau de donnée à analyser ensemble
+    if (type == "DESeq2"){
+      data_tab = read.table(paste0("./DATA/DESeq2/",i,"_",paste(rnai_list[[i]],collapse = "-"),"_normalisation_DESeq2.tab"), header = T, sep="\t")
+    }else{
+      data_tab = ConcatTab("EXPRESSION", conditions = rnai_list[[i]])
+    }
+    
+    # Passage de la colonne des ID en rowname
+    if (colnames(data_tab)[1]=="ID"){
+      row.names(data_tab)=data_tab$ID
+      data_tab = data_tab[,-1]
+    }
+    Nom_de_fichier = data_tab
+    distance = distance_methode
+    nb_cluster = 4
+    method = method_utilisee
+    graph_type = c("heatmap","profils")
+    
+    # Analyse en composante principale
+    #PCA_plot_generator(data_tab,colors = NULL, save_path = paste0(path,type,"_",i,"_"))
+    
+    # Analyse de clusering
+    for (distance_methode in c("Euclidean", "Correlation")){
+      for (method_utilisee in c("kmeans", "HCL")){
+        pdf(paste0(path, paste(type, i, distance_methode,method_utilisee,"Clustering",sep="_"),".pdf"))
+          Clustering(Nom_de_fichier = data_tab,
+                     distance = distance_methode,
+                     nb_cluster = 4,
+                     method = method_utilisee,
+                     graph_type = c("heatmap","profils"))
+        dev.off()
+      }
+      dev.off()
+    }
+    dev.off()
+  }
+  dev.off()
+}
 
-dev.off()
+
+
+
+

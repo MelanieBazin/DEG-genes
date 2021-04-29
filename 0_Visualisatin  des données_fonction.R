@@ -1,4 +1,7 @@
 options(stringsAsFactors = FALSE)
+#memory.limit(size=32650) # valeur par défaut en Mo
+#memory.limit(size=32650)
+
 
 OpenTabInList <- function(type){
   path = paste0("./DATA/", type)
@@ -13,11 +16,21 @@ OpenTabInList <- function(type){
 return(list_count)
 }
   
-ConcatTab <- function(type){
+ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
   path = paste0("./DATA/", type)
-  count = paste(path,list.files(path), sep = "/")
+  count = list.files(path)
+  if (type == "EXPRESSION"){
+    extention = ".tab"
+  }else{
+    extention = paste0("_expression_table_",type,".tab")
+  }
   
+  if (!is.null(conditions)){
+    count =  count[which(is.element(count, paste0(conditions,extention)))]
+  }
+  
+  count = paste(path,count, sep = "/")
   tab_count = array(annotation$ID, dim = c(nrow(annotation),1))
   colnames(tab_count)="ID"
   for (i in count){
@@ -53,6 +66,42 @@ CountBoxplot <- function (tab, type){
        cex = 0.5)
 }
 
+CreatInfoData2 <- function(conditions=NULL){
+  countdata= ConcatTab("EXPRESSION")
+  if (colnames(countdata)[1]=="ID"){
+    countdata=countdata[,-1]
+  }
+  infodata=matrix(NA,nrow = ncol(countdata), ncol=3)
+  row.names(infodata) = colnames(countdata)
+  colnames(infodata) = c("Name","RNAi","Timing")
+  infodata[,"Name"] = row.names(infodata)
+
+  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
+  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
+  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
+  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
+  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
+  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
+  
+  infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  
+  condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
+  l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  rnai = c()
+  for (i in 1:length(l)){
+    rnai = c(rnai, rep(condi[i],length(l[[i]])))
+  }
+  infodata[,"RNAi"] = rnai
+  infodata = as.data.frame(infodata)
+  
+  if (!is.null(conditions)){
+    infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]
+  }
+return(infodata)
+}
+
 #############################################
 # PCA
 #############################################
@@ -61,15 +110,14 @@ CountBoxplot <- function (tab, type){
 
 library(FactoMineR)
 library("factoextra")
+library(ggplot2)
 library(gtools)
 
-require(ggplot2)
-
-PCA_plot_generator <- function(Expression_Mat, colors,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, ...) {
+PCA_plot_generator <- function(Expression_Mat, colors,save_path,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, ...) {
   resExp = PCA(t(Expression_Mat), graph = F)
   if(show_barplot) {
     eigenvalues <- resExp$eig
-    pdf(paste0(image_prefix,"_PCA_Variance.pdf"))
+    pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
     barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
             main = "Variances",
             xlab = "Principal Components",
@@ -83,11 +131,12 @@ PCA_plot_generator <- function(Expression_Mat, colors,max_dim=3,barplot_max_dim=
   
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
-    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors, ...)
-    ggsave(paste0(image_prefix,i,".pdf"), plot = gp)
+    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors,
+                 ggoptions = list(size=1),...)
+    ggsave(paste0(save_path,image_prefix,i,".png"), device = "png", plot = gp)
+    dev.off()
   }
-  
-  
+
 }
 
 ##############
@@ -135,11 +184,15 @@ plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
 ###################
 # Clustering
 ####################
-
 # Fonction 1 : Lecture des données
 F1_lecture_donnée <- function(Nom_de_fichier, Chemin_acces = "./"){
-  expMatrix = read.table(paste0(Chemin_acces,Nom_de_fichier), header = T, row.names = 1)
   
+  if (is.character(Nom_de_fichier)){
+    expMatrix = read.table(paste0(Chemin_acces,Nom_de_fichier), header = T, row.names = 1)
+  }else{
+    expMatrix = Nom_de_fichier
+  }
+
   # Si  des gènes ne sont pas exprimer
   if (is.element(T, rowSums(expMatrix) <= ncol(expMatrix))){
     # Mettre à part les genes qui ne sont pas exprimés
@@ -173,16 +226,15 @@ F2_matrice_distance <- function(data, distance){
 F3_Algorithme_regroupement <- function(matDist,data, nb_cluster, method){
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
-    res = kmeans(matDist, nb_cluster)
+    res = kmeans(as.matrix(matDist), nb_cluster)
     vecCluster = res$cluster
     
-    fviz_cluster(rez,data = data,              
+    fviz_cluster(res,data = data,              
                  palette = c("#2E9FDF", "#00AFBB", "#E7B800"), 
                  geom = "point",
                  ellipse.type = "convex", 
                  ggtheme = theme_bw()
-    )
-    
+                 )
   }else if(method  == "HCL"){
     res = hclust(matDist)
     vecCluster = cutree(res, nb_cluster)
@@ -190,9 +242,6 @@ F3_Algorithme_regroupement <- function(matDist,data, nb_cluster, method){
     #Fait un dendrogramme
     plot(res)
   }
-  
-  
-  
 }
 
 
@@ -234,8 +283,7 @@ F5_Representation_graphique <- function(data, cluster, graph_type, selected_clus
 
 # Fonction finale : fonction permettant de lancer les fonctions précédentes dans l'ordre et qui vas créer les graph pour tous les clusters
 Clustering <- function(Nom_de_fichier, Chemin_acces = "./",
-                            distance, nb_cluster, method,
-                            graph_type){
+                            distance, nb_cluster, method, graph_type){
   
   # Permet de gérer le type de sortie de l'ouverture des fichiers selon qu'1 ou 2 tableau soient générer par la fonction F1
   if(is.list(F1_lecture_donnée(Nom_de_fichier))){
@@ -245,7 +293,6 @@ Clustering <- function(Nom_de_fichier, Chemin_acces = "./",
     expMatrix = F1_lecture_donnée(Nom_de_fichier)
     expMatrix_1 = NULL
   }
-  
   
   matDist = F2_matrice_distance(expMatrix, distance)
   
@@ -279,9 +326,7 @@ Clustering <- function(Nom_de_fichier, Chemin_acces = "./",
                                 selected_cluster,
                                 distance, method, nb_cluster)
   }
-  
-  
-  
+
   
 }
 

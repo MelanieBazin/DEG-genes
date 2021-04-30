@@ -46,10 +46,10 @@ rnai_list = list(
 )
 
 
-type = Type[1]
-i = names(rnai_list)[4]
-distance_methode = "Euclidean"
-method_utilisee = "kmeans"
+# type = Type[1]
+# i = names(rnai_list)[4]
+# distance_methode = "Euclidean"
+# method_utilisee = "kmeans"
 
 
 
@@ -67,32 +67,31 @@ for (type in Type){
       row.names(data_tab)=data_tab$ID
       data_tab = data_tab[,-1]
     }
-    Nom_de_fichier = data_tab
-    rm(data_tab)
-    distance = distance_methode
-    nb_cluster = 4
-    method = method_utilisee
-    graph_type = c("heatmap","profils")
     
     # Analyse en composante principale
     PCA_plot_generator(data_tab,colors = NULL, save_path = paste0(path,type,"_",i,"_"))
     
+    # Nom_de_fichier = data_tab
+    # rm(data_tab)
+    # distance = distance_methode
+    # nb_cluster = 4
+    # method = method_utilisee
+    # graph_type = c("heatmap","profils")
+    
+    
     # Analyse de clusering
-    for (distance_methode in c("Euclidean", "Correlation")){
-      for (method_utilisee in c("kmeans", "HCL")){
-        pdf(paste0(path, paste(type, i, distance_methode,method_utilisee,"Clustering",sep="_"),".pdf"))
-          Clustering(Nom_de_fichier = data_tab,
-                     distance = distance_methode,
-                     nb_cluster = 4,
-                     method = method_utilisee,
-                     graph_type = c("heatmap","profils"))
-        dev.off()
-      }
-      dev.off()
-    }
-    dev.off()
+    # for (distance_methode in c("Euclidean", "Correlation")){
+    #   for (method_utilisee in c("kmeans", "HCL")){
+    #     pdf(paste0(path, paste(type, i, distance_methode,method_utilisee,"Clustering",sep="_"),".pdf"))
+    #     Clustering(Nom_de_fichier = data_tab,
+    #                distance = distance_methode,
+    #                nb_cluster = 4,
+    #                method = method_utilisee,
+    #                graph_type = c("heatmap","profils"))
+    #     dev.off()
+    #   }
+    # }
   }
-  dev.off()
 }
 
 

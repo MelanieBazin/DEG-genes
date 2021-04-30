@@ -129,9 +129,9 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path,max_dim=3,barplo
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
     gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors,
-                 ggoptions = list(size=1),...)
+                 ggoptions = list(size=1.5),...)
     ggsave(paste0(save_path,image_prefix,i,".png"), device = "png", plot = gp)
-    dev.off()
+    
   }
 
 }
@@ -220,19 +220,13 @@ F2_matrice_distance <- function(data, distance){
 
 
 # Fonction 3 : Application de l’algorithme de regroupement
-F3_Algorithme_regroupement <- function(matDist,data, nb_cluster, method){
+F3_Algorithme_regroupement <- function(matDist,expMatrix, nb_cluster, method){
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
     
     res = kmeans(matDist, nb_cluster)
     vecCluster = res$cluster
-    
-    fviz_cluster(res,data = data,              
-                 palette = c("#2E9FDF", "#00AFBB", "#E7B800"), 
-                 geom = "point",
-                 ellipse.type = "convex", 
-                 ggtheme = theme_bw()
-                 )
+
   }else if(method  == "HCL"){
     res = hclust(matDist)
     vecCluster = cutree(res, nb_cluster)
@@ -240,6 +234,13 @@ F3_Algorithme_regroupement <- function(matDist,data, nb_cluster, method){
     #Fait un dendrogramme
     plot(res)
   }
+  
+      
+    fviz_cluster(res,data = expMatrix,               
+                 geom = "point",
+                 ellipse.type = "convex", 
+                 ggtheme = theme_bw()
+                 )
 }
 
 

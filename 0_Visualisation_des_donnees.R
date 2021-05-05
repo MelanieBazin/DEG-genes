@@ -5,25 +5,25 @@ path = "./Graph/Normalisations/"
 # Partie 1 : Comparaison des méthodes de normalisaion #
 #######################################################
 # Comptage
-Type = c("EXPRESSION","RPM", "RPKM")
-for (i in Type){
-  png(paste0(path,i,"_Boxplot.png"))
-    tab = ConcatTab(i)
-    rownames(tab)=tab$ID
-    tab = tab[,-1]
-    if (i == "EXPRESSION"){type = "raw data"}else{type = i}
-  CountBoxplot(tab, type)
-  dev.off()
-}
-  
-# Récupération des données de comptage normalisées DESeq2
-tab = list.files("./DATA/DESeq2/")[grep("tout",list.files("./DATA/DESeq2/"))]
-tab = tab[grep("normalisation", tab)]
-tab = read.table(paste0("./DATA/DESeq2/", tab), header = T, sep = "\t")
-  
-png(paste0(path,"DESeq2_Boxplot.png"))
-  CountBoxplot(tab, "DESeq2")
-dev.off()
+# Type = c("EXPRESSION","RPM", "RPKM")
+# for (i in Type){
+#   png(paste0(path,i,"_Boxplot.png"))
+#     tab = ConcatTab(i)
+#     rownames(tab)=tab$ID
+#     tab = tab[,-1]
+#     if (i == "EXPRESSION"){type = "raw data"}else{type = i}
+#   CountBoxplot(tab, type)
+#   dev.off()
+# }
+#   
+# # Récupération des données de comptage normalisées DESeq2
+# tab = list.files("./DATA/DESeq2/")[grep("tout",list.files("./DATA/DESeq2/"))]
+# tab = tab[grep("normalisation", tab)]
+# tab = read.table(paste0("./DATA/DESeq2/", tab), header = T, sep = "\t")
+#   
+# png(paste0(path,"DESeq2_Boxplot.png"))
+#   CountBoxplot(tab, "DESeq2")
+# dev.off()
 
 ########################################################
 # Partie 2 : Visualisation des données pour clustering #
@@ -47,9 +47,14 @@ rnai_list = list(
 
 
 # type = Type[1]
-# i = names(rnai_list)[4]
-# distance_methode = "Euclidean"
-# method_utilisee = "kmeans"
+# i = names(rnai_list)[1]
+# distance_methode = "Pearson"
+# method_utilisee = "HCL"
+# 
+# Nom_de_fichier = data_tab
+# # rm(data_tab)
+# nb_cluster = 4
+# graph_type = c("profils")
 
 
 
@@ -68,32 +73,53 @@ for (type in Type){
       data_tab = data_tab[,-1]
     }
     
-    # Analyse en composante principale
-    PCA_plot_generator(data_tab,colors = NULL, save_path = paste0(path,type,"_",i,"_"))
+    print(paste(type,i, "- Commencé"))
     
-    # Nom_de_fichier = data_tab
-    # rm(data_tab)
-    # distance = distance_methode
-    # nb_cluster = 4
-    # method = method_utilisee
-    # graph_type = c("heatmap","profils")
+    # Analyse en composante principale
+    # resExp=PCA_plot_generator(data_tab,colors = NULL, save_path = paste0(path,"/ACP/",type,"_",i,"_"), main = paste0("ACP ",i," (",type,")"))
+    # 
+    # resHCPC = HCPC(resExp, graph = FALSE)
+    # 
+    # png(paste0(path,"/ACP/",type,"_",i,"_PCA_ClusteringHCPC_dendog.png"))
+    # p = fviz_dend(resHCPC, 
+    #               cex = 0.5,                     # Taille du text
+    #               palette = "jco",               # Palette de couleur ?ggpubr::ggpar
+    #               rect = TRUE, rect_fill = TRUE, # Rectangle autour des groupes
+    #               rect_border = "jco",           # Couleur du rectangle
+    #               main = paste0("ACP Dendrogram ",i," (",type,")"), 
+    #               labels_track_height = 2000)   # Augment l'espace pour le texte
+    # print(p)
+    # dev.off()
+    # 
+    # png(paste0(path,"/ACP/",type,"_",i,"_PCA_ClusteringHCPC_clust.png"))
+    # p=fviz_cluster(resHCPC,
+    #                repel = TRUE,            # Evite le chevauchement des textes
+    #                show.clust.cent = TRUE, # Montre le centre des clusters
+    #                palette = "jco",         # Palette de couleurs, voir ?ggpubr::ggpar
+    #                ggtheme = theme_minimal(),
+    #                main = paste0("ACP Factor map ",i," (",type,")"))
+    # print(p)
+    # dev.off()
+    # 
     
     
     # Analyse de clusering
-    # for (distance_methode in c("Euclidean", "Correlation")){
-    #   for (method_utilisee in c("kmeans", "HCL")){
-    #     pdf(paste0(path, paste(type, i, distance_methode,method_utilisee,"Clustering",sep="_"),".pdf"))
-    #     Clustering(Nom_de_fichier = data_tab,
-    #                distance = distance_methode,
-    #                nb_cluster = 4,
-    #                method = method_utilisee,
-    #                graph_type = c("heatmap","profils"))
-    #     dev.off()
-    #   }
-    # }
+    for (distance in c("Pearson", "Spearman")){
+      for (method in c("kmeans", "HCL")){
+        print(paste(type,i, "----->",distance, method))
+        pdf(paste0(path,"4Cluster/", paste(type, i, distance,method,"Clustering",sep="_"),".pdf"))
+        Clustering(data_tab = data_tab,
+                   distance = distance,
+                   nb_cluster = 4,
+                   method = method,
+                   graph_type = c("profils"))
+        dev.off()
+      }
+    }
+    
+    print(paste(type,i," - Fait"))
   }
 }
-
 
 
 

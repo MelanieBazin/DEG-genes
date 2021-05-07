@@ -1,29 +1,33 @@
 source("0_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
-path = "./Graph/Normalisations/"
+path = "./Graph/Normalisations/Color"
 
 #######################################################
 # Partie 1 : Comparaison des méthodes de normalisaion #
 #######################################################
 # Comptage
-# Type = c("EXPRESSION","RPM", "RPKM")
-# for (i in Type){
-#   png(paste0(path,i,"_Boxplot.png"))
-#     tab = ConcatTab(i)
-#     rownames(tab)=tab$ID
-#     tab = tab[,-1]
-#     if (i == "EXPRESSION"){type = "raw data"}else{type = i}
-#   CountBoxplot(tab, type)
-#   dev.off()
-# }
-#   
-# # Récupération des données de comptage normalisées DESeq2
-# tab = list.files("./DATA/DESeq2/")[grep("tout",list.files("./DATA/DESeq2/"))]
-# tab = tab[grep("normalisation", tab)]
-# tab = read.table(paste0("./DATA/DESeq2/", tab), header = T, sep = "\t")
-#   
-# png(paste0(path,"DESeq2_Boxplot.png"))
-#   CountBoxplot(tab, "DESeq2")
-# dev.off()
+
+Type = c("EXPRESSION","RPM", "RPKM")
+for (i in Type){
+  png(paste0(path,i,"_Boxplot.png"))
+    tab = ConcatTab(i)
+    rownames(tab)=tab$ID
+    tab = tab[,-1]
+    tab = tab[,c(12:ncol(tab),1:11)]
+    if (i == "EXPRESSION"){type = "raw data"}else{type = i}
+    
+  CountBoxplot(tab, type, color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
+  dev.off()
+}
+
+# Récupération des données de comptage normalisées DESeq2
+tab = list.files("./DATA/DESeq2/")[grep("tout",list.files("./DATA/DESeq2/"))]
+tab = tab[grep("normalisation", tab)]
+tab = read.table(paste0("./DATA/DESeq2/", tab), header = T, sep = "\t")
+tab = tab[,c(12:ncol(tab),1:11)]
+
+png(paste0(path,"DESeq2_Boxplot.png"))
+  CountBoxplot(tab, "DESeq2", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
+dev.off()
 
 ########################################################
 # Partie 2 : Visualisation des données pour clustering #

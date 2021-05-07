@@ -28,7 +28,7 @@ path = "./Graph/Normalisations/"
 ########################################################
 # Partie 2 : Visualisation des données pour clustering #
 ########################################################
-Type = c("RPM", "RPKM","DESeq2")
+Type = c("RPKM", "RPM","DESeq2")
 # RNAi à analyser ensemble
 tout = sub(paste0("_expression_table_RPKM.tab"),"",list.files("./DATA/RPKM/"))
 rnai_list = list(
@@ -57,7 +57,7 @@ rnai_list = list(
 # graph_type = c("profils")
 
 
-
+pdf(paste0(path,"4Cluster/Tout.pdf"))
 for (type in Type){
   for (i in names(rnai_list)){
     # Création du tableau de donnée à analyser ensemble
@@ -76,6 +76,7 @@ for (type in Type){
     print(paste(type,i, "- Commencé"))
     
     # Analyse en composante principale
+    # print(paste(type,i, "-----> début ACP"))
     # resExp=PCA_plot_generator(data_tab,colors = NULL, save_path = paste0(path,"/ACP/",type,"_",i,"_"), main = paste0("ACP ",i," (",type,")"))
     # 
     # resHCPC = HCPC(resExp, graph = FALSE)
@@ -94,33 +95,35 @@ for (type in Type){
     # png(paste0(path,"/ACP/",type,"_",i,"_PCA_ClusteringHCPC_clust.png"))
     # p=fviz_cluster(resHCPC,
     #                repel = TRUE,            # Evite le chevauchement des textes
-    #                show.clust.cent = TRUE, # Montre le centre des clusters
+    #                show.clust.cent = F,     # Montre le centre des clusters
     #                palette = "jco",         # Palette de couleurs, voir ?ggpubr::ggpar
-    #                ggtheme = theme_minimal(),
+    #                ggtheme = theme_bw(),
     #                main = paste0("ACP Factor map ",i," (",type,")"))
     # print(p)
     # dev.off()
-    # 
+    # print(paste(type,i, "-----> fin ACP"))
     
     
     # Analyse de clusering
     for (distance in c("Pearson", "Spearman")){
       for (method in c("kmeans", "HCL")){
         print(paste(type,i, "----->",distance, method))
-        pdf(paste0(path,"4Cluster/", paste(type, i, distance,method,"Clustering",sep="_"),".pdf"))
+        
         Clustering(data_tab = data_tab,
                    distance = distance,
                    nb_cluster = 4,
                    method = method,
-                   graph_type = c("profils"))
-        dev.off()
+                   graph_type = c("profils"),
+                   titre = paste(type, i))
+       
       }
     }
     
     print(paste(type,i," - Fait"))
   }
 }
-
+dev.off()
+print("-FIN-")
 
 
 

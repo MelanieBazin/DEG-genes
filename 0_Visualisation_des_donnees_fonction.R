@@ -137,136 +137,56 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
  return(resExp)
 }
 
-##############
-# Dessiner des profils
-##############
-# Gaëlle
-
-plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
-  
-  # Check function parameters
-  if(is.null(yMax)){
-    
-    print("You must specify a maximal value for Y axis")
-    
-  }else{
-    
-    # Representation of the first expression profile
-    plot(1:ncol(expData), expData[1,], col = "grey", type = "l",
-         ylim = c(0, ceiling(yMax)),
-         xlab = "Time point", ylab = "Gene expression level",
-         main = title)
-    
-    # Add expression profile for other genes
-    for(i in 2:nrow(expData)){
-      
-      lines(1:ncol(expData), expData[i,], col = "grey")
-      
-      # end of for()  
-    }
-    
-    # Average expression profile
-    if(meanProfile == TRUE){
-      expMean = apply(expData, 2, mean)
-      lines(1:ncol(expData), expMean, col = "red", 
-            lwd = 1.5, lty = "dashed")
-    }
-    
-    # end of else()   
-  }
-  
-  # end of function plotGenes()  
-}
-
 
 ###################
 # Clustering
 ####################
 
-#install.packages("pheatmap")
+# install.packages("pheatmap")
 library("pheatmap")
+
 # Fonction F2 : Calcul de la matrice de distance
-F2_matrice_distance <- function(data_tab, distance){
+F2_matrice_distance <- function(data_tab, distance, titre){
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){
     matDist = as.matrix(cor(data_tab))
-    pheatmap(matDist, main = "Pheatmap Pearson")
+    pheatmap(matDist, main = paste("Pheatmap Pearson", titre))
     matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
     
   }else if (distance == "Spearman"){
     matDist = as.matrix(cor(data_tab,method="spearman"))
-    pheatmap(matDist, main = "Pheatmap Spearman")
+    pheatmap(matDist, main = paste("Pheatmap Spearman", titre))
     matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
   }
 }
 
 
-# Fonction 5 : Représentation graphique des résultats
-F5_Representation_graphique <- function(expMatrix, cluster, graph_type, selected_cluster, distance, method, nb_cluster){
-  if (is.element(TRUE,graph_type == "profils")) {
-    plotGenes(cluster, 
-              title = paste("Cluster", selected_cluster, "\n",
-                            "Distance :",distance,"-",
-                            "Algorithme :", method, "avec ", nb_cluster, "clusters"),
-              #yMax = max(expMatrix)
-              yMax = max(cluster)
-    ) 
-  }
-  
-  if (is.element(TRUE,graph_type == "heatmap")){
-    
-    #Permet d'éviter les erreur génréer par les cluster ne contenat qu'un gènes pour lesquel on ne peux pas produire de heatmap
-    if (nrow(cluster)>1){ 
-      
-      heatmap(as.matrix(cluster),
-              Colv = NA, Rowv = NA, cexCol = 0.2,
-              main  = paste("\n","\n","Cluster", selected_cluster,"\n","Distance :",distance,"-",
-                            "Algorithme :", method,  nb_cluster, "clusters"))
-    }
-    
-  }
-}
-
 
 # Fonction finale : fonction permettant de lancer les fonctions précédentes dans l'ordre et qui vas créer les graph pour tous les clusters
 Clustering <- function(data_tab, Chemin_acces = "./",
-                            distance, nb_cluster, method, graph_type){
+                       distance, nb_cluster, method, 
+                       graph_type, titre){
   
 
   ## Créaction de la matrice de distance
-  matDist = F2_matrice_distance(data_tab, distance)
+  matDist = F2_matrice_distance(data_tab, distance, titre)
   
   ## Créaction d'un vecteur contennat le clusering calculé a partir de la matrice de distance
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
     res = kmeans(matDist, nb_cluster)
-    vecCluster = res$cluster
-    
+    #Représentataion graphique
+    p= fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
+                 show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
+                 title = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
+                 xlab = "Principal Component 1",
+                 ylab = "Principal Component 2")
+    print(p)
   }else if(method  == "HCL"){
     res = hclust(matDist)
-    vecCluster = cutree(res, nb_cluster)
-    
     #Fait un dendrogramme
-    p= plot(res, main = paste("Dendrogramme", nb_cluster, "cluster calculé par", method, distance))
+    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
     print(p)
-  }
-  
-  ## Sépare la fentêtre de grahique en 4 seulemnt si seul les profils sont demmandés
-  if (is.element(FALSE,graph_type == "profils")){
-    par(mfrow = c(1,1))
-  }else {
-    par(mfrow = c(2,2))
-  }
-  
-
-  ## Faire les graphiques pour chacun des clusters générés la la fonction F3
-  for (selected_cluster in 1:nb_cluster){
-    geneCluster = names(which(vecCluster == selected_cluster))
-    cluster = data_tab[,geneCluster]
-    
-    F5_Representation_graphique(data_tab, cluster, 
-                                graph_type, selected_cluster, 
-                                distance, method, nb_cluster)
   }
 
   

@@ -39,9 +39,10 @@ ConcatTab <- function(type, conditions = NULL){
   return(tab_count)
 }
 
-CountBoxplot <- function (tab, type){
+CountBoxplot <- function (tab, type, color = "lightgray"){
   boxplot(log(tab + 1), ylab = "count values (log scale)",
-          main = paste0("Count data (",type,")"), xaxt="n", yaxt="n")
+          main = paste0("Count data (",type,")"), xaxt="n", yaxt="n",
+          col = color)
   axis(side = 1, labels = FALSE, tick = F)
   axis(side = 2,
        ## Rotate labels perpendicular to y-axis.

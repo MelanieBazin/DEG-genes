@@ -116,7 +116,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
-    pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
+    png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
       barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
               main = "Variances",
               xlab = "Principal Components",
@@ -131,7 +131,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
     gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors, title = main,
-                 ggoptions = list(size=1.75))
+                 ggoptions = list(size=3))
     ggsave(paste0(save_path,image_prefix,i,".png"), device = "png", plot = gp)
     
   }
@@ -143,46 +143,15 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
 # Clustering
 ####################
 
-# install.packages("pheatmap")
-library("pheatmap")
-
-# Fonction F2 : Calcul de la matrice de distance
-F2_matrice_distance <- function(data_tab, distance, titre){
-  # Choisir le mode de calcule des distances
-  if (distance == "Pearson"){
-    matDist = as.matrix(cor(data_tab))
-    pheatmap(matDist, main = paste("Pheatmap Pearson", titre))
-    matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
-    
-  }else if (distance == "Spearman"){
-    matDist = as.matrix(cor(data_tab,method="spearman"))
-    pheatmap(matDist, main = paste("Pheatmap Spearman", titre))
-    matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
-  }
-}
-
-
 
 # Fonction finale : fonction permettant de lancer les fonctions précédentes dans l'ordre et qui vas créer les graph pour tous les clusters
-Clustering <- function(data_tab, Chemin_acces = "./",
-                       distance, nb_cluster, method, 
-                       graph_type, titre){
-  
-
-  ## Créaction de la matrice de distance
-  matDist = F2_matrice_distance(data_tab, distance, titre)
+Clustering <- function(matDist, nb_cluster, method, 
+                       titre, colors = NULL){
   
   ## Créaction d'un vecteur contennat le clusering calculé a partir de la matrice de distance
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
-    res = kmeans(matDist, nb_cluster)
-    #Représentataion graphique
-    p= fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
-                 show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
-                 title = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
-                 xlab = "Principal Component 1",
-                 ylab = "Principal Component 2")
-    print(p)
+
   }else if(method  == "HCL"){
     res = hclust(matDist)
     #Fait un dendrogramme

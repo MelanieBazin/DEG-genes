@@ -151,6 +151,14 @@ Clustering <- function(matDist, nb_cluster, method,
   ## Créaction d'un vecteur contennat le clusering calculé a partir de la matrice de distance
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
+    res = kmeans(matDist, nb_cluster)
+    #Représentataion graphique
+    p= fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
+                    show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
+                    title = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
+                    xlab = "Principal Component 1",
+                    ylab = "Principal Component 2")
+    print(p)
 
   }else if(method  == "HCL"){
     res = hclust(matDist)

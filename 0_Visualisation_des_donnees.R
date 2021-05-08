@@ -188,7 +188,7 @@ for (i in names(rnai_list)){
 
   # Analyse de clusering
   for (distance in c("Pearson", "Spearman")){
-    png(paste0(path,"4Cluster/Matrice_",distance,".pdf"))
+    png(paste0(path,"4Cluster/",i,"_Matrice_",distance,".png"))
     # Choisir le mode de calcule des distances
     if (distance == "Pearson"){
       matDist = as.matrix(cor(data_tab))
@@ -205,7 +205,7 @@ for (i in names(rnai_list)){
 
     for (method in c("kmeans", "HCL")){
       print(paste(type,i, "----->",distance, method))
-      png(paste0(path,"4Cluster/Cluster_",method,"_",distance,".pdf"))
+      png(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".png"))
       Clustering(matDist = matDist,
                  nb_cluster = 5,
                  method = method,
@@ -213,7 +213,6 @@ for (i in names(rnai_list)){
       dev.off()
     }
   }
-  
-  print(paste(type,i," - Fait"))
+
 }
-dev.off()
+

@@ -26,10 +26,10 @@ rnai_list = list(
   sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
   sequencage_2020 = tout[which(is.element(tout,c("CTIP","CTIP_CTRL","XRCC4","XRCC4_CTRL")))],
   #controles_2020 = tout[which(is.element(tout,c( "CTIP_CTRL","XRCC4_CTRL")))],
-  XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
+  XRCC4ctrl2020 = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL","CTIP_CTRL")))],
   CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
 )
-i = "CTIPseulctrl2020"
+i = "XRCC4ctrl2020"
 
 for (i in names(rnai_list)){
   print(i)

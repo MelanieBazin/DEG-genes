@@ -1,5 +1,15 @@
 
 
+#### Définition des ARNi à analyser ensembles ####
+tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
+rnai_list = list(
+  sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
+  XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
+  CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
+)
+rm(tout)
+
+#### Définition des cluster à grouper ensemble ####
 cluster = list(
   ICL7 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
   ND7 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
@@ -12,6 +22,8 @@ cluster = list(
   XRCC4 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1))
 )
 
+
+#### Définition des couleur à attribuer pour les différents RNAi ###"
 veg_color = "darkorange1"
 early_color = "deepskyblue"
 inter_color = "chartreuse3"

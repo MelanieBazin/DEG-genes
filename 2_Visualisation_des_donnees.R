@@ -242,7 +242,7 @@ rnai_list = list(
   CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
 )
 
- i = "CTIPseulctrl2020"
+ i = "XRCC4seul"
 #for (i in names(rnai_list)){
   print(i)
   # Création du tableau de donnée à analyser ensemble
@@ -365,26 +365,49 @@ rnai_list = list(
   # print(h2)
   # dev.off()
   
-  
-  # h = Heatmap(log(data_tab+1),
-  #             name = "log(expres)",
-  #             col = colorRamp2(color_vec, c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D")),
-  #             cluster_rows = F, # turn off row clustering
-  #             cluster_columns = F, # turn off column clustering
-  #             column_title = i,
-  #             show_row_names = F,
-  #             row_order = order(annotation$EXPRESSION_PROFIL),
-  #             row_split = annotation$EXPRESSION_PROFIL,
-  #             row_title = "%s", row_title_rot = 0,
-  #             column_split = c(rep("RNAi",5),rep("ND7_C",6),rep("ND7_X",5)),
-  #             column_order = colnames(data_tab)[c(5, 1:4, 11, 6:10, 16, 12:15)],
-  #             use_raster = T)
-  # 
-  # png(paste0(path,i, "_noMean_heatmap_no_order.png"),width = 400, height = 600)
-  # print(h)
-  # dev.off()
+
 
 #}
 
- 
-   
+path = "./Graph/Heatmap/" 
+for (i in names(rnai_list)){
+  print(i)
+  # Création du tableau de donnée à analyser ensemble
+  data_tab = read.table(paste0("./DATA/DESeq2/",i,"_normalisation_DESeq2.tab"), header = T, sep="\t")
+  
+  colnames(data_tab)
+  data_tab = as.matrix(data_tab)
+  # Heatmap sans moyenne ##############
+  color_vec = c(min(log(data_tab+1)),quantile(log(data_tab+1))[[2]],median(log(data_tab+1)), 
+                quantile(log(data_tab+1))[[4]],max(log(data_tab+1)))
+  
+  if (i == "CTIPseulctrl2020"){
+    c_split = c(rep("RNAi",5),rep("ND7_C",6),rep("ND7_X",5))
+    c_order = colnames(data_tab)[c(5, 1:4, 11, 6:10, 16, 12:15)]
+  } else if (i == "sequencage_2014bis"){
+    c_split = c(rep("Ku80c",7),rep("ND7_K",7),rep("PGM",7))
+    c_order = colnames(data_tab)[c(7, 1:6, 14, 8:13, 21, 15:20)]
+  }else if (i == "XRCC4seul"){
+    c_split = c(rep("RNAi",5),rep("ND7_X",5))
+    c_order = colnames(data_tab)[c(5, 1:4, 10, 6:9)]
+  }
+    
+  h = Heatmap(log(data_tab+1),
+              name = "log(expres)",
+              col = colorRamp2(color_vec, c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D")),
+              cluster_rows = F, # turn off row clustering
+              cluster_columns = F, # turn off column clustering
+              column_title = i,
+              show_row_names = F,
+              row_order = order(annotation$EXPRESSION_PROFIL),
+              row_split = annotation$EXPRESSION_PROFIL,
+              row_title = "%s", row_title_rot = 0,
+              column_split = c_split,
+              column_order = c_order,
+              use_raster = T)
+    
+  png(paste0(path,i, "_noMean_heatmap_no_order.png"),width = 400, height = 600)
+    print(h)
+  dev.off()
+}##############
+  

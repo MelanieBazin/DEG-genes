@@ -1,18 +1,5 @@
 options(stringsAsFactors = FALSE)
 
-OpenTabInList <- function(type){
-  path = paste0("./DATA/", type)
-  count = paste(path,list.files(path), sep = "/")
-  
-  list_count  = list()
-  for (i in count){
-    tab = read.table(i, sep = "\t", header = T)
-    name = sub(paste0("./DATA/",type,"/"),"",sub(paste0("_expression_table_",type,".tab"),"",i))
-    list_count[[name]] = tab
-  } 
-return(list_count)
-}
-  
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
   path = paste0("./DATA/", type)
@@ -62,6 +49,54 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
        adj = 1,
        ## Increase label size.
        cex = 0.5)
+}
+
+CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
+  infodata = matrix(NA,nrow = ncol(countdata), ncol = 5)
+  row.names(infodata) = colnames(countdata)
+  colnames(infodata) = c("Noms", "Feeding", "Timing","Cluster", "Conditions")
+  
+  infodata[,"Noms"] = colnames(countdata)
+  
+  # Colonne feeding, timing et cluster
+  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
+  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
+  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
+  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
+  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
+  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
+  
+  rnai = rnai_list[[conditions]]
+  
+  timing = c()
+  clust = c()
+  feeding = colnames(countdata)
+  for(r in rnai){
+    t = eval(parse(text = r))
+    
+    timing = c(timing,t)
+    clust = c(clust, cluster[[r]])
+
+    for (g in t){
+      feeding = str_replace_all(feeding, t, "")
+    }
+  }
+  
+  infodata[,"Feeding"] = str_sub(feeding, end= -2)
+  infodata[,"Timing"] = timing
+  infodata[,"Cluster"] = clust
+  
+  # Colonne condition
+  cond = c()
+  for (c in 1:nrow(infodata)){
+    cond = c(cond, paste(infodata[c,"Feeding"],infodata[c,"Cluster"], sep = "_"))
+  }
+  
+  infodata[,"Conditions"] = cond
+  
+  infodata = as.data.frame(infodata)
 }
 
 CreatInfoData2 <- function(conditions=NULL){

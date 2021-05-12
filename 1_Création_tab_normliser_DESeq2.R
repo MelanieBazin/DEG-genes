@@ -1,5 +1,5 @@
-source("0_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
-source("2_Fonction.R")
+source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+source("3_Fonction.R")
 
 # RNAi à analyser ensemble
 # tout = sub(paste0("_expression_table_RPKM.tab"),"",list.files("./DATA/RPKM/"))

@@ -144,10 +144,8 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
 ####################
 
 
-# Fonction finale : fonction permettant de lancer les fonctions précédentes dans l'ordre et qui vas créer les graph pour tous les clusters
 Clustering <- function(matDist, nb_cluster, method, 
                        titre, colors = NULL){
-  
   ## Créaction d'un vecteur contennat le clusering calculé a partir de la matrice de distance
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){

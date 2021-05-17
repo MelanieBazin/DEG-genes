@@ -1,4 +1,4 @@
-
+options(stringsAsFactors = FALSE)
 
 #### Définition des ARNi à analyser ensembles ####
 tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))

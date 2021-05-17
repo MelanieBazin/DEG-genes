@@ -1,14 +1,19 @@
-source("3_Functions.R")
+source("4_Functions.R")
 
 #### Initatiosation des variables ####
-type = "EXPRESSION" #3 possibiltées : "RPM","RPKM", "EXPRESSION"
+parametre_DESeq2 = "Conditions"
+#parametre_DESeq2 = "Feeding_Cluster"
 
-condition = "KU80c" #4 possibilitées : "CTIP", "XRCC4", "PGM", KU80c"
 
-path = paste0("./DATA/",type)
-analyseName = "101genes"
-source("2_Mise_en_forme_des_donnees.R")
+analyseName = paste0("DESeq2_",parametre_DESeq2,"_test01")
 
+# Choix du groupes de donnée à analysé
+source("0_Cluster.R")
+i = names(rnai_list)[1]
+print(paste("On analyse le jeu de donnée :", i, "-->", paste(rnai_list[[i]], collapse = ", ") ))
+
+source("3_Mise_en_forme_des_donnees.R")
+condition = i
 
 # Definiton des variables DESeq2
 FC = 1.1
@@ -30,29 +35,13 @@ hmcol = rev(hmcol)
 annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 
 ### Création des dossier pour ranger les données ###
-base_img_dir=paste0("Analyse_DESeq2_",analyseName,"/",condition,"_", type,"/Images/")
+base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/Images/")
 dir.create(base_img_dir,recursive=T,showWarnings=F)
 
-base_res_dir=paste0("Analyse_DESeq2_",analyseName,"/",condition,"_", type,"/")
+base_res_dir=paste0("./Analyse/",analyseName,"/",condition,"/")
 dir.create(base_res_dir, recursive=T,showWarnings=F)
-
 ####
 
-
-##### Analyse DESeq2 ###########
-
-# Filtrage des gènes avec trop peu de compatage (seuil arbitraire)
-# countdata = countdata[rowSums(countdata) > 50,]
-
-# Mise en forme des données
-deseq = DESeqDataSetFromMatrix(countData = countdata,
-                                colData  = infodata,
-                                design   = ~ Conditions)
-
-
-# Analyse DESeq2
-deseq = DESeq(deseq)
-#####
 
 ###############################################
 # Reprise des variables et analyses d'Olivier #
@@ -63,24 +52,25 @@ labels=colnames(countdata)
 
 #### Moyenne des valeurs de comptage normalisées pour chaque point du timining####
 ##EARLY, INTERMEDIATE, LATE ##
-time_points = c(paste("CTRL", timing_ctrl, sep = "_" ),paste(condition, timing_rnai, sep = "_" ))
+time_points = infodata$Conditions
 
 # Extraction des données de comptage de DESeq2
 geneNormCountsTable=counts(deseq,normalized=T)
-meanGeneNormCountsTable =data.frame(ID=rownames(geneNormCountsTable))
 
 countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE)) #Mise en forme des donnée pour les heatmap
 
-# Calcule des moyennes ==> Pourquoi utiliser cette partie du code au lieu de la fonction collapseReplicates de DESeq2 ?
+# Calcule des moyennes
+meanGeneNormCountsTable =data.frame(ID=rownames(geneNormCountsTable))
+colnames(geneNormCountsTable)=time_points
 for(p in unique(time_points)) {
-  
-  if(length(labels[time_points==p])==1)  { 
-    meanGeneNormCountsTable[,p] =geneNormCountsTable[, labels[time_points==p]]
+  temp = grep(p, colnames(geneNormCountsTable))
+  if(length(temp)==1)  { 
+    meanGeneNormCountsTable[,p] =geneNormCountsTable[, temp]
   } else { 
-    meanGeneNormCountsTable[,p] =apply(geneNormCountsTable[, labels[time_points==p]],1,mean) 
+    meanGeneNormCountsTable[,p] =apply(geneNormCountsTable[, temp],1,mean) 
   }
-  
 }
+  
 rownames(meanGeneNormCountsTable)=meanGeneNormCountsTable$ID
 meanGeneNormCountsTable=meanGeneNormCountsTable[,-1]
 
@@ -89,7 +79,8 @@ comparisons = list(
   "VEG" = unique(time_points[grep("VEG",time_points)]),
   "EARLY" = unique(time_points[grep("EARLY",time_points)]),
   "INTER" = unique(time_points[grep("INTER",time_points)]),
-  "LATE" = unique(time_points[grep("LATE",time_points)])
+  "LATE" = setdiff(unique(time_points[grep("LATE",time_points)]),unique(time_points[grep("VERY_LATE",time_points)])),
+  "V_LATE" = unique(time_points[grep("VERY_LATE",time_points)])
 )
 
 regulation=c("Up-regulated","Down-regulated")
@@ -98,9 +89,11 @@ significant_up=list()
 significant_down=list()
 
 for(i in names(comparisons)) {
-  c1=comparisons[[i]][1]
-  c2=comparisons[[i]][2]
+  c1=comparisons[[i]][grep("ND7",comparisons[[i]])]
+  c2=comparisons[[i]][c(grep("KU80c",comparisons[[i]]),grep("PGM",comparisons[[i]]))]
   resContrast=results(deseq,contrast=c("Conditions",c1, c2))
+  
+  write.table(resContrast, paste0(base_res_dir,"/Comparaison_PGM.tab"), row.names = T, sep = "\t")
   
   resContrast=resContrast[notAllZero,]
   resContrast_sig = resContrast[ !is.na(resContrast$padj) & resContrast$padj < pvalue , ]
@@ -122,10 +115,10 @@ for(i in names(comparisons)) {
     # boxplot(log2FC, main = paste("log2FC","\n",i), horizontal=F)
     ##############
 
-  # Initialisation du 1er set de data : sn  as filtre => aucun gènes supprimés
+  # Initialisation du 1er set de data : sans filtre => aucun gènes supprimés
   datasets=list("NoFilter"=resContrast_sig)
   
-  # Créaction d'une liste contenant les donné de copatge pour tous les filtres
+  # Créaction d'une liste contenant les donné de compatge pour tous les filtres
 
   for(fname in names(Filtering)) {
     datasets[[fname]]=resContrast_sig[setdiff(rownames(resContrast_sig),Filtering[[fname]]),]

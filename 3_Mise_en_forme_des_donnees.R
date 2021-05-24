@@ -64,6 +64,7 @@ if (parametre_DESeq2 == "Conditions"){
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
                                  design   = ~ Conditions)
+  
 }else if (parametre_DESeq2 == "Feeding_Cluster"){
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
@@ -72,18 +73,4 @@ if (parametre_DESeq2 == "Conditions"){
 
 
 
-# Analyse DESeq2
-deseq = DESeq(deseq)
 
-# Graphique du paramètre de dispersion
-png(paste0(path,i,"_dipression_DESeq2.png"))
-  plotDispEsts(deseq, ylim = c(1e-6, 1e1))
-dev.off()
-
-# Récupération des données de comptage normalisées
-tab=counts(deseq,normalized=T)
-
-# Boxplot des comptages normalisés
-png(paste0(path,i,"_DESeq2_Boxplot.png"))
-  CountBoxplot(tab, "DESeq2")
-dev.off()

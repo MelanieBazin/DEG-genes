@@ -16,8 +16,9 @@ source("3_Mise_en_forme_des_donnees.R")
 condition = i
 
 # Definiton des variables DESeq2
-FC = 1.1
-pvalue = 0.2
+FC = 1.5 #Mini 1.5 -> XRCC4 = 2
+pvalue = 0.05 #Maxi 0.05 -> XRCC4 = 0.01
+RNAi = "PGM"
 
 ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
 Filtering= list()
@@ -33,12 +34,12 @@ hmcol = rev(hmcol)
 
 ### Limiter le fichier annotation aux gènes avec synonyme ###
 annotation_synonyms = annotation[annotation$SYNONYMS != "",]
-
+rownames(annotation)=annotation$ID
 ### Création des dossier pour ranger les données ###
-base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/Images/")
+base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/Images/")
 dir.create(base_img_dir,recursive=T,showWarnings=F)
 
-base_res_dir=paste0("./Analyse/",analyseName,"/",condition,"/")
+base_res_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/")
 dir.create(base_res_dir, recursive=T,showWarnings=F)
 ####
 
@@ -59,7 +60,7 @@ geneNormCountsTable=counts(deseq,normalized=T)
 
 countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE)) #Mise en forme des donnée pour les heatmap
 
-# Calcule des moyennes
+# Calcule des moyennes -> Ne sert que pour les heatmap
 meanGeneNormCountsTable =data.frame(ID=rownames(geneNormCountsTable))
 colnames(geneNormCountsTable)=time_points
 for(p in unique(time_points)) {
@@ -90,11 +91,10 @@ significant_down=list()
 
 for(i in names(comparisons)) {
   c1=comparisons[[i]][grep("ND7",comparisons[[i]])]
-  c2=comparisons[[i]][c(grep("KU80c",comparisons[[i]]),grep("PGM",comparisons[[i]]))]
-  resContrast=results(deseq,contrast=c("Conditions",c1, c2))
-  
-  write.table(resContrast, paste0(base_res_dir,"/Comparaison_PGM.tab"), row.names = T, sep = "\t")
-  
+  c2=comparisons[[i]][grep(RNAi,comparisons[[i]])]
+  if(length(c2)==0|length(c1)==0){}else{
+  resContrast=results(deseq,contrast=c("Conditions",c2, c1))
+
   resContrast=resContrast[notAllZero,]
   resContrast_sig = resContrast[ !is.na(resContrast$padj) & resContrast$padj < pvalue , ]
   resContrast_sig = resContrast_sig[ resContrast_sig$log2FoldChange >= log2(FC) | resContrast_sig$log2FoldChange <= log2(1/FC), ]
@@ -206,7 +206,7 @@ for(i in names(comparisons)) {
       #####
     }
   }# Fin de la boucle pour chaque filtre  
-}# Fin de la boucle pour chaque conditions ###
+}}# Fin de la boucle pour chaque conditions ###
 
 
 

@@ -108,6 +108,44 @@ CreatInfoData2 <- function(conditions=NULL){
   row.names(infodata) = colnames(countdata)
   colnames(infodata) = c("Name","RNAi","Timing")
   infodata[,"Name"] = row.names(infodata)
+  
+  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
+  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
+  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
+  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
+  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
+  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
+  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
+  
+  infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  
+  condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
+  l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  rnai = c()
+  for (i in 1:length(l)){
+    rnai = c(rnai, rep(condi[i],length(l[[i]])))
+  }
+  infodata[,"RNAi"] = rnai
+  infodata = as.data.frame(infodata)
+
+
+
+  if (!is.null(conditions)){
+    infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]
+  }
+  return(infodata)
+}
+
+CreatInfoData3 <- function(conditions=NULL){
+  countdata= ConcatTab("EXPRESSION")
+  if (colnames(countdata)[1]=="ID"){
+    countdata=countdata[,-1]
+  }
+  infodata=matrix(NA,nrow = ncol(countdata), ncol=4)
+  row.names(infodata) = colnames(countdata)
+  colnames(infodata) = c("Name","RNAi","Timing","Batch")
+  infodata[,"Name"] = row.names(infodata)
 
   CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
   CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
@@ -128,6 +166,17 @@ CreatInfoData2 <- function(conditions=NULL){
   }
   infodata[,"RNAi"] = rnai
   infodata = as.data.frame(infodata)
+  
+  batch = c()
+  for(i in rnai){
+    if ( i == "ND7" | i == "PGM"| i == "KU80C" | i == "ICL7"){
+      batch = c(batch,"seq_2014")
+    }else{
+      batch = c(batch,"seq_2020")
+      }
+  }
+  infodata[,"Batch"] = batch
+  
   
   if (!is.null(conditions)){
     infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]

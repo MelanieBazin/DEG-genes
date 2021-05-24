@@ -5,7 +5,7 @@
 # install.packages("magick")
 # install.packages("viridis")
 
-source("0_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 source("0_Cluster.R")
 library("stringr")  
 library("pheatmap")

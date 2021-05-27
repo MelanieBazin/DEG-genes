@@ -1,5 +1,21 @@
 options(stringsAsFactors = FALSE)
 
+DivideByGeneSeize <- function(countdata){
+  annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
+  taille = abs(annotation$NT_START - annotation$NT_END)
+  names(taille)=annotation$ID
+  
+  count.seize  = matrix(NA,ncol = ncol(countdata), nrow = nrow(countdata))
+  count.seize = as.data.frame(count.seize)
+  colnames(count.seize)= colnames(countdata)
+  rownames(count.seize)= annotation$ID
+  for (j in rownames(count.seize)){
+    count.seize[j,] = countdata[j,]/taille[j]
+  }
+  return(count.seize)
+}
+
+
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
   path = paste0("./DATA/", type)
@@ -51,6 +67,8 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
        cex = 0.5)
 }
 
+
+library(stringr)
 CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 5)
   row.names(infodata) = colnames(countdata)
@@ -137,16 +155,14 @@ CreatInfoData2 <- function(conditions=NULL){
   return(infodata)
 }
 
-CreatInfoData3 <- function(conditions=NULL){
-  countdata= ConcatTab("EXPRESSION")
-  if (colnames(countdata)[1]=="ID"){
-    countdata=countdata[,-1]
-  }
-  infodata=matrix(NA,nrow = ncol(countdata), ncol=4)
+CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
+  infodata = matrix(NA,nrow = ncol(countdata), ncol = 6)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Name","RNAi","Timing","Batch")
-  infodata[,"Name"] = row.names(infodata)
-
+  colnames(infodata) = c("Noms", "Feeding", "Timing", "Cluster", "Condition","Batch")
+  
+  infodata[,"Noms"] = colnames(countdata)
+  
+  # Colonne feeding, timing et cluster
   CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
   CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
   ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
@@ -156,31 +172,45 @@ CreatInfoData3 <- function(conditions=NULL){
   XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
   XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
   
-  infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  rnai = rnai_list[[conditions]]
+  rnai = rnai[order(rnai)]
   
-  condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
-  l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
-  rnai = c()
-  for (i in 1:length(l)){
-    rnai = c(rnai, rep(condi[i],length(l[[i]])))
+  timing = c()
+  clust = c()
+  batch = c()
+  feeding = c()
+  condition = c()
+  for(r in rnai){
+    t = eval(parse(text = r))
+  
+    timing = c(timing,t)
+    clust = c(clust, cluster[[r]])
+    
+    if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
+      feeding =c(feeding, rep("ctrl", length(t)))
+      condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
+    }else{
+      feeding =c(feeding, rep(r, length(t)))
+      condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
+    }
+    
+    
+    
+    if (r == "ND7" | r == "PGM"| r == "KU80C" | r == "ICL7"){
+      batch = c(batch,rep("seq_2014", length(t)))
+    }else{
+      batch = c(batch,rep("seq_2020",length(t)))
+    }
   }
-  infodata[,"RNAi"] = rnai
+  
+  infodata[,"Feeding"] = feeding
+  infodata[,"Timing"] = timing
+  infodata[,"Cluster"] = clust
+  infodata[,"Batch"] = batch
+  infodata[,"Condition"]= condition
+  
   infodata = as.data.frame(infodata)
   
-  batch = c()
-  for(i in rnai){
-    if ( i == "ND7" | i == "PGM"| i == "KU80C" | i == "ICL7"){
-      batch = c(batch,"seq_2014")
-    }else{
-      batch = c(batch,"seq_2020")
-      }
-  }
-  infodata[,"Batch"] = batch
-  
-  
-  if (!is.null(conditions)){
-    infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]
-  }
 return(infodata)
 }
 
@@ -215,7 +245,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
     gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors, title = main,
-                 ggoptions = list(size=3))
+                 ggoptions = list(size=2))
     ggsave(paste0(save_path,image_prefix,i,".png"), device = "png", plot = gp)
     
   }

@@ -3,6 +3,7 @@ options(stringsAsFactors = FALSE)
 #### Définition des ARNi à analyser ensembles ####
 tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
 rnai_list = list(
+  tout = tout,
   sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
   XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
   CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]

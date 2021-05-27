@@ -87,6 +87,7 @@ CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
   
   rnai = rnai_list[[conditions]]
+  rnai = rnai[order(rnai)]
   
   timing = c()
   clust = c()

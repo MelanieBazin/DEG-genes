@@ -215,6 +215,45 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
 return(infodata)
 }
 
+
+DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condition, color){
+  path = paste0(path,"/",type,"/")
+  dir.create(path,recursive=T,showWarnings=F)
+  
+  png(path,condition,"_LDA_hist.png",width = 480, height = 1000)
+  plot(lda_model, dimen = 1, type = "b")
+  dev.off()
+  plot(lda_model, col = color, dimen = 2)
+  
+  ### Installer le placake klaR
+  # partimat(paste("Cluster ~", paste(unique(infodata$Cluster), collapse = "+")), data = as.data.frame(lda_train), method = "lda")
+  gg_data_tab = cbind(as.data.frame(lda_data_tab), predict(lda_model)$x)
+  gp = ggplot(gg_data_tab, aes(LD1, LD2))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_LDA1.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  
+  gp = ggplot(gg_data_tab, aes(LD1, LD3))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_LDA2.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  
+  gp = ggplot(gg_data_tab, aes(LD3, LD2))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_LDA3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  
+}
+
 #############################################
 # PCA
 #############################################
@@ -227,6 +266,9 @@ library(ggplot2)
 library(gtools)
 
 PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, ...) {
+  save_path = paste0(save_path,"/ACP/")
+  dir.create(save_path,recursive=T,showWarnings=F)
+  
   resExp = PCA(t(Expression_Mat), graph = F)
   
   if(show_barplot) {

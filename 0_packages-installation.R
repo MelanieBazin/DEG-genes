@@ -1,26 +1,27 @@
-install.packages("RColorBrewer")
-install.packages("pheatmap")
-install.packages("seqinr")
-install.packages("latticeExtra")
-install.packages("FactoMineR")
-install.packages("factoextra")
-install.packages("gplots")
-install.packages("ggplot2")
-install.packages("ggrepel")
-install.packages("viridis")
-
-if (!requireNamespace("BiocManager", quietly = TRUE))
-install.packages("BiocManager")
-BiocManager::install("vsn")
-BiocManager::install("DESeq")
+# install.packages("RColorBrewer")
+# install.packages("pheatmap")
+# install.packages("seqinr")
+# install.packages("latticeExtra")
+# install.packages("FactoMineR")
+# install.packages("factoextra")
+# install.packages("gplots")
+# install.packages("ggplot2")
+# install.packages("ggrepel")
+# install.packages("viridis")
+# 
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+# install.packages("BiocManager")
+# BiocManager::install("vsn")
+# BiocManager::install("DESeq")
 BiocManager::install("DESeq2")
-BiocManager::install("topGO")
-BiocManager::install("latticeExtra")
-BiocManager::install("lifecycle")
-BiocManager::install("heatmaps")
-
-if (!require(devtools)) install.packages("devtools")
-devtools::install_github("yanlinlin82/ggvenn")
+# BiocManager::install("topGO")
+# BiocManager::install("latticeExtra")
+# BiocManager::install("lifecycle")
+# BiocManager::install("heatmaps")
+# BiocManager::install("sva")
+# 
+# if (!require(devtools)) install.packages("devtools")
+# devtools::install_github("yanlinlin82/ggvenn")
 
 options(stringsAsFactors = FALSE)
 
@@ -86,8 +87,11 @@ for (z in 1:nrow(deg_eva)){
 }
 
 
-gene_ies=read.delim("../DATA/PARAMECIUM/GENOMIC/tetraurelia/macronucleus/ANNOTATION/ptetraurelia_mac_51/v2/ptetraurelia_mac_51_annotation_v2.0.ies",h=T)
-annotation = merge(gene_ies[,1:2],annotation, by = "ID")
+# gene_ies=read.delim("../DATA/PARAMECIUM/GENOMIC/tetraurelia/macronucleus/ANNOTATION/ptetraurelia_mac_51/v2/ptetraurelia_mac_51_annotation_v2.0.ies",h=T)
+# annotation = merge(gene_ies[,1:2],annotation, by = "ID")
+annotation1 = read.table("./DATA/My_annotation.tab", header = T, sep = "\t" )
+annotation = merge(annotation1[,1:2],annotation, by = "ID")
+
 
 
 write.table(annotation, "./DATA/My_annotation2.tab", sep = "\t", row.names = F)

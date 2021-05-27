@@ -6,6 +6,7 @@ library(DESeq2)
 library(limma)
 library(MASS)
 library(ggplot2)
+library(ggrepel)
 library(klaR)
 
 path = "./Analyse/DESeq2_test02/"
@@ -91,7 +92,7 @@ i = "tout"
   # Analyse en composante principale
   print(paste(i, "-----> début ACP"))
   PCA_plot_generator(data_tab,colors = color,
-                            save_path = paste0(path,"ACP/DESeq2_",i,"_"),
+                            save_path = paste0(path,i,"_"),
                             main = paste0("ACP ",i," (",type,")"))
   
   # Analyse de discrimination linéaire (LDA)
@@ -105,38 +106,25 @@ i = "tout"
   lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
   lda_model$prior
   summary(lda_model$scaling)
-
- 
   # Evaluer les prédiction du modèle
   lda_pred_train = predict(lda_model)
   table(lda_pred_train$class, infodata$Cluster) #les chiffres sur la diagonal correspondent au rédiction correcte
   
-  names(color) = rownames(infodata$Cluster)
-  
-  png("test.png",width = 480, height = 1000)
-    plot(lda_model, dimen = 1, type = "b")
-  dev.off()
-  plot(lda_model, col = color, dimen = 2)
-
-  ### Installer le placake klaR
-  # partimat(paste("Cluster ~", paste(unique(infodata$Cluster), collapse = "+")), data = as.data.frame(lda_train), method = "lda")
-  
-  
-  
-  gg_data_tab = cbind(as.data.frame(lda_data_tab), predict(lda_model)$x)
-  gp = ggplot(gg_data_tab, aes(LD1, LD2))+
-    geom_point(size = 1.5, aes(color = infodata$Cluster)) + 
-    # scale_color_manual(labels = names(cluster)) +
-    geom_text(size = 3, check_overlap = F, nudge_y = 0.15 , aes(label = row.names(lda_data_tab)))+
-    labs(color = "Groupe")
-    
-  ggsave(paste0("test2.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  DA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)   
 
   #### QDA
   qda_data_tab = t(data_tab)
   summary(apply(qda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
   summary(apply(qda_data_tab,2,sd)) #verification que la sd est à 1
   qda_model = qda(qda_data_tab, grouping = infodata$Cluster)
+  qda_model$prior
+  summary(qda_model$scaling)
+  
+  DA_plot_generator("QDA",lda_data_tab,infodata, lda_model, path, i, color)
+  
+  # Evaluer les prédiction du modèle
+  qda_pred_train = predict(lda_model)
+  table(lda_pred_train$class, infodata$Cluster) #les chiffres sur la diagonal correspondent au rédiction correcte
   
   
   

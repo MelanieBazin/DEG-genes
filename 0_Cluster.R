@@ -4,6 +4,7 @@ options(stringsAsFactors = FALSE)
 tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
 rnai_list = list(
   tout = tout,
+  sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7","PGM", "ICL7" )))],
   sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
   XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
   CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
@@ -50,3 +51,4 @@ for(j in names(cluster)){
   }
   cluster_color[[j]] = color
 }
+rm(veg_color, early_color, inter_color, late_color, very_late_color)

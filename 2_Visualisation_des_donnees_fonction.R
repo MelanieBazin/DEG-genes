@@ -220,10 +220,10 @@ DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condi
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  png(path,condition,"_LDA_hist.png",width = 480, height = 1000)
-  plot(lda_model, dimen = 1, type = "b")
+  png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
+    plot(lda_model, dimen = 1, type = "b")
   dev.off()
-  plot(lda_model, col = color, dimen = 2)
+  # plot(lda_model, col = color, dimen = 2)
   
   ### Installer le placake klaR
   # partimat(paste("Cluster ~", paste(unique(infodata$Cluster), collapse = "+")), data = as.data.frame(lda_train), method = "lda")
@@ -234,7 +234,7 @@ DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condi
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_LDA1.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"1.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD1, LD3))+
     geom_point(size = 1, aes(color = infodata$Cluster)) +
@@ -242,7 +242,7 @@ DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condi
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_LDA2.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"2.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD3, LD2))+
     geom_point(size = 1, aes(color = infodata$Cluster)) +
@@ -250,7 +250,7 @@ DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condi
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_LDA3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
   
 }
 

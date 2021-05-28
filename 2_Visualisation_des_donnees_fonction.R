@@ -1,20 +1,5 @@
 options(stringsAsFactors = FALSE)
 
-DivideByGeneSeize <- function(countdata){
-  annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
-  taille = abs(annotation$NT_START - annotation$NT_END)
-  names(taille)=annotation$ID
-  
-  count.seize  = matrix(NA,ncol = ncol(countdata), nrow = nrow(countdata))
-  count.seize = as.data.frame(count.seize)
-  colnames(count.seize)= colnames(countdata)
-  rownames(count.seize)= annotation$ID
-  for (j in rownames(count.seize)){
-    count.seize[j,] = countdata[j,]/taille[j]
-  }
-  return(count.seize)
-}
-
 
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
@@ -40,6 +25,18 @@ ConcatTab <- function(type, conditions = NULL){
     tab_count = merge(tab_count, tab, by = "ID")
   } 
   return(tab_count)
+}
+
+DivideByGeneSeize <- function(countdata){
+  annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
+  taille = abs(annotation$NT_START - annotation$NT_END)
+  names(taille)=annotation$ID
+  
+  data_tab_seize  = countdata
+  for (j in rownames(count.seize)){
+    count.seize[j,] = countdata[j,]/taille[j]
+  }
+  return(count.seize)
 }
 
 CountBoxplot <- function (tab, type, color = "lightgray"){
@@ -215,6 +212,9 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
 return(infodata)
 }
 
+library(ggplot2)
+library(ggrepel)
+library(klaR)
 
 DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condition, color){
   path = paste0(path,"/",type,"/")

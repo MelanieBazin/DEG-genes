@@ -1,32 +1,16 @@
-source("0_Cluster.R")
 source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 library(stringr)
 library(sva)
 library(DESeq2)
 library(limma)
 library(MASS)
-library(ggplot2)
-library(ggrepel)
-library(klaR)
 
 path = "./Analyse/DESeq2_test02/"
+dir.create(path,recursive=T,showWarnings=F)
 # Utilisation uniquement des normalisations DESeq2
 type = "DESeq2"
 # RNAi à analyser ensemble
-tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
-rnai_list = list(
-  tout = tout,
-  controles = tout[which(is.element(tout,c("ND7","ICL7","CTIP_CTRL","XRCC4_CTRL" )))]
-  # ,
-  # sequencage_2014 = tout[which(is.element(tout,c("ICL7","KU80c","ND7","PGM" )))],
-  # controles_2014 = tout[which(is.element(tout,c("ND7", "ICL7")))],
-  # sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
-  # sequencage_2020 = tout[which(is.element(tout,c("CTIP","CTIP_CTRL","XRCC4","XRCC4_CTRL")))],
-  # #controles_2020 = tout[which(is.element(tout,c( "CTIP_CTRL","XRCC4_CTRL")))],
-  # XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
-  # CTIPseul = tout[which(is.element(tout, c("CTIP","CTIP_CTRL")))],
-  # CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
-)
+source("0_Cluster.R")
 
 i = "tout"
 
@@ -76,7 +60,20 @@ i = "tout"
     row.names(data_tab)=data_tab$ID
     data_tab = data_tab[,-1]
   }
-
+  
+  # Boxplot des comptages normalisés divisé par la taille des gènes
+  print(paste(i, "-----> début BoxPlot normalisé"))
+  data_tab_seize = DivideByGeneSeize(data_tab)
+  write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), sep="\t",row.names=F,quote=F)
+  
+  data_tab_seize = read.table(patse0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), header = T, sep = "\t")
+  png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
+    CountBoxplot(data_tab_seize, "DESeq2_seizez", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
+  dev.off()
+  
+  print("Boxplot terminé")
+  
+  
   # Créaction du vecteur de couleur par cluster
   color = colnames(data_tab)
   for (j in rnai_list[[i]]){
@@ -101,30 +98,37 @@ i = "tout"
   print(paste(i, "-----> début LDA"))
   set.seed(101)
   lda_data_tab=scale(t(data_tab)) #s'assurer que la sd est de 1 et la moyenne à 0 (prédicat des lda)
-  summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
-  summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
+  # summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
+  # summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
+  
   lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
-  lda_model$prior
-  summary(lda_model$scaling)
-  # Evaluer les prédiction du modèle
-  lda_pred_train = predict(lda_model)
-  table(lda_pred_train$class, infodata$Cluster) #les chiffres sur la diagonal correspondent au rédiction correcte
+  # lda_model$prior
+  # summary(lda_model$scaling)
   
-  DA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)   
+  # Evaluer les prédiction du modèle
+  lda_train = predict(lda_model)
+  table(lda_train$class, infodata$Cluster[training_sample])
+  
+  DA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
+  
+  # Evaluer la prédiction
+  training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.6, 0.4))
+  train = lda_data_tab[training_sample,]
+  test = lda_data_tab[!training_sample,]
+  
+  lda_model = lda(train, grouping = infodata$Cluster[training_sample])
+  # lda_model$prior
+  # summary(lda_model$scaling)
+  
+  lda_train = predict(lda_model)
+  # table(lda_train$class, infodata$Cluster[training_sample]) #les chiffres sur la diagonal correspondent au rédiction correcte
+  lda_test = predict(lda_model, test)
+  tab = table(lda_test$class, infodata$Cluster[!training_sample])
+  write.table(tab, paste0(path,"LDA/",i,"_test.tab"), sep = "\t")
+  miss_rate =  
 
-  #### QDA
-  qda_data_tab = t(data_tab)
-  summary(apply(qda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
-  summary(apply(qda_data_tab,2,sd)) #verification que la sd est à 1
-  qda_model = qda(qda_data_tab, grouping = infodata$Cluster)
-  qda_model$prior
-  summary(qda_model$scaling)
-  
-  DA_plot_generator("QDA",lda_data_tab,infodata, lda_model, path, i, color)
-  
-  # Evaluer les prédiction du modèle
-  qda_pred_train = predict(lda_model)
-  table(lda_pred_train$class, infodata$Cluster) #les chiffres sur la diagonal correspondent au rédiction correcte
+  #### SVM
+  print(paste(i, "-----> début SVM"))
   
   
   
@@ -155,16 +159,6 @@ i = "tout"
   #     dev.off()
     # }
   
-  # Boxplot des comptages normalisés divisé par la taille des gènes
-  count.seize = DivideByGeneSeize(tab) #NEcessaire que la 1er fois
-  write.table(count.seize,paste0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), sep="\t",row.names=F,quote=F)
-  
-  count.seize = read.table(patse0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), header = T, sep = "\t")
-  png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
-  CountBoxplot(count.seize, "DESeq2", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
-  dev.off()
-  
-  print("Boxplot terminé")
   }
 
-}
+# }

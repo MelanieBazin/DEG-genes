@@ -8,20 +8,24 @@
 # install.packages("ggplot2")
 # install.packages("ggrepel")
 # install.packages("viridis")
+# install.packages("caret")
 # 
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
 # BiocManager::install("vsn")
 # BiocManager::install("DESeq")
-BiocManager::install("DESeq2")
+# BiocManager::install("DESeq2")
 # BiocManager::install("topGO")
 # BiocManager::install("latticeExtra")
 # BiocManager::install("lifecycle")
 # BiocManager::install("heatmaps")
 # BiocManager::install("sva")
+# BiocManager::install("klaR")
 # 
 # if (!require(devtools)) install.packages("devtools")
 # devtools::install_github("yanlinlin82/ggvenn")
+
+
 
 options(stringsAsFactors = FALSE)
 

@@ -2,25 +2,29 @@ options(stringsAsFactors = FALSE)
 
 #### Définition des ARNi à analyser ensembles ####
 tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
+tout = str_replace_all(tout,"ND7","ND7_K")
+tout = str_replace_all(tout,"CTIP_CTRL","ND7_C")
+tout = str_replace_all(tout,"XRCC4_CTRL","ND7_X")
+
 rnai_list = list(
   tout = tout,
-  sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7","PGM", "ICL7" )))],
-  sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7","PGM" )))],
-  XRCC4seul = tout[which(is.element(tout, c("XRCC4","XRCC4_CTRL")))],
-  CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","CTIP_CTRL", "XRCC4_CTRL")))]
+  sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7_K","PGM", "ICL7" )))],
+  sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7_K","PGM" )))],
+  XRCC4seul = tout[which(is.element(tout, c("XRCC4","ND7_X")))],
+  CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","ND7_C", "ND7_X")))]
 )
 rm(tout)
 
 #### Définition des cluster à grouper ensemble ####
 cluster = list(
   ICL7 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
-  ND7 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
+  ND7_K = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
   PGM = c(rep("INTER",3),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
   KU80c = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
   
-  CTIP_CTRL = c(rep("EARLY",1),rep("INTER",3),rep("LATE",1),rep("VEG",1)),
+  ND7_C = c(rep("EARLY",1),rep("INTER",3),rep("LATE",1),rep("VEG",1)),
   CTIP = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1)),
-  XRCC4_CTRL = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1)),
+  ND7_X = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1)),
   XRCC4 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1))
 )
 

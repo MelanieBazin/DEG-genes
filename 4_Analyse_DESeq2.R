@@ -12,7 +12,8 @@ source("0_Cluster.R")
 i = names(rnai_list)[1]
 print(paste("On analyse le jeu de donnée :", i, "-->", paste(rnai_list[[i]], collapse = ", ") ))
 
-source("3_Mise_en_forme_des_donnees.R")
+# source("3_Mise_en_forme_des_donnees.R")
+source("2-1_ComparaisonPCA-LDA_avec-sansBtachInDESeq.R")
 condition = i
 
 # Definiton des variables DESeq2

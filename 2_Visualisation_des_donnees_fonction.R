@@ -2,7 +2,7 @@ options(stringsAsFactors = FALSE)
 
 
 ConcatTab <- function(type, conditions = NULL){
-  annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   path = paste0("./DATA/", type)
   count = list.files(path)
   if (type == "EXPRESSION"){
@@ -33,10 +33,10 @@ DivideByGeneSeize <- function(countdata){
   names(taille)=annotation$ID
   
   data_tab_seize  = countdata
-  for (j in rownames(count.seize)){
-    count.seize[j,] = countdata[j,]/taille[j]
+  for (j in rownames(data_tab_seize)){
+    data_tab_seize[j,] = countdata[j,]/taille[j]
   }
-  return(count.seize)
+  return(data_tab_seize)
 }
 
 CountBoxplot <- function (tab, type, color = "lightgray"){
@@ -214,20 +214,22 @@ return(infodata)
 
 library(ggplot2)
 library(ggrepel)
-library(klaR)
 
-DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condition, color){
+LDA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condition, color){
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
-    plot(lda_model, dimen = 1, type = "b")
-  dev.off()
-  # plot(lda_model, col = color, dimen = 2)
+  if(length(grep("LDA",type))>0){
+    png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
+      plot(lda_model, dimen = 1, type = "b")
+    dev.off()
+    # plot(lda_model, col = color, dimen = 2)
+    prediction = predict(lda_model)$x
+  } else if(length(grep("SVM",type))>0){
+    prediction = predict(lda_model)
+  }
   
-  ### Installer le placake klaR
-  # partimat(paste("Cluster ~", paste(unique(infodata$Cluster), collapse = "+")), data = as.data.frame(lda_train), method = "lda")
-  gg_data_tab = cbind(as.data.frame(lda_data_tab), predict(lda_model)$x)
+  gg_data_tab = cbind(as.data.frame(lda_data_tab), prediction)
   gp = ggplot(gg_data_tab, aes(LD1, LD2))+
     geom_point(size = 1, aes(color = infodata$Cluster)) +
     geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
@@ -251,7 +253,203 @@ DA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condi
     theme_light()+
     scale_color_manual(values = unique(color))
   ggsave(paste0(path,condition,"_",type,"3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+ 
+  gp = ggplot(gg_data_tab, aes(LD1, LD4))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_",type,"4.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
   
+  gp = ggplot(gg_data_tab, aes(LD2, LD4))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_",type,"5.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  
+  gp = ggplot(gg_data_tab, aes(LD3, LD4))+
+    geom_point(size = 1, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    labs(color = "Groupe")+
+    theme_light()+
+    scale_color_manual(values = unique(color))
+  ggsave(paste0(path,condition,"_",type,"6.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  
+}
+
+EvaluPrediction <- function(type, data_tab, infodata , i){
+    if (type == "LDA"){
+    lda_data_tab=scale(t(data_tab))
+    
+    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.6, 0.4))
+    train = lda_data_tab[training_sample,]
+    test = lda_data_tab[!training_sample,]
+    
+    lda_model = lda(train, grouping = infodata$Cluster[training_sample])
+    
+  }else if (type == "SVM"){
+    lda_data_tab=t(data_tab)
+    
+    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.6, 0.4))
+    train = lda_data_tab[training_sample,]
+    test = lda_data_tab[!training_sample,]
+    
+    trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
+    lda_model = train(train, y = as.factor(infodata$Cluster[training_sample]), method = "svmLinear",
+                      trControl=trctrl,
+                      preProcess = c("center", "scale"),
+                      tuneLength = 10)
+  }
+  
+  # lda_model$prior
+  # summary(lda_model$scaling)
+  
+  lda_train = predict(lda_model)
+  lda_test = predict(lda_model, test)
+  
+  if(type == "LDA"){
+    lda_train = as.character(lda_train$class)
+    lda_test  = as.character(lda_test$class)
+  } 
+  type = paste0(type,"train")
+  
+  path = paste0(path,"/",type,"/")
+  dir.create(path,recursive=T,showWarnings=F)
+  
+  manquant = setdiff(lda_test, infodata$Cluster[!training_sample])
+  if(length(manquant)!=0){
+    for (m in 1:length(manquant)){
+    tab_test = cbind(tab_test, rep(0, nrow(tab_test)))
+    colnames(tab_test)[ncol(tab_test)]=manquant[m]
+    }
+    tab_test= tab_test[order(colnames(tab_test)),]
+  }
+  tab_train = table(lda_train, infodata$Cluster[training_sample]) #les chiffres sur la diagonal correspondent au rédiction correcte
+  tab_test = table(lda_test, infodata$Cluster[!training_sample])
+  
+  write.table(tab_train, paste0(path,i,"_train.tab"), sep = "\t")
+  write.table(tab_test, paste0(path,i,"_test.tab"), sep = "\t")
+  
+  conf_mat_train = confusionMatrix(tab_train)
+  conf_mat_test = confusionMatrix(tab_test)
+  return(print(paste("Précision du modèle : ",signif(conf_mat_test$overall["Accuracy"]*100, digits = 4),"%")))
+  
+  write(conf_mat_train, paste0(path,i,"_confusionMatrice_train.txt"), sep = "\t")
+  write(conf_mat_test, paste0(path,i,"_confusionMatrice_test.txt"), sep = "\t")
+  
+  DA_plot_generator(type,train,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
+  
+
+}
+
+MeanTabCalculation <- function(data_tab, rnai_list, cluster,i){
+
+  mean_data_tab =data.frame(ID=rownames(data_tab))
+  c_split = c()
+  
+  for (a in rnai_list[[i]]){
+    tab = data_tab[,grep(a, colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
+    colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
+    
+    
+    # Calculer la moyenne pour les points que l'on veux grouper dans la cinétique
+    mean_tab =data.frame(ID=rownames(data_tab))
+    for (b in unique(cluster[[a]])){
+      temp = grep(b, colnames(tab))
+      if(length(temp) == 1){
+        mean_tab[,b] = tab[,temp]
+      }else{
+        mean_tab[,b] = apply(tab[,temp], 1, mean)
+      }
+    }
+    
+    mean_tab = mean_tab[,c(1,ncol(mean_tab),2:(ncol(mean_tab)-1))]
+    colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
+    mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
+    rm(mean_tab, tab)
+  }
+  
+  # Passage de la colonne des ID en rowname
+  if (colnames(mean_data_tab)[1]=="ID"){
+    rownames(mean_data_tab)=mean_data_tab$ID
+    mean_data_tab = mean_data_tab[,-1]
+  }
+  mean_data_tab = as.matrix(mean_data_tab)
+  return(mean_data_tab)
+  
+}
+
+library("stringr")  
+library("pheatmap")
+library("ComplexHeatmap")
+library("magick")
+library("RColorBrewer")
+library(circlize)
+library(gplots)
+MyHeatmaps <- function(path, data_tab){
+  dir.create(path,recursive=T,showWarnings=F)
+  
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+  annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
+  
+  data_log = as.matrix(log(data_tab+1))
+
+  
+  color_vec = c(min(data_log),quantile(data_log)[[2]],median(data_log), 
+                quantile(data_log)[[4]],max(data_log))
+  
+  c_split = vector("character",ncol(data_tab))
+  c_order = c()
+  c_order_ctr = c()
+  for (a in rnai_list[[i]]){
+    x = grep(a, colnames(data_tab))
+    c_split[min(x):max(x)] = c(rep(a,length(x)))
+    
+    if (length(grep("ND7",a)) >0 | length(grep("ICL7",a)) >0){
+      c_order_ctr = c(c_order_ctr,max(x), min(x):(max(x)-1))
+    }else{
+      c_order = c(c_order,max(x), min(x):(max(x)-1))
+    }
+  }
+  c_order = c(c_order_ctr, c_order)
+  
+  h = Heatmap(data_log,
+              name = "log(expres)",
+              col = colorRamp2(color_vec, c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D")),
+              cluster_rows = F, # turn off row clustering
+              cluster_columns = F, # turn off column clustering
+              column_title = i,
+              show_row_names = F,
+              row_order = order(annotation$EXPRESSION_PROFIL),
+              row_split = annotation$EXPRESSION_PROFIL,
+              row_title = "%s", row_title_rot = 0,
+              column_split = c_split,
+              column_order = c_order,
+              use_raster = T)
+  h2 = Heatmap(data_log,
+               name = "log(expres)",
+               cluster_rows = F, # turn off row clustering
+               cluster_columns = F, # turn off column clustering
+               column_title = i,
+               show_row_names = F,
+               row_order = order(annotation$EXPRESSION_PROFIL),
+               row_split = annotation$EXPRESSION_PROFIL,
+               row_title = "%s", row_title_rot = 0,
+               column_split = c_split,
+               column_order = c_order,
+               use_raster = T)
+  
+  
+  png(paste0(path,i, "_AllPoint_heatmap_red.png"),width = 400, height = 600)
+    print(h)
+  dev.off()
+  
+  png(paste0(path,i, "_AllPoint_heatmap_blue.png"),width = 400, height = 600)
+    print(h2)
+  dev.off()
 }
 
 #############################################
@@ -325,14 +523,132 @@ Clustering <- function(matDist, nb_cluster, method,
   
 }
 
-##########
+########## Fonction Gaëlle ####
+
+
+# This function is useful to draw gene expression profiles
+plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
+  
+  # Check function parameters
+  if(is.null(yMax)){
+    
+    print("You must specify a maximal value for Y axis")
+    
+  }else{
+    
+    # Representation of the first expression profile
+    plot(1:ncol(expData), expData[1,], col = "grey", type = "l",
+         ylim = c(0, ceiling(yMax)),
+         xlab = "Time point", ylab = "Gene expression level",
+         main = title)
+    
+    # Add expression profile for other genes
+    for(i in 2:nrow(expData)){
+      
+      lines(1:ncol(expData), expData[i,], col = "grey")
+      
+      # end of for()  
+    }
+    
+    # Average expression profile
+    if(meanProfile == TRUE){
+      expMean = apply(expData, 2, mean)
+      lines(1:ncol(expData), expMean, col = "red", 
+            lwd = 1.5, lty = "dashed")
+    }
+    
+    # end of else()   
+  }
+  
+  # end of function plotGenes()  
+}
 
 
 
+ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab){
 
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+  annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
+  expr_profil = unique(annotation$EXPRESSION_PROFIL)[-1]
+  expr_none = unique(annotation$EXPRESSION_PROFIL)[1]
+  
+  
+  dir.create(save_path,recursive=T,showWarnings=F)
+  
+  data_log =  log(data_tab)+1
+  pdf(paste0(save_path,i,"_Profils_expression.pdf"))
+  for (r in rnai_list[[i]]){
+    rnai = grep(r, colnames(data_tab))
+    par(mfrow=c(2,3))
+    for( p in expr_profil){
+      id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
+      graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
+      
+    }
+    
+    for( p in expr_profil){
+      id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
+      graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = "log(EXPRESSION)",
+                      names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+      
+    }
+    
+    # Graphiques des "none"
+    par(mfrow=c(1,1))
+    id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
+    graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
+    
+    graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = "log(EXPRESSION)",
+                    names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+    
+  }
+  dev.off()
+}
 
+ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab){
 
-
-
-
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+  annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
+  expr_profil = unique(annotation$EXPRESSION_PROFIL)[-1]
+  expr_none = unique(annotation$EXPRESSION_PROFIL)[1]
+  
+  
+  dir.create(save_path,recursive=T,showWarnings=F)
+  
+  data_log =  log(data_tab)+1
+  
+  for (r in rnai_list[[i]]){
+    rnai = grep(r, colnames(data_tab))
+    
+    for( p in expr_profil){
+      id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
+      png(paste0(save_path,i,"_Profil_",r,p,".png"))
+        graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
+        
+      dev.off()
+    }
+    
+    for( p in expr_profil){
+      id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
+      png(paste0(save_path,i,"_Boxplot_",r,p,".png"))
+        graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = "log(EXPRESSION)",
+                        xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+        
+      dev.off()
+    }
+    
+    # Graphiques des "none"
+    par(mfrow=c(1,1))
+    id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
+    png(paste0(save_path,i,"_Profils",r,"_none.png"))
+      graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
+      
+    dev.off()
+    png(paste0(save_path,i,"_Boxplot",r,"_none.png"))
+      graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = "log(EXPRESSION)",
+                      names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+      
+    dev.off()
+  }
+}
 

@@ -1,24 +1,19 @@
 source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 source("4_Functions.R")
-library(stringr)
 library(sva)
 library(DESeq2)
 library(limma)
 library(caret)
 library(e1071)
-
+library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_",parametre_DESeq2,"_test03")
+analyseName = paste0("DESeq2_test03")
 
-# path = "./Analyse/DESeq2_test02/"
-path = paste("./Analyse/",analyseName,"/")
+path = paste0("./Analyse/",analyseName,"/")
 dir.create(path,recursive=T,showWarnings=F)
 # Utilisation uniquement des normalisations DESeq2
 type = "DESeq2"
-# RNAi à analyser ensemble
-source("0_Cluster.R")
-
 
 # Definiton des variables DESeq2
 FC = 1.5 #Mini 1.5 -> XRCC4 = 2
@@ -38,17 +33,12 @@ hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
 hmcol = rev(hmcol)
 
 ### Limiter le fichier annotation aux gènes avec synonyme ###
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 rownames(annotation)=annotation$ID
-### Création des dossier pour ranger les données ###
-base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/Images/")
-dir.create(base_img_dir,recursive=T,showWarnings=F)
 
-base_res_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/")
-dir.create(base_res_dir, recursive=T,showWarnings=F)
-####
 
-# i = "tout"
+i = "CTIPseulctrl2020"  
 
 for (i in names(rnai_list)){
   
@@ -57,28 +47,17 @@ for (i in names(rnai_list)){
   
   ##### Création du tableau de donnée à analyser ensemble ####
   #Ouverture des fichiers et création de l'objet countdata
-  countdata = ConcatTab("EXPRESSION", conditions = rnai_list[[i]])
-  row.names(countdata)=countdata$ID
-  countdata=countdata[,-1]
-  
-  # Boxplot des comptages non-normalisés
-  png(paste0(path,i,"_Row_Boxplot.png"))
-    CountBoxplot(countdata, "DESeq2", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
-  dev.off()
-  
+  countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
+
   # Création du tableau avec les info des colonnes
-  infodata=CreatInfoData3(countdata, conditions = i, rnai_list, cluster)  # La verison 3 ajoute une colonne batch avec les année de séquancage
-  
-  # Mise en forme des données
-  countdata =  as.matrix(countdata)
-  countdata = countdata[rowSums(countdata) > 50,]
+  infodata = CreatInfoData3(countdata, conditions = i, rnai_list, cluster)
   
   # Correction de l'effet batch avec ComBat
-  print(paste(i, "-----Correction de l'effet Bacth"))
-  countdata = ComBat_seq(countdata, batch = infodata$Batch, group = infodata$Cluster)
+  # print(paste(i, "-----Correction de l'effet Batch"))
+  # countdata = ComBat_seq(countdata, batch = infodata$Batch, group = infodata$Cluster)
 
   deseq = DESeqDataSetFromMatrix(countData = countdata,
-                                 colData  = infodata[,1:(ncol(infodata)-1)],
+                                 colData  = infodata,
                                  design   = ~ Feeding + Cluster)
   
   
@@ -95,16 +74,6 @@ for (i in names(rnai_list)){
   
   # Récupération des données de comptage normalisées
   data_tab=counts(deseq,normalized=T)
-  
-  # Passage de la colonne des ID en rowname
-  if (colnames(data_tab)[1]=="ID"){
-    row.names(data_tab)=data_tab$ID
-    data_tab = data_tab[,-1]
-  }
-  # Changer le nom des colonnes controles
-  colnames(data_tab) = str_replace_all(colnames(data_tab),"ND7","ND7_K")
-  colnames(data_tab) = str_replace_all(colnames(data_tab),"CTIP_CTRL","ND7_C")
-  colnames(data_tab) = str_replace_all(colnames(data_tab),"XRCC4_CTRL","ND7_X")
   
   # Boxplot des comptages normalisés divisé par la taille des gènes
   print(paste(i, "-----> Création BoxPlot normalisé"))
@@ -132,23 +101,23 @@ for (i in names(rnai_list)){
   # Analyse en composante principale
   print(paste(i, "-----> Analyse ACP"))
   PCA_plot_generator(data_tab,colors = color,
-                      save_path = paste0(path,i,"_"),
+                      save_path = path,
                       main = paste0("ACP ",i," (",type,")"))
   
   # Analyse de discrimination linéaire (LDA)
-  print(paste(i, "-----> Analyse LDA"))
-  set.seed(101)
-  lda_data_tab=scale(t(data_tab)) #s'assurer que la sd est de 1 et la moyenne à 0 (prédicat des lda)
-  # summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
-  # summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
-
-  lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
-  # lda_model$prior
-  # summary(lda_model$scaling)
-  lda_pred = predict(lda_model)
-
-  DA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
-  
+  # print(paste(i, "-----> Analyse LDA"))
+  # set.seed(101)
+  # lda_data_tab=scale(t(data_tab)) #s'assurer que la sd est de 1 et la moyenne à 0 (prédicat des lda)
+  # # summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
+  # # summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
+  # 
+  # lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
+  # # lda_model$prior
+  # # summary(lda_model$scaling)
+  # lda_pred = predict(lda_model)
+  # 
+  # LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
+  # 
   # print("Teste des prédictions")
   # EvaluPrediction("LDA", data_tab, infodata, i)  # Evaluer la prédiction
 
@@ -170,7 +139,7 @@ for (i in names(rnai_list)){
   # 
   # plot
   # 
-  # DA_plot_generator("SVM",t(data_tab),infodata, svm_model, path, i, color)
+  # LDA_plot_generator("SVM",t(data_tab),infodata, svm_model, path, i, color)
   # 
   # print("Teste des prédictions")
   # EvaluPrediction("SVM", data_tab)  # Evaluer la prédiction
@@ -211,19 +180,22 @@ for (i in names(rnai_list)){
 
   data_tab = as.matrix(data_tab)
   
-  MyHeatmaps(paste0(path,"/Heatmap/"),data_tab)
+  MyHeatmaps(paste0(path,"/Heatmap/"),data_tab, condition = i)
   
-  ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab)
+  ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   
-  # Heat map avec calcul des moyennes
+  # Heatmap avec calcul des moyennes
 
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
 
-  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab)
-  ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab)
+  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i)
+  ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  
+  # Heatmap sans log
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F)
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F)
 
-  source("4-2_Analyse_DESeq2")
 }
   

@@ -10,8 +10,8 @@ set.seed(10111)
 
 analyseName = paste0("DESeq2_test03")
 
-path = paste0("./Analyse/",analyseName,"/")
-dir.create(path,recursive=T,showWarnings=F)
+path_dir = paste0("./Analyse/",analyseName,"/")
+dir.create(path_dir,recursive=T,showWarnings=F)
 # Utilisation uniquement des normalisations DESeq2
 type = "DESeq2"
 
@@ -42,7 +42,7 @@ i = "CTIPseulctrl2020"
 
 for (i in names(rnai_list)){
   
-  path = paste0(path,i,"/")
+  path = paste0(path_dir,i,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
   ##### Création du tableau de donnée à analyser ensemble ####
@@ -180,8 +180,7 @@ for (i in names(rnai_list)){
 
   data_tab = as.matrix(data_tab)
   
-  MyHeatmaps(paste0(path,"/Heatmap/"),data_tab, condition = i)
-  
+  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i)
   ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   

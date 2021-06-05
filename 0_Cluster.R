@@ -1,10 +1,8 @@
 options(stringsAsFactors = FALSE)
+library(stringr)
 
 #### Définition des ARNi à analyser ensembles ####
-tout = sub("_expression_table_RPKM.tab","",list.files("./DATA/RPKM/"))
-tout = str_replace_all(tout,"ND7","ND7_K")
-tout = str_replace_all(tout,"CTIP_CTRL","ND7_C")
-tout = str_replace_all(tout,"XRCC4_CTRL","ND7_X")
+tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
 
 rnai_list = list(
   tout = tout,
@@ -56,3 +54,14 @@ for(j in names(cluster)){
   cluster_color[[j]] = color
 }
 rm(veg_color, early_color, inter_color, late_color, very_late_color)
+
+
+#### Definition de l'ordre des colonnes #####
+tabs = list.files("./DATA/EXPRESSION")
+timing_list = as.list(tabs)
+for (k in 1:length(tabs)){
+  table = read.table(paste0("./DATA/EXPRESSION/",tabs[k]), header = T, row.names = 1)
+  names(timing_list)[k] = gsub(".tab", "", tabs[k])
+  timing_list[[k]] = colnames(table)
+}
+rm(table, tabs)

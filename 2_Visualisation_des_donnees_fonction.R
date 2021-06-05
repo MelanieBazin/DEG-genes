@@ -47,7 +47,7 @@ DivideByGeneSeize <- function(countdata){
 CountBoxplot <- function (tab, type, color = "lightgray"){
   boxplot(log(tab + 1), ylab = "count values (log scale)",
           main = paste0("Count data (",type,")"), xaxt="n", yaxt="n",
-          col = color)
+          col = color, outline=FALSE)
   axis(side = 1, labels = FALSE, tick = F)
   axis(side = 2,
        ## Rotate labels perpendicular to y-axis.
@@ -374,28 +374,27 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   
   
   if (Log == T){
-    data_log =  as.matrix(log(data_tab)+1)
+    data_log =  as.matrix(log(data_tab+1))
     Ylab = "log(expres)"
   }else{
     data_log =  as.matrix(data_tab)
     Ylab = "expres"
   }
 
-  
-  color_vec = c(min(data_log),quantile(data_log)[[2]],median(data_log), 
+  color_vec = c(0,quantile(data_log)[[2]],median(data_log), 
                 quantile(data_log)[[4]],max(data_log))
   
-  c_split = vector("character",ncol(data_tab))
+  c_split = vector("character",ncol(data_log))
   c_order = c()
   c_order_ctr = c()
   for (a in rnai_list[[condition]]){
-    x = grep(a, colnames(data_tab))
-    c_split[min(x):max(x)] = c(rep(a,length(x)))
+    x = grep(a, colnames(data_log))
+    c_split[x] = c(rep(a,length(x)))
     
-    if (length(grep("ND7",a)) >0 | length(grep("ICL7",a)) >0){
-      c_order_ctr = c(c_order_ctr,min(x):max(x))
+    if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0){
+      c_order_ctr = c(c_order_ctr,x)
     }else{
-      c_order = c(c_order, min(x):max(x))
+      c_order = c(c_order, x)
     }
   }
   c_order = c(c_order_ctr, c_order)
@@ -429,7 +428,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   if (moyenne == T){
     moyenne = "MOYENNE"
   }else{
-    moyenne = NULL
+    moyenne = ""
   }
   
   png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 400, height = 600)
@@ -567,7 +566,7 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
   if (moyenne == T){
     moyenne = "MOYENNE"
   }else{
-    moyenne = NULL
+    moyenne = ""
   }
   
   if (Log == T){
@@ -578,7 +577,7 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     Ylab = "EXPRESSION"
   }
   
-  data_log =  log(data_tab)+1
+  data_log =  log(data_tab+1)
   pdf(paste0(save_path,condition,"_Profils_expression",moyenne,".pdf"))
   for (r in rnai_list[[condition]]){
     rnai = grep(r, colnames(data_tab))
@@ -619,7 +618,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
   if (moyenne == T){
     moyenne = "MOYENNE"
   }else{
-    moyenne = NULL
+    moyenne = ""
   }
   if (Log == T){
     data_log =  log(data_tab)+1

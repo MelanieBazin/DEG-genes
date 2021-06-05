@@ -1,5 +1,13 @@
 condition = i
 
+### Création des dossier pour ranger les données ###
+base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/Images/")
+dir.create(base_img_dir,recursive=T,showWarnings=F)
+
+base_res_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/")
+dir.create(base_res_dir, recursive=T,showWarnings=F)
+####
+
 ###############################################
 # Reprise des variables et analyses d'Olivier #
 ###############################################
@@ -9,7 +17,7 @@ labels=colnames(countdata)
 
 #### Moyenne des valeurs de comptage normalisées pour chaque point du timining####
 ##EARLY, INTERMEDIATE, LATE ##
-time_points = infodata$Conditions
+time_points = infodata$Cluster
 
 # Extraction des données de comptage de DESeq2
 geneNormCountsTable=counts(deseq,normalized=T)
@@ -18,7 +26,7 @@ countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE)) #Mise en forme des 
 
 # Calcule des moyennes -> Ne sert que pour les heatmap
 meanGeneNormCountsTable =data.frame(ID=rownames(geneNormCountsTable))
-colnames(geneNormCountsTable)=time_points
+colnames(geneNormCountsTable)=paste(infodata$Feeding,infodata$Cluster, collapse = "_")
 for(p in unique(time_points)) {
   temp = grep(p, colnames(geneNormCountsTable))
   if(length(temp)==1)  { 

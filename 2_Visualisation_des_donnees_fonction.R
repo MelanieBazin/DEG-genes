@@ -1,10 +1,11 @@
 options(stringsAsFactors = FALSE)
-
+source("0_Cluster.R")
 
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-  path = paste0("./DATA/", type)
-  count = list.files(path)
+  path = paste0("./DATA/", type, "/")
+  count = gsub(".tab","",list.files(path))
+
   if (type == "EXPRESSION"){
     extention = ".tab"
   }else{
@@ -12,18 +13,23 @@ ConcatTab <- function(type, conditions = NULL){
   }
   
   if (!is.null(conditions)){
-    count =  count[which(is.element(count, paste0(conditions,extention)))]
+    count =  count[which(is.element(count, conditions))]
   }
   
-  count = paste(path,count, sep = "/")
-  tab_count = array(annotation$ID, dim = c(nrow(annotation),1))
+  tab_count = matrix(annotation$ID)
   colnames(tab_count)="ID"
-  for (i in count){
-    tab = read.table(i, sep = "\t", header = T)
-    name = sub(".tab","",sub(paste0("./DATA/",type,"/"),"",sub(paste0("_expression_table_",type),"",i)))
-    colnames(tab)[2:ncol(tab)]=paste(name, colnames(tab)[2:ncol(tab)], sep = "_")
+  for (j in count){
+    tab = read.table(paste0(path,j,extention), sep = "\t", header = T)
+    colnames(tab)=paste(j, colnames(tab), sep = "_")
+    tab$ID = rownames(tab)
+    tab = as.matrix(tab)
     tab_count = merge(tab_count, tab, by = "ID")
   } 
+  
+  if (colnames(tab_count)[1]=="ID"){
+    rownames(tab_count) = tab_count$ID
+    tab_count = tab_count[,-1]
+  }
   return(tab_count)
 }
 
@@ -72,31 +78,17 @@ CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   colnames(infodata) = c("Noms", "Feeding", "Timing","Cluster", "Conditions")
   
   infodata[,"Noms"] = colnames(countdata)
-  
-  # Colonne feeding, timing et cluster
-  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
-  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
-  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
-  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
-  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
-  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
-  
-  rnai = rnai_list[[conditions]]
-  rnai = rnai[order(rnai)]
-  
+
+  rnai = names(timing_list)
   timing = c()
   clust = c()
   feeding = colnames(countdata)
   for(r in rnai){
-    t = eval(parse(text = r))
-    
-    timing = c(timing,t)
+    timing = c(timing,timing_list[[r]])
     clust = c(clust, cluster[[r]])
 
-    for (g in t){
-      feeding = str_replace_all(feeding, t, "")
+    for (g in timing_list[r]){
+      feeding = str_replace_all(feeding, timing_list[r], "")
     }
   }
   
@@ -125,22 +117,12 @@ CreatInfoData2 <- function(conditions=NULL){
   colnames(infodata) = c("Name","RNAi","Timing")
   infodata[,"Name"] = row.names(infodata)
   
-  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
-  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
-  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
-  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
-  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
-  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
+  infodata[,"Timing"] = unlist(timing_list, use.names = F)
   
-  infodata[,"Timing"] = c(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
-  
-  condi = sub(".tab","",list.files("./DATA/EXPRESSION"))
-  l = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL)
+  condi = names(timing_list)
   rnai = c()
-  for (i in 1:length(l)){
-    rnai = c(rnai, rep(condi[i],length(l[[i]])))
+  for (i in 1:length(timing_list)){
+    rnai = c(rnai, rep(condi[i],length(timing_list[[i]])))
   }
   infodata[,"RNAi"] = rnai
   infodata = as.data.frame(infodata)
@@ -154,21 +136,11 @@ CreatInfoData2 <- function(conditions=NULL){
 }
 
 CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
-  infodata = matrix(NA,nrow = ncol(countdata), ncol = 6)
+  infodata = matrix(NA,nrow = ncol(countdata), ncol = 7)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Noms", "Feeding", "Timing", "Cluster", "Condition","Batch")
+  colnames(infodata) = c("Noms", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
   
   infodata[,"Noms"] = colnames(countdata)
-  
-  # Colonne feeding, timing et cluster
-  CTIP = c("T0", "T5.5", "T12.5", "T25", "Veg")
-  CTIP_CTRL = c("T0", "T5", "T10", "T20", "T30", "Veg")
-  ICL7 = c("T0", "T5", "T10", "T20", "T35", "T50", "Veg")
-  KU80c = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  ND7 = c( "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-  PGM = c( "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
-  XRCC4 = c( "T2", "T7", "T22", "T32","Veg")
-  XRCC4_CTRL = c( "T2", "T7", "T22", "T32","Veg")
   
   rnai = rnai_list[[conditions]]
   rnai = rnai[order(rnai)]
@@ -178,26 +150,31 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
   batch = c()
   feeding = c()
   condition = c()
+  labo = c()
   for(r in rnai){
-    t = eval(parse(text = r))
   
-    timing = c(timing,t)
+    timing = c(timing,timing_list[[r]])
     clust = c(clust, cluster[[r]])
     
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
-      feeding =c(feeding, rep("ctrl", length(t)))
+      feeding =c(feeding, rep("ctrl", length(timing_list[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
     }else{
-      feeding =c(feeding, rep(r, length(t)))
+      feeding =c(feeding, rep(r, length(timing_list[[r]])))
       condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
     }
+
     
-    
-    
-    if (r == "ND7" | r == "PGM"| r == "KU80C" | r == "ICL7"){
-      batch = c(batch,rep("seq_2014", length(t)))
+    if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7"){
+      batch = c(batch,rep("seq_2014", length(timing_list[[r]])))
     }else{
-      batch = c(batch,rep("seq_2020",length(t)))
+      batch = c(batch,rep("seq_2020",length(timing_list[[r]])))
+    }
+    
+    if ( r == "ICL7"){
+      labo = c(labo,rep("Duharcourt", length(timing_list[[r]])))
+    }else{
+      labo = c(labo,rep("Betermier",length(timing_list[[r]])))
     }
   }
   
@@ -206,6 +183,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
   infodata[,"Cluster"] = clust
   infodata[,"Batch"] = batch
   infodata[,"Condition"]= condition
+  infodata[,"Labo"]= labo
   
   infodata = as.data.frame(infodata)
   
@@ -501,7 +479,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
 
 Clustering <- function(matDist, nb_cluster, method, 
                        titre, colors = NULL){
-  ## Créaction d'un vecteur contennat le clusering calculé a partir de la matrice de distance
+  ## Créaction d'un vecteur contenant le clusering calculé a partir de la matrice de distance
   # Choisir le type d'algorithme utilisé pour faire les clusters
   if (method  == "kmeans"){
     res = kmeans(matDist, nb_cluster)
@@ -543,9 +521,9 @@ plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
          main = title)
     
     # Add expression profile for other genes
-    for(i in 2:nrow(expData)){
+    for(a in 2:nrow(expData)){
       
-      lines(1:ncol(expData), expData[i,], col = "grey")
+      lines(1:ncol(expData), expData[a,], col = "grey")
       
       # end of for()  
     }

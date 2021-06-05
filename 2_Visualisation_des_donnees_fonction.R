@@ -19,10 +19,9 @@ ConcatTab <- function(type, conditions = NULL){
   tab_count = matrix(annotation$ID)
   colnames(tab_count)="ID"
   for (j in count){
-    tab = read.table(paste0(path,j,extention), sep = "\t", header = T)
+    tab = read.table(paste0(path,j,extention), sep = "\t", header = T, quote = "")
     colnames(tab)=paste(j, colnames(tab), sep = "_")
     tab$ID = rownames(tab)
-    tab = as.matrix(tab)
     tab_count = merge(tab_count, tab, by = "ID")
   } 
   
@@ -367,13 +366,20 @@ library("magick")
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-MyHeatmaps <- function(path, data_tab){
+MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   dir.create(path,recursive=T,showWarnings=F)
   
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
   
-  data_log = as.matrix(log(data_tab+1))
+  
+  if (Log == T){
+    data_log =  as.matrix(log(data_tab)+1)
+    Ylab = "log(expres)"
+  }else{
+    data_log =  as.matrix(data_tab)
+    Ylab = "expres"
+  }
 
   
   color_vec = c(min(data_log),quantile(data_log)[[2]],median(data_log), 
@@ -382,24 +388,24 @@ MyHeatmaps <- function(path, data_tab){
   c_split = vector("character",ncol(data_tab))
   c_order = c()
   c_order_ctr = c()
-  for (a in rnai_list[[i]]){
+  for (a in rnai_list[[condition]]){
     x = grep(a, colnames(data_tab))
     c_split[min(x):max(x)] = c(rep(a,length(x)))
     
     if (length(grep("ND7",a)) >0 | length(grep("ICL7",a)) >0){
-      c_order_ctr = c(c_order_ctr,max(x), min(x):(max(x)-1))
+      c_order_ctr = c(c_order_ctr,min(x):max(x))
     }else{
-      c_order = c(c_order,max(x), min(x):(max(x)-1))
+      c_order = c(c_order, min(x):max(x))
     }
   }
   c_order = c(c_order_ctr, c_order)
   
   h = Heatmap(data_log,
-              name = "log(expres)",
+              name = Ylab,
               col = colorRamp2(color_vec, c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D")),
               cluster_rows = F, # turn off row clustering
               cluster_columns = F, # turn off column clustering
-              column_title = i,
+              column_title = condition,
               show_row_names = F,
               row_order = order(annotation$EXPRESSION_PROFIL),
               row_split = annotation$EXPRESSION_PROFIL,
@@ -408,10 +414,10 @@ MyHeatmaps <- function(path, data_tab){
               column_order = c_order,
               use_raster = T)
   h2 = Heatmap(data_log,
-               name = "log(expres)",
+               name = Ylab,
                cluster_rows = F, # turn off row clustering
                cluster_columns = F, # turn off column clustering
-               column_title = i,
+               column_title = condition,
                show_row_names = F,
                row_order = order(annotation$EXPRESSION_PROFIL),
                row_split = annotation$EXPRESSION_PROFIL,
@@ -420,12 +426,17 @@ MyHeatmaps <- function(path, data_tab){
                column_order = c_order,
                use_raster = T)
   
+  if (moyenne == T){
+    moyenne = "MOYENNE"
+  }else{
+    moyenne = NULL
+  }
   
-  png(paste0(path,i, "_AllPoint_heatmap_red.png"),width = 400, height = 600)
+  png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 400, height = 600)
     print(h)
   dev.off()
   
-  png(paste0(path,i, "_AllPoint_heatmap_blue.png"),width = 400, height = 600)
+  png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 400, height = 600)
     print(h2)
   dev.off()
 }
@@ -543,7 +554,7 @@ plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
 
 
 
-ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab){
+ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne = F, condition, Log = T){
 
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
@@ -553,9 +564,23 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab){
   
   dir.create(save_path,recursive=T,showWarnings=F)
   
+  if (moyenne == T){
+    moyenne = "MOYENNE"
+  }else{
+    moyenne = NULL
+  }
+  
+  if (Log == T){
+    data_log =  log(data_tab)+1
+    Ylab = "log(EXPRESSION)"
+  }else{
+    data_log =  data_tab
+    Ylab = "EXPRESSION"
+  }
+  
   data_log =  log(data_tab)+1
-  pdf(paste0(save_path,i,"_Profils_expression.pdf"))
-  for (r in rnai_list[[i]]){
+  pdf(paste0(save_path,condition,"_Profils_expression",moyenne,".pdf"))
+  for (r in rnai_list[[condition]]){
     rnai = grep(r, colnames(data_tab))
     par(mfrow=c(2,3))
     for( p in expr_profil){
@@ -566,7 +591,7 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab){
     
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
-      graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = "log(EXPRESSION)",
+      graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
                       names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
       
     }
@@ -576,56 +601,66 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab){
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
     graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
     
-    graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = "log(EXPRESSION)",
+    graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
                     names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
     
   }
   dev.off()
 }
 
-ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab){
+ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne = F, condition, Log = T){
 
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
   expr_profil = unique(annotation$EXPRESSION_PROFIL)[-1]
   expr_none = unique(annotation$EXPRESSION_PROFIL)[1]
-  
-  
+
   dir.create(save_path,recursive=T,showWarnings=F)
+  if (moyenne == T){
+    moyenne = "MOYENNE"
+  }else{
+    moyenne = NULL
+  }
+  if (Log == T){
+    data_log =  log(data_tab)+1
+    Ylab = "log(EXPRESSION)"
+  }else{
+    data_log =  data_tab
+    Ylab = "EXPRESSION"
+  }
   
-  data_log =  log(data_tab)+1
   
-  for (r in rnai_list[[i]]){
+  for (r in rnai_list[[condition]]){
     rnai = grep(r, colnames(data_tab))
     
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
-      png(paste0(save_path,i,"_Profil_",r,p,".png"))
+      png(paste0(save_path,condition,"_Profil_",moyenne,r,p,".png"))
         graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
-        
+        print(graph)
       dev.off()
     }
     
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
-      png(paste0(save_path,i,"_Boxplot_",r,p,".png"))
-        graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = "log(EXPRESSION)",
+      png(paste0(save_path,i,"_Boxplot_",moyenne,r,p,".png"))
+        graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
                         xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-        
+        print(graph)
       dev.off()
     }
     
     # Graphiques des "none"
     par(mfrow=c(1,1))
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
-    png(paste0(save_path,i,"_Profils",r,"_none.png"))
+    png(paste0(save_path,i,"_Profils",moyenne,r,"_none.png"))
       graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
-      
+      print(graph)
     dev.off()
-    png(paste0(save_path,i,"_Boxplot",r,"_none.png"))
-      graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = "log(EXPRESSION)",
+    png(paste0(save_path,i,"_Boxplot",moyenne,r,"_none.png"))
+      graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
                       names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-      
+      print(graph)
     dev.off()
   }
 }

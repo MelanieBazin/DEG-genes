@@ -8,20 +8,19 @@ rownames(seqlength)=sub("PTET.51.1.T","PTET.51.1.G",seqlength$ID)
 for (condition in list.files("./DATA/EXPRESSION") ){
   
   tab = read.table(paste0("./DATA/EXPRESSION/",condition), h=T)
-  tab = tab[,c(1,ncol(tab),2:(ncol(tab)-1))]
   
   rpm = matrix(data = NA,nrow = nrow(tab),ncol = ncol(tab))
   colnames(rpm) = colnames(tab)
-  rpm[,1] = tab[,1]
+  rownames(rpm)=rownames(tab)
   
   rpkm = matrix(data = NA,nrow = nrow(tab),ncol = ncol(tab))
   colnames(rpkm) = colnames(tab)
-  rpkm[,1] = tab[,1]
+  rownames(rpkm)=rownames(tab)
   
-  for ( i in 2:(ncol(tab))){
+  for (i in 1:(ncol(tab))){
     mapped_reads=sum(tab[,i])
     rpm[,i]= tab[,i] / mapped_reads *1e6
-    rpkm[,i]= (tab[,i] *1e3) / (seqlength[tab$ID,]$LENGTH * (mapped_reads/1e6) )
+    rpkm[,i]= (tab[,i] *1e3) / (seqlength[rownames(tab),]$LENGTH * (mapped_reads/1e6) )
     
   }  
 

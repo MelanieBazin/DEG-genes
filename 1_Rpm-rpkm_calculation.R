@@ -24,7 +24,7 @@ for (condition in list.files("./DATA/EXPRESSION") ){
     
   }  
 
-  write.table(rpm,paste0("./DATA/RPM/",sub(".tab","",condition),"_expression_table_RPM.tab"), sep="\t",row.names=F,quote=F)
-  write.table(rpkm,paste0("./DATA/RPKM/",sub(".tab","",condition),"_expression_table_RPKM.tab"), sep="\t",row.names=F,quote=F)
+  write.table(rpm,paste0("./DATA/RPM/",sub(".tab","",condition),"_expression_table_RPM.tab"), sep="\t",row.names=T,quote=F)
+  write.table(rpkm,paste0("./DATA/RPKM/",sub(".tab","",condition),"_expression_table_RPKM.tab"), sep="\t",row.names=T,quote=F)
   
 }

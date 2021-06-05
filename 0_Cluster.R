@@ -1,5 +1,7 @@
 options(stringsAsFactors = FALSE)
 library(stringr)
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+rownames(annotation)=annotation$ID
 
 #### Définition des ARNi à analyser ensembles ####
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
@@ -53,7 +55,7 @@ for(j in names(cluster)){
   }
   cluster_color[[j]] = color
 }
-rm(veg_color, early_color, inter_color, late_color, very_late_color)
+rm(veg_color, early_color, inter_color, late_color, very_late_color,i,j)
 
 
 #### Definition de l'ordre des colonnes #####
@@ -64,4 +66,20 @@ for (k in 1:length(tabs)){
   names(timing_list)[k] = gsub(".tab", "", tabs[k])
   timing_list[[k]] = colnames(table)
 }
-rm(table, tabs)
+rm(table, tabs,k)
+
+####### Sélection de gènes #####
+selection = c("Ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
+selection = sort(selection)
+
+select_ID =c()
+name = c()
+for( i in 1:length(selection)){
+  select_ID = c(select_ID,annotation$ID[grep(selection[i],annotation$NAME, ignore.case = T)]) 
+  name = c(name,annotation$NAME[grep(selection[i],annotation$NAME, ignore.case = T)]) 
+}
+names(select_ID)=name
+# select_annotation = annotation[select_ID,]
+rm(selection,i,name)
+
+

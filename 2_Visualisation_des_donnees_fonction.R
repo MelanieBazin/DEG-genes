@@ -4,13 +4,13 @@ source("0_Cluster.R")
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   path = paste0("./DATA/", type, "/")
-  count = gsub(".tab","",list.files(path))
-
+  
   if (type == "EXPRESSION"){
     extention = ".tab"
   }else{
     extention = paste0("_expression_table_",type,".tab")
   }
+  count = gsub(extention,"",list.files(path))
   
   if (!is.null(conditions)){
     count =  count[which(is.element(count, conditions))]
@@ -19,7 +19,7 @@ ConcatTab <- function(type, conditions = NULL){
   tab_count = matrix(annotation$ID)
   colnames(tab_count)="ID"
   for (j in count){
-    tab = read.table(paste0(path,j,extention), sep = "\t", header = T, quote = "")
+    tab = read.table(paste0(path,j,extention), sep = "\t", header = T, quote = "", row.names = 1)
     colnames(tab)=paste(j, colnames(tab), sep = "_")
     tab$ID = rownames(tab)
     tab_count = merge(tab_count, tab, by = "ID")
@@ -366,6 +366,10 @@ library("magick")
 library("RColorBrewer")
 library(circlize)
 library(gplots)
+
+
+
+
 MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   dir.create(path,recursive=T,showWarnings=F)
   
@@ -664,3 +668,53 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
   }
 }
 
+ExpressionProfils <- function(type = "RPKM", rnai = NULL){
+  dir.create("./Analyse/Profils/",recursive=T,showWarnings=F)
+  
+  EXPRESSION = ConcatTab(type, conditions = rnai)
+  MAX = apply(EXPRESSION,1, max)
+  names(MAX)=rownames(EXPRESSION)
+  
+  if(!is.null(rnai)){
+    timing_list = timing_list[rnai]
+    rnai_name = paste(rnai, collapse = "_")
+  }else{
+    rnai_name= "all"
+  }
+  
+  
+  pdf(paste0("./Analyse/Profils/Profils",type,"_",rnai_name,".pdf"))
+  for (s in 1:length(select_ID)){
+    x_axis = unique(unlist(timing_list))
+    x_axis_order = c(1,order(as.numeric(gsub("T", "", x_axis[2:length(x_axis)])))+1)
+    x_axis = x_axis[x_axis_order]
+    
+    plot(NULL, xlim = c(1,length(x_axis)),
+         ylim=c(0,MAX[select_ID[s]]),
+         axes=F,ylab=type,
+         xlab="Timing Autogamie",
+         main=paste("Profils expression",names(select_ID)[s]))
+    
+    
+    
+    axis(1,at=1:length(x_axis),labels=x_axis,las=2)
+    axis(2)
+    
+    legend("topleft",legend=names(timing_list),col=c(1:length(names(timing_list))),lwd=2, cex = 0.75,bty = "n") 
+    
+    color = 0
+    for (i in names(timing_list)){
+      color = color+1
+      expression = EXPRESSION[select_ID[s],grep(i, colnames(EXPRESSION))]
+      positions = c()
+      for (g in gsub(paste0(i, "_"),"", colnames(expression))){
+        positions = c(positions,which(g == x_axis))
+      }
+      
+      lines(positions,expression,col=color,lwd=2)
+      
+    } 
+    
+  }
+  dev.off()
+}

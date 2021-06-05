@@ -30,7 +30,6 @@
 options(stringsAsFactors = FALSE)
 
 annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
-annotation$NAME[grep("PTET.51.1.G0490162",annotation$ID)]="PGM, PiggyMac"
 annotation$NAME[grep("PTET.51.1.G0110267",annotation$ID)]="PGML1"
 annotation$NAME[grep("PTET.51.1.G0380073",annotation$ID)]="PGML2"
 annotation$NAME[grep("PTET.51.1.G0010374",annotation$ID)]="PGML3a"
@@ -40,12 +39,6 @@ annotation$NAME[grep("PTET.51.1.G0340197",annotation$ID)]="PGML4a"
 annotation$NAME[grep("PTET.51.1.G0480099",annotation$ID)]="PGML4b"
 annotation$NAME[grep("PTET.51.1.G0570051",annotation$ID)]="PGML5a"
 annotation$NAME[grep("PTET.51.1.G0510172",annotation$ID)]="PGML5b"
-
-annotation$NAME[grep("PTET.51.1.G0150242",annotation$ID)]="Ku70a"
-annotation$NAME[grep("PTET.51.1.G0250220",annotation$ID)]="Ku70b"
-annotation$NAME[grep("PTET.51.1.G1460025",annotation$ID)]="Ku80a"
-annotation$NAME[grep("PTET.51.1.G1510135",annotation$ID)]="Ku80b"
-annotation$NAME[grep("PTET.51.1.G1140146",annotation$ID)]="Ku80c"
 
 annotation$NAME[grep("PTET.51.1.G1110086",annotation$ID)]="XRCC4"
 annotation$NAME[grep("PTET.51.1.G0020380",annotation$ID)]="CERa"
@@ -57,15 +50,10 @@ annotation$NAME[grep("PTET.51.1.G1330044",annotation$ID)]="EZL2"
 annotation$NAME[grep("PTET.51.1.G1740049",annotation$ID)]="EZL1"
 
 annotation$NAME[grep("PTET.51.1.G0490126",annotation$ID)]=" "
-annotation$NAME[grep("PTET.51.1.G0640197",annotation$ID)]="Mre11a"
 annotation$NAME[grep("PTET.51.1.G0640198",annotation$ID)]="Mre11a?"
-annotation$NAME[grep("PTET.51.1.G0790183",annotation$ID)]="Mre11b"
 
 annotation$NAME[grep("PTET.51.1.G0380048",annotation$ID)]="SPT5v"
 annotation$NAME[grep("PTET.51.1.G0770102",annotation$ID)]="SPT5m"
-
-annotation$NAME[grep("PTET.51.1.G0650078",annotation$ID)]="CtIPa"
-annotation$NAME[grep("PTET.51.1.G0980137",annotation$ID)]="CtIPb"
 
 annotation$NAME[grep("PTET.51.1.G0780031",annotation$ID)]="CAF1"
 annotation$NAME[grep("PTET.51.1.G0230191",annotation$ID)]="Spo11"
@@ -75,9 +63,10 @@ annotation$NAME[grep("PTET.51.1.G0360066",annotation$ID)]="PolXb"
 annotation$NAME[grep("PTET.51.1.G0460033",annotation$ID)]="PolXc"
 annotation$NAME[grep("PTET.51.1.G1010039",annotation$ID)]="PolXd"
 
-mtF = read.csv("DATA/mtF_ID.csv", header=T, sep=";")
-for (i in 1:nrow(mtF)){
-  annotation$SYNONYMS[grep(mtF$ID[i],annotation$ID)]=mtF$SYNONYMS[i]
+
+mt = read.table("./DATA/mtF_ID.csv", sep = ";", header = T)
+for (i in mt$ID){
+  annotation$NAME[grep(i,annotation$ID)]=mt$SYNONYMS[grep(i,mt$ID)]
 }
 
 gene_autogamy=read.table("DATA/autogamy_ptetraurelia_mac_51_annotation_v2.0_significant.tab", header=T, sep="\t")

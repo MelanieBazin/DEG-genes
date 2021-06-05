@@ -1,26 +1,72 @@
-data_directories = c("CTIP", "CTIP_CTRL" , "ICL7", "KU80c" , "ND7", "PGM", "XRCC4", "XRCC4_CTRL" )
+library(stringr)
+library(gplots)
+source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 
-CTIP = c("ID", "T0", "T5.5", "T12.5", "T25", "Veg")
-CTIP_CTRL = c("ID", "T0", "T5", "T10", "T20", "T30", "Veg")
-ICL7 = c("ID", "T0", "T5", "T10", "T20", "T35", "T50", "Veg")
-KU80c = c("ID", "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-ND7 = c("ID", "T0", "T5", "T10", "T20", "T30", "T40", "Veg")
-PGM = c("ID", "T2", "T5", "T10", "T20", "T30", "T40", "Veg")
-XRCC4 = c("ID", "T2", "T7", "T22", "T32","Veg")
-XRCC4_CTRL = c("ID", "T2", "T7", "T22", "T32","Veg")
-name = list(CTIP, CTIP_CTRL , ICL7, KU80c , ND7, PGM, XRCC4, XRCC4_CTRL )
+data_path = "DATA/RNAseq/"
+save_path = "./Analyse/RowProfils/"
 
-dir.create("1_EXPRESSION")
+dir.create("./DATA/EXPRESSION",recursive=T,showWarnings=F)
+dir.create(save_path,recursive=T,showWarnings=F)
 
-for (i in 1:length(data_directories)){
-  list= list.files(paste0("DATA/RNAseq/",data_directories[i]))
-  table = NULL
-  for(j in list){
-    tab = read.table(paste0("DATA/RNAseq/",data_directories[i],"/",j))
-    table = cbind(table, tab[,2])
+data_directories = list.files(data_path)
+i = data_directories[1]
+for (i in data_directories){
+  list= list.files(paste0(data_path,i))
+  
+  timing = str_split(list, '_', simplify=TRUE)
+  for(a in c(1,4)){
+   if(length(unique(timing[,a]))>1){
+     time = a
+   }
   }
-  table = cbind(as.character(tab[,1]), table)
-  colnames(table) = name[[i]]
-  write.table(table,paste0("1_EXPRESSION/",data_directories[i],".tab"),sep="\t", row.names=F,quote=F)
+  timing = timing[,time]
+  x = str_split(timing, '-', simplify=TRUE)[1,1]
+  timing = gsub(paste0(x,"-"), "",timing)
+
+  table = data.frame(annotation$ID)
+  colnames(table)="ID"
+  for(j in list){
+    tab = read.table(paste0(data_path,i,"/",j),)
+    colnames(tab)[1]="ID"
+    table = merge(table, tab, by = "ID")
+  }
+  rownames(table)=as.character(table$ID)
+  if (colnames(table)[1]=="ID"){
+    table = table[,-1]
+  }
+  colnames(table) = timing
+  colorder = c(ncol(table),order(as.numeric(gsub("T", "", colnames(table)[-ncol(table)]))))
+  table = table[,colorder]
+  
+  table = table[which(is.element(rownames(table),annotation$ID)),]
+  write.table(table,paste0("./DATA/EXPRESSION",i,".tab"),sep="\t", row.names=T,quote=F)
+  
+  if(!is.element(F, rownames(table)==annotation$ID)){
+    data_log =  as.matrix(log(table+1))
+    expr_profil = unique(annotation$EXPRESSION_PROFIL)
+    
+    for(p in expr_profil){
+      id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
+      png(paste0(save_path,i,"_",p,"_Profil.png"))
+        graph = plotGenes(table[id,], title = p, yMax = max(table[id,]))
+        print(graph)
+      dev.off()
+      
+      png(paste0(save_path,i,"_",p,"_Boxplot.png"))
+        graph = boxplot(data_log[id,],main = p ,ylab = "log(EXPRESSION)",
+                        xlab = colnames(data_log))
+        print(graph)
+      dev.off()
+      
+      png(paste0(save_path,i,"_",p,"_Heatmap.png"))
+        graph = heatmap.2(data_log[id,], Colv = NULL, trace = 'none', dendrogram = 'none')
+        print(graph)
+      dev.off()
+    }
+    
+    
+  }
 }
+
 

@@ -8,7 +8,7 @@ library(e1071)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test03")
+analyseName = paste0("DESeq2_test05_NewCluster-BtachICL7")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -53,8 +53,10 @@ for (i in names(rnai_list)){
   infodata = CreatInfoData3(countdata, conditions = i, rnai_list, cluster)
   
   # Correction de l'effet batch avec ComBat
-  # print(paste(i, "-----Correction de l'effet Batch"))
-  # countdata = ComBat_seq(countdata, batch = infodata$Batch, group = infodata$Cluster)
+  if (length(grep("ICL7", colnames(countdata)))>0){
+    print(paste(i, "-----Correction de l'effet Batch"))
+    countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
+  }
 
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
@@ -74,6 +76,9 @@ for (i in names(rnai_list)){
   
   # Récupération des données de comptage normalisées
   data_tab=counts(deseq,normalized=T)
+  
+  write.table(data_tab,paste0("./DATA/DESeq2/",i,"_expression_table_DESeq2.tab"), sep="\t",row.names=F,quote=F)
+  
   
   # Boxplot des comptages normalisés divisé par la taille des gènes
   print(paste(i, "-----> Création BoxPlot normalisé"))
@@ -105,21 +110,27 @@ for (i in names(rnai_list)){
                       main = paste0("ACP ",i," (",type,")"))
   
   # Analyse de discrimination linéaire (LDA)
-  # print(paste(i, "-----> Analyse LDA"))
-  # set.seed(101)
-  # lda_data_tab=scale(t(data_tab)) #s'assurer que la sd est de 1 et la moyenne à 0 (prédicat des lda)
-  # # summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
-  # # summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
-  # 
-  # lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
-  # # lda_model$prior
-  # # summary(lda_model$scaling)
-  # lda_pred = predict(lda_model)
-  # 
-  # LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
-  # 
+  print(paste(i, "-----> Analyse LDA"))
+
+  lda_data_tab=scale(t(data_tab)) #s'assurer que la sd est de 1 et la moyenne à 0 (prédicat des lda)
+  # summary(apply(lda_data_tab,2,mean)) #verification que la moyenne est à 0 ou très proche
+  # summary(apply(lda_data_tab,2,sd)) #verification que la sd est à 1
+  
+  keep = c()
+  for (l in 1:ncol(lda_data_tab)){
+    keep = c(keep, !is.element(T, is.na(lda_data_tab[,l])))
+  }
+  lda_data_tab = lda_data_tab[,keep]
+
+  lda_model = lda(lda_data_tab, grouping = infodata$Cluster)
+  # lda_model$prior
+  # summary(lda_model$scaling)
+  lda_pred = predict(lda_model)
+
+  LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
+
   # print("Teste des prédictions")
-  # EvaluPrediction("LDA", data_tab, infodata, i)  # Evaluer la prédiction
+  # EvaluPrediction("LDA", data_tab, infodata, i, path)  # Evaluer la prédiction
 
   #### SVM
   # print(paste(i, "-----> Analyse SVM"))
@@ -171,7 +182,8 @@ for (i in names(rnai_list)){
       Clustering(matDist = matDist,
                  nb_cluster = 5,
                  method = method,
-                 titre = paste(type,i))
+                 titre = paste(type,i),
+                 colors = color)
       dev.off()
     }
   }

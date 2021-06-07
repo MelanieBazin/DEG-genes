@@ -231,37 +231,43 @@ LDA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, cond
     scale_color_manual(values = unique(color))
   ggsave(paste0(path,condition,"_",type,"3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
  
-  gp = ggplot(gg_data_tab, aes(LD1, LD4))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"4.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  
-  gp = ggplot(gg_data_tab, aes(LD2, LD4))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"5.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  
-  gp = ggplot(gg_data_tab, aes(LD3, LD4))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"6.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  
+  # gp = ggplot(gg_data_tab, aes(LD1, LD4))+
+  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
+  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+  #   labs(color = "Groupe")+
+  #   theme_light()+
+  #   scale_color_manual(values = unique(color))
+  # ggsave(paste0(path,condition,"_",type,"4.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  # 
+  # gp = ggplot(gg_data_tab, aes(LD2, LD4))+
+  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
+  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+  #   labs(color = "Groupe")+
+  #   theme_light()+
+  #   scale_color_manual(values = unique(color))
+  # ggsave(paste0(path,condition,"_",type,"5.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  # 
+  # gp = ggplot(gg_data_tab, aes(LD3, LD4))+
+  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
+  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+  #   labs(color = "Groupe")+
+  #   theme_light()+
+  #   scale_color_manual(values = unique(color))
+  # ggsave(paste0(path,condition,"_",type,"6.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  # 
 }
 
-EvaluPrediction <- function(type, data_tab, infodata , i){
+EvaluPrediction <- function(type, data_tab, infodata , i, path){
     if (type == "LDA"){
     lda_data_tab=scale(t(data_tab))
     
-    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.6, 0.4))
+    keep = c()
+    for (l in 1:ncol(lda_data_tab)){
+      keep = c(keep, !is.element(T, is.na(lda_data_tab[,l])))
+    }
+    lda_data_tab = lda_data_tab[,keep]
+    
+    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.75, 0.25))
     train = lda_data_tab[training_sample,]
     test = lda_data_tab[!training_sample,]
     
@@ -287,37 +293,48 @@ EvaluPrediction <- function(type, data_tab, infodata , i){
   lda_train = predict(lda_model)
   lda_test = predict(lda_model, test)
   
-  if(type == "LDA"){
-    lda_train = as.character(lda_train$class)
-    lda_test  = as.character(lda_test$class)
-  } 
   type = paste0(type,"train")
   
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  manquant = setdiff(lda_test, infodata$Cluster[!training_sample])
-  if(length(manquant)!=0){
-    for (m in 1:length(manquant)){
-    tab_test = cbind(tab_test, rep(0, nrow(tab_test)))
-    colnames(tab_test)[ncol(tab_test)]=manquant[m]
-    }
-    tab_test= tab_test[order(colnames(tab_test)),]
+  LDA_plot_generator(type,train,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
+
+  info_train = infodata$Cluster[training_sample]
+  info_test = infodata$Cluster[!training_sample]
+  
+  if(type == "LDAtrain"){
+    lda_train = as.character(lda_train$class)
+    lda_test  = as.character(lda_test$class)
+    
+  } 
+  
+  if (length(lda_train)>length(info_train)){
+    info_train = c(info_train, rep(NA, length(lda_train)-length(info_train)))
+  }else if (length(lda_train)<length(info_train)){
+    lda_train = c(lda_train, rep(NA, length(info_train)-length(lda_train)))
   }
-  tab_train = table(lda_train, infodata$Cluster[training_sample]) #les chiffres sur la diagonal correspondent au rédiction correcte
-  tab_test = table(lda_test, infodata$Cluster[!training_sample])
   
-  write.table(tab_train, paste0(path,i,"_train.tab"), sep = "\t")
-  write.table(tab_test, paste0(path,i,"_test.tab"), sep = "\t")
+  if (length(lda_test)>length(info_test)){
+    info_test = c(info_test, rep(NA, length(lda_test)-length(info_test)))
+  }else if (length(lda_train)<length(info_train)){
+    lda_test = c(lda_test, rep(NA, length(info_test)-length(lda_test)))
+  }
   
-  conf_mat_train = confusionMatrix(tab_train)
-  conf_mat_test = confusionMatrix(tab_test)
+  lda_train = factor(lda_train, levels = unique(infodata$Cluster))
+  lda_test  = factor(lda_test, levels = unique(infodata$Cluster))
+  info_train = factor(info_train, levels = unique(infodata$Cluster))
+  info_test = factor(info_test, levels = unique(infodata$Cluster))
+
+  conf_mat_train = confusionMatrix(data = lda_train, reference = info_train)
+  conf_mat_test = confusionMatrix(data = lda_test, reference = info_test)
+  
   return(print(paste("Précision du modèle : ",signif(conf_mat_test$overall["Accuracy"]*100, digits = 4),"%")))
   
   write(conf_mat_train, paste0(path,i,"_confusionMatrice_train.txt"), sep = "\t")
   write(conf_mat_test, paste0(path,i,"_confusionMatrice_test.txt"), sep = "\t")
   
-  DA_plot_generator(type,train,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
+  
   
 
 }
@@ -435,11 +452,11 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
     moyenne = ""
   }
   
-  png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 400, height = 600)
+  png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
     print(h)
   dev.off()
   
-  png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 400, height = 600)
+  png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
     print(h2)
   dev.off()
 }
@@ -508,7 +525,7 @@ Clustering <- function(matDist, nb_cluster, method,
   }else if(method  == "HCL"){
     res = hclust(matDist)
     #Fait un dendrogramme
-    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
+    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre,), tip.color = colors)
     print(p)
   }
 

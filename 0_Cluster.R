@@ -17,15 +17,15 @@ rm(tout)
 
 #### Définition des cluster à grouper ensemble ####
 cluster = list(
-  ICL7 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
-  ND7_K = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
-  PGM = c(rep("INTER",3),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
-  KU80c = c(rep("EARLY",1),rep("INTER",2),rep("LATE",2),rep("VERY_LATE",1),rep("VEG",1)),
+  ICL7 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
+  ND7_K = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
+  PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
+  KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   
-  ND7_C = c(rep("EARLY",1),rep("INTER",3),rep("LATE",1),rep("VEG",1)),
-  CTIP = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1)),
-  ND7_X = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1)),
-  XRCC4 = c(rep("EARLY",1),rep("INTER",2),rep("LATE",1),rep("VEG",1))
+  ND7_C = c(rep("VEG",1),rep("EARLY",1),rep("INTER",3),rep("LATE",1)),
+  CTIP = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",1)),
+  ND7_X = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  XRCC4 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2))
 )
 
 

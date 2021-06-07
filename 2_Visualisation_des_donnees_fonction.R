@@ -10,8 +10,9 @@ ConcatTab <- function(type, conditions = NULL){
   }else{
     extention = paste0("_expression_table_",type,".tab")
   }
-  count = gsub(extention,"",list.files(path))
   
+  count = gsub(extention,"",list.files(path))
+               
   if (!is.null(conditions)){
     count =  count[which(is.element(count, conditions))]
   }
@@ -515,7 +516,7 @@ Clustering <- function(matDist, nb_cluster, method,
     #Représentataion graphique
     p= fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
                     show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
-                    title = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
+                    main = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
                     xlab = "Principal Component 1",
                     ylab = "Principal Component 2")
     print(p)
@@ -523,7 +524,7 @@ Clustering <- function(matDist, nb_cluster, method,
   }else if(method  == "HCL"){
     res = hclust(matDist)
     #Fait un dendrogramme
-    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre,), tip.color = colors)
+    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
     print(p)
   }
 

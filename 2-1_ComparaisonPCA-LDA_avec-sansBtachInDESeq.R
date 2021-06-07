@@ -1,14 +1,14 @@
 source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 source("4_Functions.R")
-library(sva)
+# library(sva)
 library(DESeq2)
-library(limma)
-library(caret)
-library(e1071)
+# library(limma)
+# library(caret)
+# library(e1071)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test05_NewCluster-BtachICL7")
+analyseName = paste0("DESeq2_test05_NewCluster-BatchICL7")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -40,7 +40,7 @@ rownames(annotation)=annotation$ID
 
 i = "CTIPseulctrl2020"  
 
-for (i in names(rnai_list)){
+for (i in names(rnai_list)[-c(1:2)]){
   
   path = paste0(path_dir,i,"/")
   dir.create(path,recursive=T,showWarnings=F)
@@ -51,11 +51,14 @@ for (i in names(rnai_list)){
 
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = i, rnai_list, cluster)
-  
+  countdata = as.matrix(countdata)
   # Correction de l'effet batch avec ComBat
-  if (length(grep("ICL7", colnames(countdata)))>0){
-    print(paste(i, "-----Correction de l'effet Batch"))
+  if (length(grep("ICL7", colnames(countdata)))>0 & i != "tout"){
+    print(paste(i, "-----> Correction de l'effet Batch"))
     countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
+    tab_name = paste0(i,"_expression_table_DESEQsurseize_Unbatched.tab")
+  }else{
+    tab_name = paste0(i,"_expression_table_DESEQsurseize.tab")
   }
 
   deseq = DESeqDataSetFromMatrix(countData = countdata,
@@ -86,10 +89,14 @@ for (i in names(rnai_list)){
     CountBoxplot(data_tab, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
   
-  data_tab_seize = DivideByGeneSeize(data_tab)
-  write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), sep="\t",row.names=F,quote=F)
+  if (is.element(tab_name,list.files(paste0("./DATA/DESeq2-seize/")))){
+    data_tab_seize = read.table(paste0("./DATA/DESeq2-seize/",tab_name), header = T, sep = "\t")
+  }else {
+    print("Calcule de la table DESeq/taille")
+    data_tab_seize = DivideByGeneSeize(data_tab)
+    write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",tab_name), sep="\t",row.names=F,quote=F)
+  }
   
-  data_tab_seize = read.table(paste0("./DATA/DESeq2-seize/",i,"_expression_table_DESEQsurseize.tab"), header = T, sep = "\t")
   png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
     CountBoxplot(data_tab_seize, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
@@ -175,7 +182,6 @@ for (i in names(rnai_list)){
   # Heatmap avec calcul des moyennes
 
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
-
   MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i)
   ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)

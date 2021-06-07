@@ -192,19 +192,16 @@ return(infodata)
 library(ggplot2)
 library(ggrepel)
 
-LDA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, condition, color){
+LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, path, condition, color){
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
-  
-  if(length(grep("LDA",type))>0){
-    png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
-      plot(lda_model, dimen = 1, type = "b")
-    dev.off()
-    # plot(lda_model, col = color, dimen = 2)
-    prediction = predict(lda_model)$x
-  } else if(length(grep("SVM",type))>0){
-    prediction = predict(lda_model)
-  }
+
+  png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
+    plot(lda_model, dimen = 1, type = "b")
+  dev.off()
+  # plot(lda_model, col = color, dimen = 2)
+  prediction = predict(lda_model)$x
+
   
   gg_data_tab = cbind(as.data.frame(lda_data_tab), prediction)
   gp = ggplot(gg_data_tab, aes(LD1, LD2))+
@@ -256,6 +253,7 @@ LDA_plot_generator <- function(type,lda_data_tab,infodata, lda_model, path, cond
   # ggsave(paste0(path,condition,"_",type,"6.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
   # 
 }
+
 
 EvaluPrediction <- function(type, data_tab, infodata , i, path){
     if (type == "LDA"){

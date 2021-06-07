@@ -132,31 +132,7 @@ for (i in names(rnai_list)){
   # print("Teste des prédictions")
   # EvaluPrediction("LDA", data_tab, infodata, i, path)  # Evaluer la prédiction
 
-  #### SVM
-  # print(paste(i, "-----> Analyse SVM"))
-  # svm_model = svm(t(data_tab), y = as.factor(infodata$Cluster), scale = F, kernel = "radial", cost = 5)
-  # 
-  # svm_tab = cbind(t(data_tab), infodata$Cluster)
-  # colnames(svm_tab)[ncol(svm_tab)]="Cluster"
-  # 
-  # plot(svm_model,as.datat.frame(t(data_tab)), y ~. )
-  # 
-  # 
-  # 
-  # trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
-  # svm_model = train(t(data_tab), y = as.factor(infodata$Cluster), method = "svmRadialWeights",
-  #                     trControl=trctrl)
-  # svm_pred = predict(svm_model)
-  # 
-  # plot
-  # 
-  # LDA_plot_generator("SVM",t(data_tab),infodata, svm_model, path, i, color)
-  # 
-  # print("Teste des prédictions")
-  # EvaluPrediction("SVM", data_tab)  # Evaluer la prédiction
-  
-  
-  
+ 
   # Analyse de clusering
   print(paste(i, "-----> Clustering en cours"))
   dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)

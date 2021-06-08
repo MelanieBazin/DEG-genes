@@ -510,7 +510,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   
   h1 = Heatmap(data_log,
               name = Ylab,
-              col = colorRamp2(color_vec, c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D")),
+              col = color_vec,
               cluster_rows = F,
               cluster_columns = F, # turn off column clustering
               column_title = condition,

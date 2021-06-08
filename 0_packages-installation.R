@@ -9,6 +9,7 @@
 # install.packages("ggrepel")
 # install.packages("viridis")
 # install.packages("caret")
+# install.packages("magick")
 # 
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
@@ -21,6 +22,7 @@
 # BiocManager::install("heatmaps")
 # BiocManager::install("sva")
 # BiocManager::install("klaR")
+# BiocManager::install("ComplexHeatmap")
 # 
 # if (!require(devtools)) install.packages("devtools")
 # devtools::install_github("yanlinlin82/ggvenn")

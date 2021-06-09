@@ -211,7 +211,7 @@ library("factoextra")
 library(ggplot2)
 library(gtools)
 
-PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, ...) {
+PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, sortie = "png", ...) {
   save_path = paste0(save_path,"/ACP/")
   dir.create(save_path,recursive=T,showWarnings=F)
   
@@ -219,7 +219,11 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
-    png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
+    if (sortie == "png") {png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
+    }else if (sortie =="pdf"){
+      pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
+      }
+    
       barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
               main = "Variances",
               xlab = "Principal Components",
@@ -235,7 +239,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
     
     gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors, title = main,
                  ggoptions = list(size=2))
-    ggsave(paste0(save_path,image_prefix,i,".png"), device = "png", plot = gp)
+    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
  return(resExp)
@@ -244,14 +248,18 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
 library(ggplot2)
 library(ggrepel)
 
-LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, path, condition, color){
+LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, path, condition, color, sortie = "png"){
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
-  plot(lda_model, dimen = 1, type = "b")
+  if (sortie == "png") {png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
+  }else if (sortie =="pdf"){
+    pdf(paste0(path,condition,"_",type,"_hist.pdf"),width = 480, height = 1000)
+  }
+    plot(lda_model, dimen = 1, type = "b")
   dev.off()
   # plot(lda_model, col = color, dimen = 2)
+  
   prediction = predict(lda_model)$x
   
   
@@ -262,7 +270,7 @@ LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, pa
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"1.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"1.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD1, LD3))+
     geom_point(size = 1, aes(color = infodata$Cluster)) +
@@ -270,7 +278,7 @@ LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, pa
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"2.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"2.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD3, LD2))+
     geom_point(size = 1, aes(color = infodata$Cluster)) +
@@ -278,32 +286,8 @@ LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, pa
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"3.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
+  ggsave(paste0(path,condition,"_",type,"3.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
   
-  # gp = ggplot(gg_data_tab, aes(LD1, LD4))+
-  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
-  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-  #   labs(color = "Groupe")+
-  #   theme_light()+
-  #   scale_color_manual(values = unique(color))
-  # ggsave(paste0(path,condition,"_",type,"4.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  # 
-  # gp = ggplot(gg_data_tab, aes(LD2, LD4))+
-  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
-  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-  #   labs(color = "Groupe")+
-  #   theme_light()+
-  #   scale_color_manual(values = unique(color))
-  # ggsave(paste0(path,condition,"_",type,"5.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  # 
-  # gp = ggplot(gg_data_tab, aes(LD3, LD4))+
-  #   geom_point(size = 1, aes(color = infodata$Cluster)) +
-  #   geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-  #   labs(color = "Groupe")+
-  #   theme_light()+
-  #   scale_color_manual(values = unique(color))
-  # ggsave(paste0(path,condition,"_",type,"6.png"), device = "png", plot = gp, width = 20, height = 20, units = "cm")
-  # 
 }
 
 
@@ -446,11 +430,11 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
 # Fait les heatmap avec tous les gènes par actégories
 library("pheatmap")
 library("ComplexHeatmap")
-library("magick")
+# library("magick")
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
+MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie = "png"){
   dir.create(path,recursive=T,showWarnings=F)
   
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
@@ -494,64 +478,79 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T){
   data_log = data_log[,is.element(colnames(data_log), colnames(data_tab))]
   data_log = data_log[,c_order]
   
-  h = Heatmap(data_log,
-              name = Ylab,
-              col = color_vec,
-              cluster_rows = F, # turn off row clustering
-              cluster_columns = F, # turn off column clustering
-              column_title = condition,
-              show_row_names = F,
-              row_order = NULL,
-              row_split = order(annotation$EXPRESSION_PROFIL),
-              row_title = "%s", row_title_rot = 0,
-              column_split = c_split,
-              column_order = NULL,
-              use_raster = T)
+  # h = Heatmap(data_log,
+  #             name = Ylab,
+  #             col = color_vec,
+  #             cluster_rows = F, # turn off row clustering
+  #             cluster_columns = F, # turn off column clustering
+  #             column_title = condition,
+  #             show_row_names = F,
+  #             row_order = rownames(data_log),
+  #             row_split = order(annotation$EXPRESSION_PROFIL),
+  #             row_title = "%s", row_title_rot = 0,
+  #             column_split = c_split,
+  #             column_order = colnames(data_log),
+  #             use_raster = T)
   
-  h1 = Heatmap(data_log,
-              name = Ylab,
-              col = color_vec,
-              cluster_rows = F,
-              cluster_columns = F, # turn off column clustering
-              column_title = condition,
-              show_row_names = F,
-              row_order = NULL,
-              row_split = order(annotation$EXPRESSION_PROFIL),
-              row_title = "%s", row_title_rot = 0,
-              column_split = c_split,
-              column_order = NULL,
-              use_raster = F)
+  h = heatmap(data_log,
+                Rowv = F, Colv = F, #pas de dendrogramme ou de clustering produit
+                dendrogram='none', 
+                trace='none')
   
-  h2 = Heatmap(data_log,
-               name = Ylab,
-               cluster_rows = F, # turn off row clustering
-               cluster_columns = F, # turn off column clustering
-               column_title = condition,
-               show_row_names = F,
-               row_order = order(annotation$EXPRESSION_PROFIL),
-               row_split = annotation$EXPRESSION_PROFIL,
-               row_title = "%s", row_title_rot = 0,
-               column_split = c_split,
-               column_order = NULL,
-               use_raster = T)
-  
+  # h1 = Heatmap(data_log,
+  #             name = Ylab,
+  #             col = color_vec,
+  #             cluster_rows = F,
+  #             cluster_columns = F, # turn off column clustering
+  #             column_title = condition,
+  #             show_row_names = F,
+  #             row_order = NULL,
+  #             row_split = order(annotation$EXPRESSION_PROFIL),
+  #             row_title = "%s", row_title_rot = 0,
+  #             column_split = c_split,
+  #             column_order = NULL,
+  #             use_raster = F)
+  # 
+  # h2 = Heatmap(data_log,
+  #              name = Ylab,
+  #              cluster_rows = F, # turn off row clustering
+  #              cluster_columns = F, # turn off column clustering
+  #              column_title = condition,
+  #              show_row_names = F,
+  #              row_order = order(annotation$EXPRESSION_PROFIL),
+  #              row_split = annotation$EXPRESSION_PROFIL,
+  #              row_title = "%s", row_title_rot = 0,
+  #              column_split = c_split,
+  #              column_order = NULL,
+  #              use_raster = T)
+  # 
   if (moyenne == T){
     moyenne = "MOYENNE"
   }else{
     moyenne = ""
   }
   
-  png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
+  if (sortie == "png"){
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
     print(h)
-  dev.off()
+    dev.off()
+    
+    # png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
+    #   print(h1)
+    # dev.off()
+    # 
+    # png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
+    #   print(h2)
+    # dev.off()
+  }else if (sortie == "pdf"){
+    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
+      print(h)
+    #   print(h1)
+    #   print(h2)
+    dev.off()
+  }
   
-  png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
-    print(h1)
-  dev.off()
-  
-  png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
-    print(h2)
-  dev.off()
+
 }
 
 # plotGenes fait par Gaëlle

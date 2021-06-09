@@ -8,7 +8,7 @@ library(DESeq2)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test05_NewCluster-BatchICL7")
+analyseName = paste0("DESeq2_test06")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -48,6 +48,14 @@ for (i in names(rnai_list)){
   ##### Création du tableau de donnée à analyser ensemble ####
   #Ouverture des fichiers et création de l'objet countdata
   countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
+  
+  # Boxplot des comptages avant normalisation #####
+  print(paste(i, "-----> Création BoxPlot non-normalisé"))
+  
+  pdf(paste0(path,i,"_DESeq_Boxplot.pdf"))
+  # png(paste0(path,i,"_DESeq_Boxplot.png"))
+  CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
+  dev.off()
 
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = i, rnai_list, cluster)
@@ -72,7 +80,8 @@ for (i in names(rnai_list)){
 
   
   # Graphique du paramètre de dispersion
-  png(paste0(path,i,"_dipression_DESeq2.png"))
+  pdf(paste0(path,i,"_dipression_DESeq2.png"))
+  # png(paste0(path,i,"_dipression_DESeq2.png"))
     plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
   
@@ -85,7 +94,8 @@ for (i in names(rnai_list)){
   
   ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
   print(paste(i, "-----> Création BoxPlot normalisé"))
-  png(paste0(path,i,"_DESeq_Boxplot.png"))
+  pdf(paste0(path,i,"_DESeq_Boxplot.pdf"))
+  # png(paste0(path,i,"_DESeq_Boxplot.png"))
     CountBoxplot(data_tab, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
   
@@ -97,7 +107,8 @@ for (i in names(rnai_list)){
     write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",tab_name), sep="\t",row.names=F,quote=F)
   }
   
-  png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
+  pdf(paste0(path,i,"_DESeq-seize_Boxplot.pdf"))
+  # png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
     CountBoxplot(data_tab_seize, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
   
@@ -113,8 +124,9 @@ for (i in names(rnai_list)){
   # Analyse en composante principale
   print(paste(i, "-----> Analyse ACP"))
   PCA_plot_generator(data_tab,colors = color,
-                      save_path = path,
-                      main = paste0("ACP ",i," (",type,")"))
+                     save_path = path,
+                     main = paste0("ACP ",i," (",type,")"),
+                     sortie = "pdf")
   
   # Analyse de discrimination linéaire (LDA)
   print(paste(i, "-----> Analyse LDA"))
@@ -134,7 +146,7 @@ for (i in names(rnai_list)){
   # summary(lda_model$scaling)
   lda_pred = predict(lda_model)
 
-  LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color)
+  LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color, sortie = "pdf")
 
   # print("Teste des prédictions")
   # EvaluPrediction("LDA", data_tab, infodata, i, path)  # Evaluer la prédiction
@@ -172,24 +184,27 @@ for (i in names(rnai_list)){
   }
   
   ##### Heatmap et profils  ####
-
-  data_tab = as.matrix(data_tab)
+  print(paste(i, "-----> Conception des heatmap"))
   
   # Avant moyenne par cluster
-  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i)
-  ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  data_tab = as.matrix(data_tab)
+  
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   
+  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
+  
   # Avec calcul des moyennes sur les clusters
-
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
-  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i)
-  ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
   
-  # Heatmap sans log (avec et sans calcule des moyennes sur les cluster) 
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F)
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F)
+  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
+
+  
 
 }
   

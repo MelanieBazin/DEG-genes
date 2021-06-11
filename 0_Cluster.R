@@ -7,9 +7,7 @@ rownames(annotation)=annotation$ID
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
 
 rnai_list = list(
-  tout = tout,
   sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7_K","PGM", "ICL7" )))],
-  sequencage_2014bis = tout[which(is.element(tout,c("KU80c","ND7_K","PGM" )))],
   XRCC4seul = tout[which(is.element(tout, c("XRCC4","ND7_X")))],
   CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","ND7_C", "ND7_X")))]
 )
@@ -22,7 +20,7 @@ cluster = list(
   PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
   KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   
-  ND7_C = c(rep("VEG",1),rep("EARLY",1),rep("INTER",3),rep("LATE",1)),
+  ND7_C = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",2)),
   CTIP = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",1)),
   ND7_X = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
   XRCC4 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2))

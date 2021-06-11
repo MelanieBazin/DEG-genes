@@ -1,7 +1,7 @@
 # install.packages("RColorBrewer")
 # install.packages("pheatmap")
 # install.packages("seqinr")
-# install.packages("latticeExtra")
+# install.packages("latticeExtra") # Erreur d'installation sur R4.0.4
 # install.packages("FactoMineR")
 # install.packages("factoextra")
 # install.packages("gplots")
@@ -10,16 +10,16 @@
 # install.packages("viridis")
 # install.packages("caret")
 # install.packages("magick")
-# 
+
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
 # BiocManager::install("vsn")
 # BiocManager::install("DESeq")
 # BiocManager::install("DESeq2")
 # BiocManager::install("topGO")
-# BiocManager::install("latticeExtra")
+# BiocManager::install("latticeExtra") # Erreur d'installation sur R4.0.4
 # BiocManager::install("lifecycle")
-# BiocManager::install("heatmaps")
+# BiocManager::install("heatmaps") # Erreur d'installation sur R4.0.4
 # BiocManager::install("sva")
 # BiocManager::install("klaR")
 # BiocManager::install("ComplexHeatmap")

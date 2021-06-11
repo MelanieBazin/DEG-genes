@@ -38,7 +38,7 @@ annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 rownames(annotation)=annotation$ID
 
 
-i = "CTIPseulctrl2020"  
+i = names(rnai_list)[2]
 
 for (i in names(rnai_list)){
   
@@ -52,8 +52,8 @@ for (i in names(rnai_list)){
   # Boxplot des comptages avant normalisation #####
   print(paste(i, "-----> Création BoxPlot non-normalisé"))
   
-  pdf(paste0(path,i,"_DESeq_Boxplot.pdf"))
-  # png(paste0(path,i,"_DESeq_Boxplot.png"))
+  pdf(paste0(path,i,"_row.pdf"))
+  # png(paste0(path,i,"_row.png"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
 
@@ -62,9 +62,16 @@ for (i in names(rnai_list)){
   countdata = as.matrix(countdata)
   # Correction de l'effet batch avec ComBat
   if (length(grep("ICL7", colnames(countdata)))>0 & i != "tout"){
-    print(paste(i, "-----> Correction de l'effet Batch"))
-    countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
     tab_name = paste0(i,"_expression_table_DESEQsurseize_Unbatched.tab")
+    
+    print(paste(i, "-----> Correction de l'effet Batch"))
+    # countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
+    # write.table(countdata,paste0("./DATA/",tab_name), sep="\t",row.names=T,quote=F)
+    
+    countdata = read.table(paste0("./DATA/",tab_name), sep="\t",row.names=1,header =  T)
+    
+    
+    
   }else{
     tab_name = paste0(i,"_expression_table_DESEQsurseize.tab")
   }
@@ -156,16 +163,19 @@ for (i in names(rnai_list)){
   print(paste(i, "-----> Clustering en cours"))
   dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)
   for (distance in c("Pearson", "Spearman")){
-    png(paste0(path,"4Cluster/",i,"_Matrice_",distance,".png"))
+    # png(paste0(path,"4Cluster/",i,"_Matrice_",distance,".png"))
+    pdf(paste0(path,"4Cluster/",i,"_Matrice_",distance,".pdf"))
     # Choisir le mode de calcule des distances
     if (distance == "Pearson"){
       matDist = as.matrix(cor(data_tab))
-      pheatmap(matDist, main = paste("Pheatmap Pearson", type, i))
+      p= pheatmap(matDist, main = paste("Pheatmap Pearson", type, i))
+      print(p)
       matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
 
     }else if (distance == "Spearman"){
       matDist = as.matrix(cor(data_tab,method="spearman"))
-      pheatmap(matDist, main = paste("Pheatmap Spearman", type, i))
+      p= pheatmap(matDist, main = paste("Pheatmap Spearman", type, i))
+      print(p)
       matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
     }
     dev.off()
@@ -173,7 +183,8 @@ for (i in names(rnai_list)){
 
     for (method in c("kmeans", "HCL")){
       print(paste(distance, method))
-      png(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".png"))
+      # png(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".png"))
+      pdf(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".pdf"))
       Clustering(matDist = matDist,
                  nb_cluster = 5,
                  method = method,
@@ -184,27 +195,27 @@ for (i in names(rnai_list)){
   }
   
   ##### Heatmap et profils  ####
-  print(paste(i, "-----> Conception des heatmap"))
-  
-  # Avant moyenne par cluster
-  data_tab = as.matrix(data_tab)
-  
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  
-  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
-  
-  # Avec calcul des moyennes sur les clusters
-  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
-  
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  
-  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
-
-  
+  # print(paste(i, "-----> Conception des heatmap"))
+  # 
+  # # Avant moyenne par cluster
+  # data_tab = as.matrix(data_tab)
+  # 
+  # # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  # ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  # 
+  # MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
+  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
+  # 
+  # # Avec calcul des moyennes sur les clusters
+  # mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
+  # 
+  # # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  # ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  # 
+  # MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
+  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
+  # 
+  # 
 
 }
   

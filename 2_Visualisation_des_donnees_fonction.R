@@ -262,27 +262,33 @@ LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, pa
   
   prediction = predict(lda_model)$x
   
+  label_color = c(
+    "VEG" = veg_color,
+    "EARLY" = early_color,
+    "INTER" = inter_color,
+    "LATE" = late_color
+  )
   
   gg_data_tab = cbind(as.data.frame(lda_data_tab), prediction)
   gp = ggplot(gg_data_tab, aes(LD1, LD2))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    geom_point(size = 2, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
     labs(color = "Groupe")+
     theme_light()+
-    scale_color_manual(values = unique(color))
+    scale_color_manual(values = label_color)
   ggsave(paste0(path,condition,"_",type,"1.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD1, LD3))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    geom_point(size = 2, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))
   ggsave(paste0(path,condition,"_",type,"2.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
   
   gp = ggplot(gg_data_tab, aes(LD3, LD2))+
-    geom_point(size = 1, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 2, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
+    geom_point(size = 2, aes(color = infodata$Cluster)) +
+    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
     labs(color = "Groupe")+
     theme_light()+
     scale_color_manual(values = unique(color))

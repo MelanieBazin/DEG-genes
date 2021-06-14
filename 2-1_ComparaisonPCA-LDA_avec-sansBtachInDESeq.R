@@ -2,13 +2,14 @@ source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 source("4_Functions.R")
 library(sva)
 library(DESeq2)
+library(pheatmap)
 # library(limma)
 # library(caret)
 # library(e1071)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test06")
+analyseName = paste0("DESeq2_test07")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -37,10 +38,9 @@ annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 rownames(annotation)=annotation$ID
 
-
 i = names(rnai_list)[2]
 
-for (i in names(rnai_list)){
+# for (i in names(rnai_list)){
   
   path = paste0(path_dir,i,"/")
   dir.create(path,recursive=T,showWarnings=F)
@@ -70,8 +70,6 @@ for (i in names(rnai_list)){
     
     countdata = read.table(paste0("./DATA/",tab_name), sep="\t",row.names=1,header =  T)
     
-    
-    
   }else{
     tab_name = paste0(i,"_expression_table_DESEQsurseize.tab")
   }
@@ -87,7 +85,7 @@ for (i in names(rnai_list)){
 
   
   # Graphique du paramètre de dispersion
-  pdf(paste0(path,i,"_dipression_DESeq2.png"))
+  pdf(paste0(path,i,"_dipression_DESeq2.pdf"))
   # png(paste0(path,i,"_dipression_DESeq2.png"))
     plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
@@ -195,27 +193,33 @@ for (i in names(rnai_list)){
   }
   
   ##### Heatmap et profils  ####
-  # print(paste(i, "-----> Conception des heatmap"))
-  # 
-  # # Avant moyenne par cluster
-  # data_tab = as.matrix(data_tab)
-  # 
-  # # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  # ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  # 
-  # MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
-  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
-  # 
-  # # Avec calcul des moyennes sur les clusters
-  # mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
-  # 
-  # # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  # ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  # 
-  # MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
-  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
-  # 
-  # 
+  print(paste(i, "-----> Conception des heatmap"))
+
+  # Avant moyenne par cluster
+  data_tab = as.matrix(data_tab)
+
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+
+  path = paste0(path,"/Heatmap/")
+  condition = i
+  sortie = "pdf"
+  moyenne = F
+  Log = T
+  
+  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
+
+  # Avec calcul des moyennes sur les clusters
+  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
+
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+
+  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
+
+
 
 }
   

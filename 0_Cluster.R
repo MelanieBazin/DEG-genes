@@ -53,7 +53,7 @@ for(j in names(cluster)){
   }
   cluster_color[[j]] = color
 }
-rm(veg_color, early_color, inter_color, late_color, very_late_color,i,j)
+rm(i,j)
 
 
 #### Definition de l'ordre des colonnes #####

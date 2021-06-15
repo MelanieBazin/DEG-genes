@@ -441,6 +441,7 @@ library("RColorBrewer")
 library(circlize)
 library(gplots)
 MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie = "png"){
+
   dir.create(path,recursive=T,showWarnings=F)
 
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
@@ -448,10 +449,10 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
 
 
   if (Log == T){
-    data_log =  as.matrix(log(data_tab+1))
+    data_log =  log(data_tab+1)
     Ylab = "log(expres)"
   }else{
-    data_log =  as.matrix(data_tab)
+    data_log =  data_tab
     Ylab = "expres"
   }
 
@@ -478,16 +479,29 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   }
   c_split = c(c_split_ctr, c_split)
   c_order = c(c_order_ctr, c_order)
+  
+  data_log = as.data.frame(data_log)
+  
+  # data_log = merge(annotation[,c(1,5)], data_log, by.x = annotation[,1], by.y = rownames(data_log)) # Ne marche pas, mais pourquoi ... ?
+  
+  if (!is.element(F,  annotation$ID == rownames(data_log))){
+    data_log = cbind(annotation$EXPRESSION_PROFIL ,data_log)
+    colnames(data_log)[1]= "EXPRESSION_PROFIL"
+  }
+  data_log = cbind(apply(data_log[,-1], 1, max) ,data_log)
+  colnames(data_log)[1]= "MAX"
+  data_log = data_log[order(data_log$MAX, decreasing = T),] #ordonner selon des valauer de log
+  data_log = data_log[order(data_log$EXPRESSION_PROFIL),] # ordonner selon les classes de gènes
+  data_log = data_log[,-1] # retirer la colonne MAX
+  data_log = data_log[,c(1,c_order+1)]
+  
+  # data_log = data_log[,is.element(colnames(data_log), colnames(data_tab))] #supprime toutes les colonne rajoutées pour le trie
+  
+  
+  
+  data_log_mat = as.matrix(data_log[,-1])
 
-  data_log = cbind(apply(data_log, 1, max),data_log)
-  data_log = data_log[order(data_log[,1], decreasing = T),]
-  data_log = data_log[,is.element(colnames(data_log), colnames(data_tab))]
-  data_log = data_log[,c_order]
-  data_log = merge(annotation$EXPRESSION_PROFIL, data_log)
-  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
-  data_log = as.matrix(data_log)
-
-  h = Heatmap(data_log,
+  h1 = Heatmap(data_log_mat,
               name = Ylab,
               # col = color_vec,
               cluster_rows = F, # turn off row clustering
@@ -495,12 +509,21 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
               column_title = condition,
               show_row_names = F,
               row_order = 1:nrow(data_log),
-              row_split = order(annotation$EXPRESSION_PROFIL),
+              row_split = data_log$EXPRESSION_PROFIL,
               row_title = "%s", row_title_rot = 0,
               column_split = c_split,
-              column_order = 1:ncol(data_log))
+              column_order = 1:ncol(data_log_mat),
+              use_raster = F)
 
-  h = heatmap(data_log)
+  h = heatmap.2(data_log_mat,
+                Rowv = F,
+                Colv = F,
+                rowsep = data_log$EXPRESSION_PROFIL,
+                colsep = c_split,
+                trace = "none",
+                labRow = NULL,
+                key.title = Ylab,
+                key.xlab = condition)
 
   # h1 = Heatmap(data_log,
   #             name = Ylab,
@@ -527,10 +550,8 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   #              row_title = "%s", row_title_rot = 0,
   #              column_split = c_split,
   #              column_order = NULL,
-  #              use_raster = T,
-  ,
-  use_raster = T,
-  ht_opt$message = FALSE))
+  #              use_raster = T))
+
   #
   if (moyenne == T){
     moyenne = "MOYENNE"
@@ -551,9 +572,9 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     #   print(h2)
     # dev.off()
   }else if (sortie == "pdf"){
-    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
-      draw(h)
-    #   print(h1)
+    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 10000, height = 10000)
+      print(h)
+      print(h1)
     #   print(h2)
     dev.off()
   }

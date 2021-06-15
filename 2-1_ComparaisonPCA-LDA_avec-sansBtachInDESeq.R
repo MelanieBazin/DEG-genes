@@ -92,7 +92,7 @@ i = names(rnai_list)[2]
   
   
   # Récupération des données de comptage normalisées
-  data_tab=counts(deseq,normalized=T)
+  data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0("./DATA/DESeq2/",i,"_expression_table_DESeq2.tab"), sep="\t",row.names=F,quote=F)
   
@@ -118,6 +118,35 @@ i = names(rnai_list)[2]
   dev.off()
   
   print("Boxplot terminé")
+  
+  ##### Heatmap et profils  ####
+  print(paste(i, "-----> Conception des heatmap"))
+  
+  # Avant moyenne par cluster
+  
+  
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  
+  path = paste0(path,"/Heatmap/")
+  condition = i
+  sortie = "pdf"
+  moyenne = F
+  Log = T
+  
+  # MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
+  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
+  
+  # Avec calcul des moyennes sur les clusters
+  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
+  
+  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  
+  # MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
+  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
+  
+  
   
   ##### Analyse multi-variée des données pour clustering  #####
   # Créaction du vecteur de couleur par cluster
@@ -192,33 +221,6 @@ i = names(rnai_list)[2]
     }
   }
   
-  ##### Heatmap et profils  ####
-  print(paste(i, "-----> Conception des heatmap"))
-
-  # Avant moyenne par cluster
-  data_tab = as.matrix(data_tab)
-
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-
-  path = paste0(path,"/Heatmap/")
-  condition = i
-  sortie = "pdf"
-  moyenne = F
-  Log = T
-  
-  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
-
-  # Avec calcul des moyennes sur les clusters
-  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
-
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-
-  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
-
 
 
 }

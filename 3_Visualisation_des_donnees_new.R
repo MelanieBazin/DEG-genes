@@ -145,7 +145,7 @@ for (i in names(rnai_list)){
   PCA_plot_generator(data_tab,colors = color,
                      save_path = path,
                      main = paste0("ACP ",i," (DESeq2)"),
-                     sortie = "pdf")
+                     sortie = "png")
   
   # Analyse de discrimination linéaire (LDA)
   print(paste(i, "-----> Analyse LDA"))

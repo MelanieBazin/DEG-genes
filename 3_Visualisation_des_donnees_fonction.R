@@ -440,126 +440,145 @@ library(magick)
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-# MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie = "png"){
-#   dir.create(path,recursive=T,showWarnings=F)
-# 
-#   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-#   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
-# 
-# 
-#   if (Log == T){
-#     data_log =  as.matrix(log(data_tab+1))
-#     Ylab = "log(expres)"
-#   }else{
-#     data_log =  as.matrix(data_tab)
-#     Ylab = "expres"
-#   }
-# 
-#   color_vec = c(0,quantile(data_log)[[2]],median(data_log),
-#                 quantile(data_log)[[4]],max(data_log))
-#   color_vec = colorRamp2(color_vec,
-#                          c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D"))
-# 
-#   c_split = c()
-#   c_split_ctr = c()
-#   c_order = c()
-#   c_order_ctr = c()
-#   for (a in rnai_list[[condition]]){
-#     x = grep(a, colnames(data_log))
-# 
-# 
-#     if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0){
-#       c_order_ctr = c(c_order_ctr,x)
-#       c_split_ctr = c(c_split_ctr,rep(a,length(x)))
-#     }else{
-#       c_order = c(c_order, x)
-#       c_split = c(c_split,rep(a,length(x)))
-#     }
-#   }
-#   c_split = c(c_split_ctr, c_split)
-#   c_order = c(c_order_ctr, c_order)
-# 
-#   data_log = cbind(apply(data_log, 1, max),data_log)
-#   data_log = data_log[order(data_log[,1], decreasing = T),]
-#   data_log = data_log[,is.element(colnames(data_log), colnames(data_tab))]
-#   data_log = data_log[,c_order]
-#   data_log = merge(annotation$EXPRESSION_PROFIL, data_log)
-#   data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
-#   data_log = as.matrix(data_log)
-# 
-#   h = Heatmap(data_log,
-#               name = Ylab,
-#               # col = color_vec,
-#               cluster_rows = F, # turn off row clustering
-#               cluster_columns = F, # turn off column clustering
-#               column_title = condition,
-#               show_row_names = F,
-#               row_order = 1:nrow(data_log),
-#               row_split = order(annotation$EXPRESSION_PROFIL),
-#               row_title = "%s", row_title_rot = 0,
-#               column_split = c_split,
-#               column_order = 1:ncol(data_log))
-# 
-#   h = heatmap(data_log)
-# 
-#   # h1 = Heatmap(data_log,
-#   #             name = Ylab,
-#   #             col = color_vec,
-#   #             cluster_rows = F,
-#   #             cluster_columns = F, # turn off column clustering
-#   #             column_title = condition,
-#   #             show_row_names = F,
-#   #             row_order = NULL,
-#   #             row_split = order(annotation$EXPRESSION_PROFIL),
-#   #             row_title = "%s", row_title_rot = 0,
-#   #             column_split = c_split,
-#   #             column_order = NULL,
-#   #             use_raster = F)
-#   #
-#   # h2 = Heatmap(data_log,
-#   #              name = Ylab,
-#   #              cluster_rows = F, # turn off row clustering
-#   #              cluster_columns = F, # turn off column clustering
-#   #              column_title = condition,
-#   #              show_row_names = F,
-#   #              row_order = order(annotation$EXPRESSION_PROFIL),
-#   #              row_split = annotation$EXPRESSION_PROFIL,
-#   #              row_title = "%s", row_title_rot = 0,
-#   #              column_split = c_split,
-#   #              column_order = NULL,
-#   #              use_raster = T,
-#   ,
-#   use_raster = T,
-#   ht_opt$message = FALSE))
-#   #
-#   if (moyenne == T){
-#     moyenne = "MOYENNE"
-#   }else{
-#     moyenne = ""
-#   }
-# 
-#   if (sortie == "png"){
-#     png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
-#     print(h)
-#     dev.off()
-# 
-#     # png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
-#     #   print(h1)
-#     # dev.off()
-#     #
-#     # png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
-#     #   print(h2)
-#     # dev.off()
-#   }else if (sortie == "pdf"){
-#     pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
-#       draw(h)
-#     #   print(h1)
-#     #   print(h2)
-#     dev.off()
-#   }
-# 
-# 
-# }
+MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie = "png"){
+  dir.create(path,recursive=T,showWarnings=F)
+  if (Log == T){
+    data_log =  as.data.frame(log(data_tab+1))
+    Ylab = "log(expres)"
+  }else{
+    data_log =  as.data.frame(data_tab)
+    Ylab = "expres"
+  }
+  
+  if (moyenne == T){
+    moyenne = "MOYENNE"
+  }else{
+    moyenne = ""
+  }
+
+
+  c_split = c()
+  c_split_ctr = c()
+  c_order = c()
+  c_order_ctr = c()
+  for (a in rnai_list[[condition]]){
+    x = grep(a, colnames(data_log))
+
+
+    if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0){
+      c_order_ctr = c(c_order_ctr,x)
+      c_split_ctr = c(c_split_ctr,rep(a,length(x)))
+    }else{
+      c_order = c(c_order, x)
+      c_split = c(c_split,rep(a,length(x)))
+    }
+  }
+  c_split = c(c_split_ctr, c_split)
+  c_order = c(c_order_ctr, c_order)
+
+  # Ajout des annotation au tableau
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
+  data_log = merge(data_log, annotation, by = 0)
+  rownames(data_log)=data_log$Row.names
+  data_log= data_log[,-1]
+  
+  # Ordonner les lignes par valeur de log du plus grand au plus petit
+  data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
+  colnames(data_log)[1] = "MAX"
+  data_log = data_log[order(data_log$MAX, decreasing = T),]
+  
+  # Ordonner les lignes par profils d'expression
+  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
+  
+  # Reordonner les colonne et faire un matrice numerique pour les heatmap
+  data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
+  data_log_mat = as.matrix(data_log_mat[,c_order])
+  
+  
+  
+  color_vec = c(0,quantile(data_log_mat)[[2]],median(data_log_mat),
+                quantile(data_log_mat)[[4]],max(data_log_mat))
+  color_vec = colorRamp2(color_vec,
+                         c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D"))
+
+  h = Heatmap(data_log_mat,
+              name = Ylab,
+              column_title = condition,
+              col = color_vec,
+              cluster_rows = F, cluster_columns = F, # turn off  clustering
+              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+              show_row_names = F,
+              
+              row_order = 1:nrow(data_log),
+              row_split = data_log$EXPRESSION_PROFIL,
+              row_title_rot = 0,
+              
+              column_split = c_split,
+              column_order = 1:ncol(data_log_mat),
+              
+              use_raster = T #reduce the original image seize
+              )
+
+
+   h1 = Heatmap(data_log_mat,
+                name = Ylab,
+                column_title = condition,
+                # col = color_vec,
+                cluster_rows = F, cluster_columns = F, # turn off  clustering
+                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+                show_row_names = F,
+                
+                row_order = 1:nrow(data_log),
+                row_split = data_log$EXPRESSION_PROFIL,
+                row_title_rot = 0,
+                
+                column_split = c_split,
+                column_order = 1:ncol(data_log_mat),
+                
+                use_raster = T #reduce the original image seize
+                )
+  
+  h2 = Heatmap(data_log_mat,
+               name = Ylab,
+               column_title = condition,
+               # col = color_vec,
+               cluster_rows = F, cluster_columns = F, # turn off  clustering
+               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+               show_row_names = F,
+               
+               row_order = 1:nrow(data_log),
+               row_split = data_log$EXPRESSION_PROFIL,
+               row_title_rot = 0,
+               
+               column_split = c_split,
+               column_order = 1:ncol(data_log_mat),
+               
+               use_raster = F #reduce the original image seize
+                )
+
+
+  if (sortie == "png"){
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
+      draw(h)
+    dev.off()
+
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
+      draw(h1)
+    dev.off()
+
+    png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
+      draw(h2)
+    dev.off()
+  }else if (sortie == "pdf"){
+    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
+      print(h)
+      print(h1)
+      print(h2)
+    dev.off()
+  }
+
+
+}
 
 # plotGenes fait par Gaëlle
 plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){

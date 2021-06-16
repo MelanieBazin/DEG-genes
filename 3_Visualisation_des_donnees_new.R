@@ -1,5 +1,5 @@
-source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
-source("4_Functions.R")
+source("3_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+# source("4_Functions.R")
 library(sva)
 library(DESeq2)
 library(pheatmap)
@@ -9,7 +9,7 @@ library(pheatmap)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test08")
+analyseName = paste0("DESeq2_test08_Rstudio")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -37,7 +37,7 @@ dir.create(path_dir,recursive=T,showWarnings=F)
 # annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 # rownames(annotation)=annotation$ID
 
-i = names(rnai_list)[4]
+# i = names(rnai_list)[1]
 
 for (i in names(rnai_list)){
   
@@ -48,11 +48,11 @@ for (i in names(rnai_list)){
   # Ouverture des fichiers countdata sans correction de l'effet Batch
   countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
   
-  # Boxplot des comptages avant normalisation #####
+  # Boxplot des comptages avant normalisation #
   print(paste(i, "-----> Création BoxPlot non-normalisé"))
  
-  pdf(paste0(path,i,"_row.pdf"))
-  # png(paste0(path,i,"_row.png"))
+  # pdf(paste0(path,i,"_row.pdf"))
+  png(paste0(path,i,"_row.png"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
 
@@ -75,8 +75,8 @@ for (i in names(rnai_list)){
 
   
   # Graphique du paramètre de dispersion
-  pdf(paste0(path,i,"_dipression_DESeq2.pdf"))
-  # png(paste0(path,i,"_dipression_DESeq2.png"))
+  # pdf(paste0(path,i,"_dipression_DESeq2.pdf"))
+  png(paste0(path,i,"_dipression_DESeq2.png"))
     plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
   
@@ -85,56 +85,51 @@ for (i in names(rnai_list)){
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,i,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=F,quote=F)
-  
+  #### ^^^ Verifié en pdf ^^^ ####
   
   ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
   print(paste(i, "-----> Création BoxPlot normalisé"))
-  pdf(paste0(path,i,"_DESeq_Boxplot.pdf"))
-  # png(paste0(path,i,"_DESeq_Boxplot.png"))
+  # pdf(paste0(path,i,"_DESeq_Boxplot.pdf"))
+  png(paste0(path,i,"_DESeq_Boxplot.png"))
     CountBoxplot(data_tab, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
   
-  if (is.element(tab_name,list.files(paste0("./DATA/DESeq2-seize/")))){
-    data_tab_seize = read.table(paste0("./DATA/DESeq2-seize/",tab_name), header = T, sep = "\t")
+  if (is.element(paste0(i,"_DESeq2-seize.tab"),list.files(paste0("./DATA/DESeq2-seize/")))){
+    data_tab_seize = read.table(paste0("./DATA/DESeq2-seize/",i,"_DESeq2-seize.tab"), header = T, sep = "\t")
   }else {
     print("Calcule de la table DESeq/taille")
     data_tab_seize = DivideByGeneSeize(data_tab)
-    write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",tab_name), sep="\t",row.names=F,quote=F)
+    write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/",i,"_DESeq2-seize.tab"), sep="\t",row.names=F,quote=F)
   }
   
-  pdf(paste0(path,i,"_DESeq-seize_Boxplot.pdf"))
-  # png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
+  # pdf(paste0(path,i,"_DESeq-seize_Boxplot.pdf"))
+  png(paste0(path,i,"_DESeq-seize_Boxplot.png"))
     CountBoxplot(data_tab_seize, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
   dev.off()
   
   print("Boxplot terminé")
   
+  #### ^^^ Verifié en pdf ^^^ ####
+  
   ##### Heatmap et profils  ####
   print(paste(i, "-----> Conception des heatmap"))
   
   # Avant moyenne par cluster
-  
-  
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+
   
-  # path = paste0(path,"/Heatmap/")
-  # condition = i
-  # sortie = "pdf"
-  # moyenne = F
-  # Log = T
-  
-  # MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
-  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")
+  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "png")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "png")
   
   # Avec calcul des moyennes sur les clusters
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
   
-  # ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
   
-  # MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "pdf")
-  # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "pdf")
+  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "png")
+  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "png")
   
   
   
@@ -170,7 +165,7 @@ for (i in names(rnai_list)){
   # summary(lda_model$scaling)
   lda_pred = predict(lda_model)
 
-  LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color, sortie = "pdf")
+  LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path, i, color, sortie = "png")
 
   # print("Teste des prédictions")
   # EvaluPrediction("LDA", data_tab, infodata, i, path)  # Evaluer la prédiction
@@ -180,8 +175,8 @@ for (i in names(rnai_list)){
   print(paste(i, "-----> Clustering en cours"))
   dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)
   for (distance in c("Pearson", "Spearman")){
-    # png(paste0(path,"4Cluster/",i,"_Matrice_",distance,".png"))
-    pdf(paste0(path,"4Cluster/",i,"_Matrice_",distance,".pdf"))
+    png(paste0(path,"4Cluster/",i,"_Matrice_",distance,".png"))
+    # pdf(paste0(path,"4Cluster/",i,"_Matrice_",distance,".pdf"))
     # Choisir le mode de calcule des distances
     if (distance == "Pearson"){
       matDist = as.matrix(cor(data_tab))
@@ -200,8 +195,8 @@ for (i in names(rnai_list)){
 
     for (method in c("kmeans", "HCL")){
       print(paste(distance, method))
-      # png(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".png"))
-      pdf(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".pdf"))
+      png(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".png"))
+      # pdf(paste0(path,"4Cluster/",i,"_Cluster_",method,"_",distance,".pdf"))
       Clustering(matDist = matDist,
                  nb_cluster = 5,
                  method = method,
@@ -211,7 +206,5 @@ for (i in names(rnai_list)){
     }
   }
   
-
-
 }
   

@@ -69,7 +69,6 @@ MeanTabCalculation <- function(data_tab, rnai_list, cluster,i){
       }
     }
     
-    mean_tab = mean_tab[,c(1,ncol(mean_tab),2:(ncol(mean_tab)-1))]
     colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
     mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
     rm(mean_tab, tab)
@@ -456,7 +455,6 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     moyenne = ""
   }
 
-
   c_split = c()
   c_split_ctr = c()
   c_order = c()
@@ -650,6 +648,7 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
       graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
+      draw(graph)
       
     }
     
@@ -657,6 +656,7 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
       graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
                       names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+      draw(graph)
       
     }
     
@@ -664,9 +664,10 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     par(mfrow=c(1,1))
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
     graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
-    
+    draw(graph)
     graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
                     names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+    draw(graph)
     
   }
   dev.off()
@@ -701,7 +702,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
       png(paste0(save_path,condition,"_Profil_",moyenne,r,p,".png"))
         graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
-        print(graph)
+        draw(graph)
       dev.off()
     }
     
@@ -710,7 +711,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
       png(paste0(save_path,i,"_Boxplot_",moyenne,r,p,".png"))
         graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
                         xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-        print(graph)
+        draw(graph)
       dev.off()
     }
     
@@ -719,12 +720,12 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
     png(paste0(save_path,i,"_Profils",moyenne,r,"_none.png"))
       graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
-      print(graph)
+      draw(graph)
     dev.off()
     png(paste0(save_path,i,"_Boxplot",moyenne,r,"_none.png"))
       graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
                       names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-      print(graph)
+      draw(graph)
     dev.off()
   }
 }

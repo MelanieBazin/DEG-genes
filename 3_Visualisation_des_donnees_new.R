@@ -37,7 +37,7 @@ dir.create(path_dir,recursive=T,showWarnings=F)
 # annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 # rownames(annotation)=annotation$ID
 
-# i = names(rnai_list)[1]
+ i = names(rnai_list)[1]
 
 for (i in names(rnai_list)){
   

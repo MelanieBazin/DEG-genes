@@ -1,0 +1,31 @@
+### A Executer dur R version 4
+
+options(stringsAsFactors = FALSE)
+source("0_Cluster.R")
+library(sva)
+set.seed(10111)
+
+dir.create("./DATA/Pour_DESeq/",recursive=T,showWarnings=F)
+dir.create("./DATA/Pour_DESeq_SansCorrectionBatch/",recursive=T,showWarnings=F)
+
+
+for (i in names(rnai_list)){
+  ##### Création du tableau de donnée à analyser ensemble ####
+  #Ouverture des fichiers et création de l'objet countdata
+  countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
+  write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
+  
+  # Enregistrement des tableau qui seront utiliser pour DESeq
+  countdata = as.matrix(countdata)
+  if (length(grep("ICL7", colnames(countdata)))>0){
+    
+    # Correction de l'effet batch avec ComBat
+    countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
+  }
+  write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq.tab"), sep="\t",row.names=T,quote=F)
+  
+  print(paste("Tableau pour la condition",i, "termine"))
+}
+
+# Pour ouvrir les tableau avec correction BATch
+# countdata = read.table(paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq.tab"), sep="\t",row.names=1,header =  T)

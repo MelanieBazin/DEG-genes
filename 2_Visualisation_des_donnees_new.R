@@ -9,7 +9,7 @@ library(pheatmap)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test07")
+analyseName = paste0("DESeq2_test07_sansHeatMap")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -38,9 +38,9 @@ annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 rownames(annotation)=annotation$ID
 
-i = names(rnai_list)[2]
+i = names(rnai_list)[4]
 
-# for (i in names(rnai_list)){
+for (i in names(rnai_list)){
   
   path = paste0(path_dir,i,"/")
   dir.create(path,recursive=T,showWarnings=F)
@@ -128,11 +128,11 @@ i = names(rnai_list)[2]
   # ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
   
-  path = paste0(path,"/Heatmap/")
-  condition = i
-  sortie = "pdf"
-  moyenne = F
-  Log = T
+  # path = paste0(path,"/Heatmap/")
+  # condition = i
+  # sortie = "pdf"
+  # moyenne = F
+  # Log = T
   
   # MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "pdf")
   # MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "pdf")

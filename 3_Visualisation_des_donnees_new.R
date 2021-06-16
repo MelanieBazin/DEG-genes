@@ -9,34 +9,33 @@ library(pheatmap)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test07_sansHeatMap")
+analyseName = paste0("DESeq2_test08")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
-# Utilisation uniquement des normalisations DESeq2
-type = "DESeq2"
 
-# Definiton des variables DESeq2
-FC = 1.5 #Mini 1.5 -> XRCC4 = 2
-pvalue = 0.05 #Maxi 0.05 -> XRCC4 = 0.01
-RNAi = "PGM"
-
-### Création  de liste de gènes filtrés (retirés de l'analyse) ###
-Filtering= list()
-Filtering= NULL
-# par exemple : retirer les gènes qui sont DE pendant une manip de silencing, 
-# ou entre plusieurs manip control ==> des faux positifs
-
-
-### Vecteur de couleur pour les heatmap
-hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
-#hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
-hmcol = rev(hmcol)
-
-### Limiter le fichier annotation aux gènes avec synonyme ###
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation_synonyms = annotation[annotation$SYNONYMS != "",]
-rownames(annotation)=annotation$ID
+##### Pour analyse DESeq2 uniquement #####
+# # Definiton des variables DESeq2
+# FC = 1.5 #Mini 1.5 -> XRCC4 = 2
+# pvalue = 0.05 #Maxi 0.05 -> XRCC4 = 0.01
+# RNAi = "PGM"
+# 
+# ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
+# Filtering= list()
+# Filtering= NULL
+# # par exemple : retirer les gènes qui sont DE pendant une manip de silencing, 
+# # ou entre plusieurs manip control ==> des faux positifs
+# 
+# 
+# ### Vecteur de couleur pour les heatmap
+# hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
+# #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
+# hmcol = rev(hmcol)
+# 
+# ### Limiter le fichier annotation aux gènes avec synonyme ###
+# annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+# annotation_synonyms = annotation[annotation$SYNONYMS != "",]
+# rownames(annotation)=annotation$ID
 
 i = names(rnai_list)[4]
 
@@ -45,13 +44,13 @@ for (i in names(rnai_list)){
   path = paste0(path_dir,i,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  ##### Création du tableau de donnée à analyser ensemble ####
-  #Ouverture des fichiers et création de l'objet countdata
-  countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
+  ##### Analyse DESeq2 ####
+  # Ouverture des fichiers countdata sans correction de l'effet Batch
+  countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
   
   # Boxplot des comptages avant normalisation #####
   print(paste(i, "-----> Création BoxPlot non-normalisé"))
-  
+ 
   pdf(paste0(path,i,"_row.pdf"))
   # png(paste0(path,i,"_row.png"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
@@ -59,21 +58,12 @@ for (i in names(rnai_list)){
 
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = i, rnai_list, cluster)
+  
+  # Ouverture des fichiers countdata avec correction de l'effet Batch pour ICL7
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq.tab"), sep="\t",row.names=1,header =  T)
   countdata = as.matrix(countdata)
-  # Correction de l'effet batch avec ComBat
-  if (length(grep("ICL7", colnames(countdata)))>0 & i != "tout"){
-    tab_name = paste0(i,"_expression_table_DESEQsurseize_Unbatched.tab")
-    
-    print(paste(i, "-----> Correction de l'effet Batch"))
-    # countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
-    # write.table(countdata,paste0("./DATA/",tab_name), sep="\t",row.names=T,quote=F)
-    
-    countdata = read.table(paste0("./DATA/",tab_name), sep="\t",row.names=1,header =  T)
-    
-  }else{
-    tab_name = paste0(i,"_expression_table_DESEQsurseize.tab")
-  }
 
+  # Crataion de l'objet DESeq2
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
                                  design   = ~ Feeding + Cluster)
@@ -94,7 +84,7 @@ for (i in names(rnai_list)){
   # Récupération des données de comptage normalisées
   data_tab = counts(deseq,normalized=T)
   
-  write.table(data_tab,paste0("./DATA/DESeq2/",i,"_expression_table_DESeq2.tab"), sep="\t",row.names=F,quote=F)
+  write.table(data_tab,paste0(path,i,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=F,quote=F)
   
   
   ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
@@ -159,7 +149,7 @@ for (i in names(rnai_list)){
   print(paste(i, "-----> Analyse ACP"))
   PCA_plot_generator(data_tab,colors = color,
                      save_path = path,
-                     main = paste0("ACP ",i," (",type,")"),
+                     main = paste0("ACP ",i," (DESeq2)"),
                      sortie = "pdf")
   
   # Analyse de discrimination linéaire (LDA)
@@ -195,13 +185,13 @@ for (i in names(rnai_list)){
     # Choisir le mode de calcule des distances
     if (distance == "Pearson"){
       matDist = as.matrix(cor(data_tab))
-      p= pheatmap(matDist, main = paste("Pheatmap Pearson", type, i))
+      p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2", i))
       print(p)
       matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
 
     }else if (distance == "Spearman"){
       matDist = as.matrix(cor(data_tab,method="spearman"))
-      p= pheatmap(matDist, main = paste("Pheatmap Spearman", type, i))
+      p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2", i))
       print(p)
       matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
     }
@@ -215,7 +205,7 @@ for (i in names(rnai_list)){
       Clustering(matDist = matDist,
                  nb_cluster = 5,
                  method = method,
-                 titre = paste(type,i),
+                 titre = paste("DESeq2",i),
                  colors = color)
       dev.off()
     }

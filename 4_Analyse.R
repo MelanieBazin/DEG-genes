@@ -10,7 +10,7 @@ set.seed(10111)
 source("0_Cluster.R")
 
 # Récupérer les fonction necessaire au représentaion graphique et la mise en forme des données
-source("3_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+source("3_Visualisation_des_donnees_fonction.R")
 
 # Récupéreation des fonction d'Olivier pour les analyse des gènes dérégulés
 source("3_Functions_AnalyeDESeq2.R")
@@ -46,8 +46,8 @@ rownames(annotation)=annotation$ID
 
 condition = names(rnai_list)[1]
 
-# for (condition in names(rnai_list)){
-  print(paste("On analyse le jeu de donnée :", condition , "-->", paste(rnai_list[[i]], collapse = ", ") ))
+for (condition in names(rnai_list)){
+  print(paste("On analyse le jeu de donnée :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
   
   path = paste0(path_dir,condition ,"/")
   dir.create(path,recursive=T,showWarnings=F)
@@ -107,9 +107,9 @@ condition = names(rnai_list)[1]
   RNAi_list = rnai_list[[condition ]][-grep("ND7",rnai_list[[condition ]])]
   RNAi_list = RNAi_list[-grep("ICL7",RNAi)]
   
-  RNAi = "PGM"
+  # RNAi = "PGM"
   # Regarder la derégulation dnas chaque condtion
-  # for (RNAi in unique(RNAi_list)){
+  for (RNAi in unique(RNAi_list)){
     
     ### Création des dossier pour ranger les données ###
     base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/",RNAi,"/Images/")
@@ -121,9 +121,6 @@ condition = names(rnai_list)[1]
     
     source("3_Analyse_DESeq2.R")
     
-    
-  # }
-  
-  
-  
-# }
+  }
+
+}

@@ -731,7 +731,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
-      png(paste0(save_path,i,"_Boxplot_",moyenne,r,p,".png"))
+      png(paste0(save_path,condition,"_Boxplot_",moyenne,r,p,".png"))
         graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
                         xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
         print(graph)
@@ -741,11 +741,11 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     # Graphiques des "none"
     par(mfrow=c(1,1))
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
-    png(paste0(save_path,i,"_Profils",moyenne,r,"_none.png"))
+    png(paste0(save_path,condition,"_Profils",moyenne,r,"_none.png"))
       graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
       print(graph)
     dev.off()
-    png(paste0(save_path,i,"_Boxplot",moyenne,r,"_none.png"))
+    png(paste0(save_path,condition,"_Boxplot",moyenne,r,"_none.png"))
       graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
                       names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
       print(graph)

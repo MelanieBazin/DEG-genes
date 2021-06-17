@@ -435,7 +435,7 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
 # Fait les heatmap avec tous les gènes par actégories
 library("pheatmap")
 library("ComplexHeatmap")
-library(magick)
+# library(magick)
 library("RColorBrewer")
 library(circlize)
 library(gplots)

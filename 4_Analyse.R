@@ -16,7 +16,7 @@ source("3_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
 source("3_Functions_AnalyeDESeq2.R")
 
 
-analyseName = paste0("Analyse_DESeq2_test00")
+analyseName = paste0("Analyse_DESeq2_test01")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -57,11 +57,11 @@ condition = names(rnai_list)[1]
   countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
   
   # Boxplot des comptages avant normalisation #
-  # print(paste(condition , "-----> Création BoxPlot non-normalisé"))
-  # # pdf(paste0(path,condition ,"_row.pdf"))
-  # png(paste0(path,condition ,"_row.png"))
-  #   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
-  # dev.off()
+  print(paste(condition , "-----> Création BoxPlot non-normalisé"))
+  # pdf(paste0(path,condition ,"_row.pdf"))
+  png(paste0(path,condition ,"_row.png"))
+    CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
+  dev.off()
   
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
@@ -83,11 +83,11 @@ condition = names(rnai_list)[1]
   deseq = DESeq(deseq)
   
   # Graphique du paramètre de dispersion
-  # # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
-  # png(paste0(path,condition ,"_dipression_DESeq2.png"))
-  # plotDispEsts(deseq, ylim = c(1e-6, 1e1))
-  # dev.off()
-  # 
+  # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
+  png(paste0(path,condition ,"_dipression_DESeq2.png"))
+  plotDispEsts(deseq, ylim = c(1e-6, 1e1))
+  dev.off()
+
   
   # Récupération des données de comptage normalisées
   data_tab = counts(deseq,normalized=T)
@@ -95,10 +95,9 @@ condition = names(rnai_list)[1]
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=F,quote=F)
   
   #### Lancer les visulalisation des données ####
-  # i =  condition
-  # source("3_Visualisation_des_donnees_new.R")
-  # print(paste("Visualisation des donnee fini pour", condition ))
-  
+  source("3_Visualisation_des_donnees_new.R")
+  print(paste("Visualisation des donnee fini pour", condition ))
+
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #a supprimer si souce réactivé
   
   #### Lancer l'analyse de gènes dérégulés ####

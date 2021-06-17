@@ -1,5 +1,4 @@
 options(stringsAsFactors = FALSE)
-source("0_Cluster.R")
 library("stringr") 
 
 ###### Création/Modification tableau de comptage ####

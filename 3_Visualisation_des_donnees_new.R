@@ -9,7 +9,7 @@ library(pheatmap)
 library(MASS)
 set.seed(10111)
 
-analyseName = paste0("DESeq2_test08_Rstudio")
+analyseName = paste0("DESeq2_test09_Final-Rstudio")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -37,7 +37,7 @@ dir.create(path_dir,recursive=T,showWarnings=F)
 # annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 # rownames(annotation)=annotation$ID
 
- i = names(rnai_list)[1]
+i = names(rnai_list)[1]
 
 for (i in names(rnai_list)){
   
@@ -85,7 +85,7 @@ for (i in names(rnai_list)){
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,i,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=F,quote=F)
-  #### ^^^ Verifié en pdf ^^^ ####
+  
   
   ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
   print(paste(i, "-----> Création BoxPlot normalisé"))
@@ -109,27 +109,26 @@ for (i in names(rnai_list)){
   
   print("Boxplot terminé")
   
-  #### ^^^ Verifié en pdf ^^^ ####
   
   ##### Heatmap et profils  ####
   print(paste(i, "-----> Conception des heatmap"))
   
   # Avant moyenne par cluster
-  ProfilsPNG(save_path = paste0(path,"/profils/"), data_tab, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), data_tab, condition = i)
+  ProfilsPNG(save_path = paste0(path,"profils/"), data_tab, condition = i)
+  ProfilsPDF(save_path = paste0(path,"profils/"), data_tab, condition = i)
 
   
-  MyHeatmaps(path = paste0(path,"/Heatmap/"),data_tab, condition = i, sortie = "png")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "png")
+  MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab, condition = i, sortie = "png")
+  MyHeatmaps(paste0(path,"HeatmapNoLog/"),data_tab, condition = i, Log = F, sortie = "png")
   
   # Avec calcul des moyennes sur les clusters
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,i)
   
-  ProfilsPNG(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
-  ProfilsPDF(save_path = paste0(path,"/profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPNG(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition = i)
+  ProfilsPDF(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition = i)
   
-  MyHeatmaps(paste0(path,"/Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "png")
-  MyHeatmaps(paste0(path,"/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "png")
+  MyHeatmaps(paste0(path,"Heatmap/"),mean_data_tab, moyenne = T, condition = i, sortie = "png")
+  MyHeatmaps(paste0(path,"HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = i, Log = F, sortie = "png")
   
   
   

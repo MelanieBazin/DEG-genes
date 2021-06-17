@@ -6,6 +6,10 @@ rownames(annotation)=annotation$ID
 #### Définition des ARNi à analyser ensembles ####
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
 
+# Ordonner avec les controles en premiers
+ctl = c()
+feed = c()
+
 rnai_list = list(
   sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7_K","PGM", "ICL7" )))],
   XRCC4seul = tout[which(is.element(tout, c("XRCC4","ND7_X")))],

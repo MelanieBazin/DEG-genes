@@ -80,10 +80,16 @@ for(i in names(comparisons)) {
       #print(paste(i,dname,dim(res)[1]))
       
       ##### Répartition des p-value ####
-      png(paste0(img_dir,"DEgenes_",condition,"_",i,"_",dname,"_p-value_density.png"))
-        plot(density(-log(res$padj)), 
-             main = paste(condition,i,"p-value_density.png"),
-             xlab = "-log(padj)")
+      png(paste0(img_dir,"p-value_density_",condition,"_",i,"_",dname,".png"))
+        plot(density(res$padj), 
+             main = paste(condition,i,"p-value density"),
+             xlab = "padj")
+      dev.off()
+      
+      png(paste0(img_dir,"p-value_log_density_",condition,"_",i,"_",dname,".png"))
+      plot(density(-log(res$padj)), 
+           main = paste(condition,i,"p-value density"),
+           xlab = "-log(padj)")
       dev.off()
       ####
       
@@ -126,7 +132,7 @@ for(i in names(comparisons)) {
         dev.off()
         
         ##### Volcanoplot avec nom choisis #####
-        png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
+        png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
           plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
           for(id in select_ID) {
             #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {

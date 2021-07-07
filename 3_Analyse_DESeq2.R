@@ -29,6 +29,7 @@ significant_down=list()
 print(paste("Comparaison", RNAi, "et son controle" ))
 
 for(i in names(comparisons)) {
+  print(paste(RNAi, "au temps ",i))
   c1=comparisons[[i]][grep("ctrl",comparisons[[i]])]
   c2=comparisons[[i]][grep(RNAi,comparisons[[i]])]
   if(length(c2)==0|length(c1)==0){}else{
@@ -37,18 +38,19 @@ for(i in names(comparisons)) {
     resContrast=resContrast[notAllZero,]
     
     ##### Répartition des p-value ####
-    png(paste0(img_dir,"p-value_density_",condition,"_",i,"_",dname,".png"))
-    plot(density(resContrast$padj), 
+    resContrast_sig = resContrast[ !is.na(resContrast$padj) , ]
+    png(paste0(base_img_dir,"p-value_density_",condition,"_",i,".png"))
+    plot(density(resContrast_sig$padj), 
          main = paste(condition,i,"p-value density"),
          xlab = "padj")
     dev.off()
     
-    png(paste0(img_dir,"p-value_log_density_",condition,"_",i,"_",dname,".png"))
-    plot(density(-log(resContrast$padj)), 
+    png(paste0(base_img_dir,"p-value_log_density_",condition,"_",i,".png"))
+    plot(density(-log(resContrast_sig$padj)), 
          main = paste(condition,i,"p-value density"),
          xlab = "-log(padj)")
     dev.off()
-    ####
+    ######
     
     resContrast_sig = resContrast[ !is.na(resContrast$padj) & resContrast$padj < pvalue , ]
     resContrast_sig = resContrast_sig[ resContrast_sig$log2FoldChange >= log2(FC) | resContrast_sig$log2FoldChange <= log2(1/FC), ]

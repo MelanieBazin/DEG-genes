@@ -39,14 +39,26 @@ for(i in names(comparisons)) {
     
     ##### Répartition des p-value ####
     resContrast_sig = resContrast[ !is.na(resContrast$padj) , ]
-    png(paste0(base_img_dir,"p-value_density_",condition,"_",i,".png"))
+    png(paste0(base_img_dir,"padj_density_",condition,"_",i,".png"))
     plot(density(resContrast_sig$padj), 
+         main = paste(condition,i,"padj density"),
+         xlab = "padj")
+    dev.off()
+    
+    png(paste0(base_img_dir,"padj_log_density_",condition,"_",i,".png"))
+    plot(density(-log(resContrast_sig$padj)), 
+         main = paste(condition,i,"padj density"),
+         xlab = "-log(padj)")
+    dev.off()
+    
+    png(paste0(base_img_dir,"p-value_density_",condition,"_",i,".png"))
+    plot(density(resContrast_sig$pvalue), 
          main = paste(condition,i,"p-value density"),
          xlab = "padj")
     dev.off()
     
     png(paste0(base_img_dir,"p-value_log_density_",condition,"_",i,".png"))
-    plot(density(-log(resContrast_sig$padj)), 
+    plot(density(-log(resContrast_sig$pvalue)), 
          main = paste(condition,i,"p-value density"),
          xlab = "-log(padj)")
     dev.off()

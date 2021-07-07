@@ -16,7 +16,7 @@ source("3_Visualisation_des_donnees_fonction.R")
 source("3_Functions_AnalyeDESeq2.R")
 
 
-analyseName = paste0("Analyse_DESeq2_test03_tout_batch")
+analyseName = paste0("Analyse_DESeq2_tout_07-07")
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
@@ -122,6 +122,7 @@ condition = names(rnai_list)[1]
     
     source("3_Analyse_DESeq2.R")
     
+    print(paste("Analyse des donnee fini pour", condition, RNAi))
   }
   
   #### Lancer les visulalisation des données ####
@@ -129,9 +130,9 @@ condition = names(rnai_list)[1]
   data_tab = as.matrix(data_tab)
   path = "./Analyse/Data_DESeq2_toutBatch/tout_Rstudio/"
   dir.create(path,recursive=T,showWarnings=F)
+  
   source("3_Visualisation_des_donnees_new.R")
-  # print(paste("Visualisation des donnee fini pour", condition ))
-  
-  
 
+  
+  print(paste("Visualisation des donnee fini pour", condition ))
 # }

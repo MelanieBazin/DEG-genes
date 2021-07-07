@@ -26,7 +26,7 @@ regulation=c("Up-regulated","Down-regulated")
 significant_up=list()
 significant_down=list()
 
-
+print(paste("Comparaison", RNAi, "et son controle" ))
 
 for(i in names(comparisons)) {
   c1=comparisons[[i]][grep("ctrl",comparisons[[i]])]
@@ -109,7 +109,7 @@ for(i in names(comparisons)) {
         for(s in annotation_synonyms$ID) {
           if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
             points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
-            text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$SYNONYMS[grep(s,annotation_synonyms$ID)])
+            text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$NAME[grep(s,annotation_synonyms$ID)])
           }
         }
         dev.off()
@@ -149,7 +149,7 @@ for(i in names(comparisons)) {
 }
 
 
-
+print(paste("Comparaison des dereguler en ", RNAi, "a d'autre donnees" ))
 
 #### Boucle sur tous les filtres utilisés ####
 for(dname in unique(c(names(significant_up),names(significant_down)))) {
@@ -167,7 +167,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   significant_up_ids=unique(significant_up[[dname]])
   significant_down_ids=unique(significant_down[[dname]])
   
-  pdf(paste(img_dir,"venn_",condition,"_",dname,"_Up_Down_both-regulated.pdf",sep=""))
+  png(paste(img_dir,"venn_",condition,"_",dname,"_Up_Down_both-regulated.png",sep=""))
   ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
   dev.off()
   
@@ -188,7 +188,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   significant_down_ids=DEgenes[DEgenes$REGULATION=="Down-regulated",]$ID
   
   #### Représentation des gènes up et down reguler par digramme d eVenn, boxplot et heat map ####
-  pdf(paste(img_dir,"venn_",condition,"_",dname,"_Up_and_Down-regulated.pdf",sep=""))
+  png(paste(img_dir,"venn_",condition,"_",dname,"_Up_and_Down-regulated.png",sep=""))
   ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
   dev.off()
   
@@ -204,7 +204,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
               dendrogram = c("none"),main=paste(r,"N=",dim(data)[1]))
     dev.off()
     
-    pdf(paste(img_dir,"boxplot_",condition,"_",dname,"_",r,".pdf",sep=""))
+    png(paste(img_dir,"boxplot_",condition,"_",dname,"_",r,".png",sep=""))
     par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
     boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
     dev.off()
@@ -212,13 +212,12 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   
   #####
   
-  
   significant_ids=unique(c(significant_up_ids,significant_down_ids))
   
   if(dname == "NoFilter" & !is.null(names(Filtering))) {
     
     for(fname in names(Filtering)) {
-      pdf(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",fname,".pdf",sep=""))
+      png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",fname,".png",sep=""))
       ggvenn(list("Significant"=significant_ids,"Filtered"=Filtering[[fname]]), stroke_size = 0.5, set_name_size = 4)
       dev.off()
     }
@@ -229,12 +228,12 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
       dv[[fname]]=Filtering[[fname]]
     }
     dv[["ExcisionComplexFiltering"]]=NULL
-    pdf(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",paste(names(Filtering),collapse="_"),".pdf",sep=""))
+    png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",paste(names(Filtering),collapse="_"),".png",sep=""))
     ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
     dev.off()
     
     dv=list("Significant"=significant_ids,"PGM_Filtering"=pgm_degenes$ID,"Controls"=ctl_rnai_degenes$ID)
-    pdf(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_PGM_Filtering_Controls.pdf",sep=""))
+    png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_PGM_Filtering_Controls.png",sep=""))
     ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
     dev.off()
     
@@ -264,15 +263,15 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   # apply(autog_enrichment[2:4,c("Induced","Autogamy")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c("Induced","Autogamy")]))
   # apply(autog_enrichment[2:4,c("Repressed","Autogamy")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c("Repressed","Autogamy")]))
   
-  
+
   for(p in profiles) {
     #print(p)
     apply(autog_enrichment[2:4,c(p,"NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c(p,"NB")]))
   }
-  
-  
+
+
   par(xpd=FALSE,mfrow=c(1,1))
-  pdf(paste0(img_dir,"barplot_autogamy_proportion.pdf"),width=2,family="ArialMT")
+  png(paste0(img_dir,"barplot_autogamy_proportion.png"),family="ArialMT")
   barplot(c(autog_enrichment["ALL","P Autogamy"],autog_enrichment["SIG","P Autogamy"]),
           names.arg = c("ALL", "SIG"),
           col=c("gray","indianred"), border="white",ylim=c(0,100),cex=1.3,cex.axis=1.3,cex.lab=1.3,
@@ -296,7 +295,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   colors[length(profiles)]="white"
   par(mfrow=c(1,1))
   
-  pdf(paste0(img_dir,"barplot_autogamy_cluster_proportion.pdf"),width=5)
+  png(paste0(img_dir,"barplot_autogamy_cluster_proportion.png"))
   barplot(t(prop),col=colors,border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Gene proportion")
   legend("topleft",legend=rev(profiles[-length(profiles)]),col=rev(colors[-length(profiles)]),bty="n",pch=15,cex=1.3)
   dev.off()
@@ -314,7 +313,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   )
   names(prop)=c("ALL","SIG","UP","DOWN")
   
-  pdf(paste0(img_dir,"barplot_proportion_genes_with_IES.pdf"),width=5)
+  png(paste0(img_dir,"barplot_proportion_genes_with_IES.png"))
   barplot(prop,col=c("gray","indianred","darkgreen","dodgerblue"),border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Proportion of genes with IES")
   dev.off()
 }

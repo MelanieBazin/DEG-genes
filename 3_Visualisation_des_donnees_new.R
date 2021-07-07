@@ -56,13 +56,13 @@ MyHeatmaps(paste0(path,"HeatmapNoLog/"),mean_data_tab, moyenne = T, condition = 
 # Créaction du vecteur de couleur par cluster
 color = colnames(data_tab)
 for (j in rnai_list[[ condition]]){
-  color[grep(j, color)]=cluster_color[[j]]
+  color[grep(j, color)]=seq_color[[j]]
 }
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = path,
+                   save_path = paste0(path,"/color"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -94,7 +94,7 @@ LDA_plot_generator("LDA",lda_data_tab,infodata, lda_model, path,  condition, col
 print(paste( condition, "-----> Clustering en cours"))
 dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)
 for (distance in c("Pearson", "Spearman")){
-  png(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".png"))
+  png(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
   # pdf(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".pdf"))
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){
@@ -114,7 +114,7 @@ for (distance in c("Pearson", "Spearman")){
   
   for (method in c("kmeans", "HCL")){
     print(paste(distance, method))
-    png(paste0(path,"4Cluster/", condition,"_Cluster_",method,"_",distance,".png"))
+    png(paste0(path,"4Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
     # pdf(paste0(path,"4Cluster/", condition,"_Cluster_",method,"_",distance,".pdf"))
     Clustering(matDist = matDist,
                nb_cluster = 5,

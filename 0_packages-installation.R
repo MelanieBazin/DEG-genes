@@ -30,6 +30,7 @@
 
 
 options(stringsAsFactors = FALSE)
+library("stringr") 
 
 annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
 annotation$NAME[grep("PTET.51.1.G0110267",annotation$ID)]="PGML1"
@@ -64,6 +65,7 @@ annotation$NAME[grep("PTET.51.1.G0210235",annotation$ID)]="PolXa"
 annotation$NAME[grep("PTET.51.1.G0360066",annotation$ID)]="PolXb"
 annotation$NAME[grep("PTET.51.1.G0460033",annotation$ID)]="PolXc"
 annotation$NAME[grep("PTET.51.1.G1010039",annotation$ID)]="PolXd"
+
 
 
 mt = read.table("./DATA/mtF_ID.csv", sep = ";", header = T)

@@ -1,6 +1,6 @@
 library(stringr)
 library(gplots)
-source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+source("3_Visualisation_des_donnees_fonction.R")
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 
 data_path = "./DATA/RNAseq/"
@@ -16,7 +16,7 @@ for (i in data_directories){
   
   # Extraire les timing des nom des fichier
   timing = str_split(list, '_', simplify=TRUE)
-  for(a in c(1,4)){
+  for(a in c(4,2,1)){
     if(length(unique(timing[,a]))>1){
       time = a
     }
@@ -42,17 +42,25 @@ for (i in data_directories){
   # Attribuer le nom des timng au colonnes
   colnames(table) = timing
   
-  # Réordonner les colonnes par ordre chonologique
-  colorder = c(ncol(table),order(as.numeric(gsub("T", "", colnames(table)[-ncol(table)]))))
-  table = table[,colorder]
-  colnames(table)[1] = "Veg"
+  # Réordonner les colonnes par ordre chonologique (et passer le point veg en premier s'il existe)
+  veg = grep("v",colnames(table),ignore.case = T)
+  if (length(veg) > 0){if(veg == ncol(table)){
+    colorder = c(ncol(table),order(as.numeric(gsub("T", "", colnames(table)[-ncol(table)]))))
+    table = table[,colorder]
+    colnames(table)[1] = "Veg"
+  }}else {
+    colorder = c(order(as.numeric(gsub("T", "", colnames(table)))))
+    table = table[,colorder]
+  }
+  
+  print(colnames(table))
   
   # Retirer les lignes qui ne correspondent pas à un gènes
   table = table[which(is.element(rownames(table),annotation$ID)),]
   
   # Créer un nouveau tableau
   write.table(table,paste0("./DATA/EXPRESSION/",i,".tab"),sep="\t", row.names=T,quote=F)
-  
+
   # Faire plot, box, plot et heatmap sur les row data pour verifier s'il ya un problème
   if(!is.element(F, rownames(table)==annotation$ID)){
     data_log =  as.matrix(log(table+1))

@@ -1,4 +1,4 @@
-source("2_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+source("3_Visualisation_des_donnees_fonction.R"")
 source("3_Fonction.R")
 
 # RNAi à analyser ensemble

@@ -53,7 +53,7 @@ MeanTabCalculation <- function(data_tab, rnai_list, cluster,i){
   c_split = c()
   
   for (a in rnai_list[[i]]){
-    tab = data_tab[,grep(a, colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
+    tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
     colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
     
     
@@ -171,19 +171,22 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
       feeding =c(feeding, rep("ctrl", length(timing_list[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
+    }else if (length(grep("EZL1",r))>0){
+      feeding =c(feeding, rep("EZL1", length(timing_list[[r]])))
+      condition = c(condition, paste(cluster[[r]],"EZL1",sep = "_"))
     }else{
       feeding =c(feeding, rep(r, length(timing_list[[r]])))
       condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
     }
 
     
-    if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7"){
+    if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7" | r == "EZL1"){
       batch = c(batch,rep("seq_2014", length(timing_list[[r]])))
     }else{
       batch = c(batch,rep("seq_2020",length(timing_list[[r]])))
     }
     
-    if ( r == "ICL7"){
+    if ( r == "ICL7" | r == "ICL7bis" | r == "EZL1" | r == "EZL1bis"){
       labo = c(labo,rep("Duharcourt", length(timing_list[[r]])))
     }else{
       labo = c(labo,rep("Betermier",length(timing_list[[r]])))
@@ -306,7 +309,7 @@ EvaluPrediction <- function(type, data_tab, infodata , i, path){
     lda_data_tab = lda_data_tab[,keep]
     
     training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.75, 0.25))
-    train = lda_data_tab[training_sample,]
+    train = lda_data_tab[training_sample,-c(1016,1036,5821,6424,9636,12476,16379,16687,17842,22891,24244,28353,32726,36143,37881,38068,39963,41123,41364)]
     test = lda_data_tab[!training_sample,]
     
     lda_model = lda(train, grouping = infodata$Cluster[training_sample])
@@ -336,7 +339,7 @@ EvaluPrediction <- function(type, data_tab, infodata , i, path){
   path = paste0(path,"/",type,"/")
   dir.create(path,recursive=T,showWarnings=F)
   
-  LDA_plot_generator(type,train,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
+  LDA_plot_generator(type,test,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
   
   info_train = infodata$Cluster[training_sample]
   info_test = infodata$Cluster[!training_sample]
@@ -475,10 +478,14 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   # Reordonner les colonne
   data_log = data_log[,c_order]
   
+  save = data_log
+  
+  data_log = save
+  
   # Ajout des annotation au tableau
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
   data_log = merge(data_log, annotation, by = 0)
-  rownames(data_log)=data_log$Row.names
+  rownames(data_log) = data_log$Row.names
   data_log= data_log[,-1]
   
   # Ordonner les lignes par valeur de log du plus grand au plus petit
@@ -499,23 +506,23 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   color_vec = colorRamp2(color_vec,
                          c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D"))
 
-  h = Heatmap(data_log_mat,
-              name = Ylab,
-              column_title = condition,
-              col = color_vec,
-              cluster_rows = F, cluster_columns = F, # turn off  clustering
-              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-              show_row_names = F,
-              
-              row_order = 1:nrow(data_log),
-              row_split = data_log$EXPRESSION_PROFIL,
-              row_title_rot = 0,
-              
-              column_split = factor(c_split, levels = unique(c_split)),
-              column_order = 1:ncol(data_log_mat),
-              
-              use_raster = T #reduce the original image seize
-              )
+  # h = Heatmap(data_log_mat,
+  #             name = Ylab,
+  #             column_title = condition,
+  #             col = color_vec,
+  #             cluster_rows = F, cluster_columns = F, # turn off  clustering
+  #             cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+  #             show_row_names = F,
+  # 
+  #             row_order = 1:nrow(data_log),
+  #             row_split = data_log$EXPRESSION_PROFIL,
+  #             row_title_rot = 0,
+  # 
+  #             column_split = factor(c_split, levels = unique(c_split)),
+  #             column_order = 1:ncol(data_log_mat),
+  # 
+  #             use_raster = T #reduce the original image seize
+  #             )
 
 
    h1 = Heatmap(data_log_mat,
@@ -535,24 +542,24 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
                 
                 use_raster = F #reduce the original image seize
                 )
-  
-  h2 = Heatmap(data_log_mat,
-               name = Ylab,
-               column_title = condition,
-               # col = color_vec,
-               cluster_rows = F, cluster_columns = F, # turn off  clustering
-               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-               show_row_names = F,
-               
-               row_order = 1:nrow(data_log),
-               row_split = data_log$EXPRESSION_PROFIL,
-               row_title_rot = 0,
-               
-               column_split = factor(c_split, levels = unique(c_split)),
-               column_order = 1:ncol(data_log_mat),
-               
-               use_raster = T #reduce the original image seize
-                )
+
+  # h2 = Heatmap(data_log_mat,
+  #              name = Ylab,
+  #              column_title = condition,
+  #              # col = color_vec,
+  #              cluster_rows = F, cluster_columns = F, # turn off  clustering
+  #              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+  #              show_row_names = F,
+  # 
+  #              row_order = 1:nrow(data_log),
+  #              row_split = data_log$EXPRESSION_PROFIL,
+  #              row_title_rot = 0,
+  # 
+  #              column_split = factor(c_split, levels = unique(c_split)),
+  #              column_order = 1:ncol(data_log_mat),
+  # 
+  #              use_raster = T #reduce the original image seize
+  #               )
   h3 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
@@ -573,17 +580,17 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
 
 
   if (sortie == "png"){
-    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
-      draw(h)
-    dev.off()
+    # png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
+    #   draw(h)
+    # dev.off()
 
     png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
       draw(h1)
     dev.off()
 
-    png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
-      draw(h2)
-    dev.off()
+    # png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
+    #   draw(h2)
+    # dev.off()
     
     png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue_unraster.png"),width = 500, height = 600)
       draw(h3)
@@ -591,9 +598,9 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     
   }else if (sortie == "pdf"){
     pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
-      draw(h)
+      # draw(h)
       draw(h1)
-      draw(h2)
+      # draw(h2)
       draw(h3)
     dev.off()
   }

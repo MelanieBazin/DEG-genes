@@ -26,6 +26,7 @@ analyseName = paste0(Sys.Date(),"_", analyseName, "_FC-", FC, "_pval-", pvalue)
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
+dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
 
 ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
 Filtering= list()
@@ -61,7 +62,7 @@ condition = names(rnai_list)[1]
   # Boxplot des comptages avant normalisation #
   print(paste(condition , "-----> Creation BoxPlot non-normalise"))
   # pdf(paste0(path,condition ,"_row.pdf"))
-  png(paste0(path,condition ,"_row.png"))
+  png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_row.png"))
     CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
@@ -91,7 +92,7 @@ condition = names(rnai_list)[1]
   
   # Graphique du paramètre de dispersion
   # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
-  png(paste0(path,condition ,"_dipression_DESeq2.png"))
+  png(paste0(path_dir,condition ,"/Visualisation/Dipression_DESeq2.png"))
   plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
 
@@ -132,8 +133,8 @@ condition = names(rnai_list)[1]
   # data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
   data_tab = counts(deseq,normalized=T)
   data_tab = as.matrix(data_tab)
-  path = "./Analyse/Data_DESeq2_toutBatch/tout_Rstudio/"
-  dir.create(path,recursive=T,showWarnings=F)
+  path = paste0(path_dir,condition ,"/Visualisation/")
+  
   
   source("3_Visualisation_des_donnees_new.R")
 

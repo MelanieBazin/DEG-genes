@@ -35,6 +35,21 @@ for(i in names(comparisons)) {
     resContrast=results(deseq,contrast=c("Condition",c2, c1))
     
     resContrast=resContrast[notAllZero,]
+    
+    ##### Répartition des p-value ####
+    png(paste0(img_dir,"p-value_density_",condition,"_",i,"_",dname,".png"))
+    plot(density(resContrast$padj), 
+         main = paste(condition,i,"p-value density"),
+         xlab = "padj")
+    dev.off()
+    
+    png(paste0(img_dir,"p-value_log_density_",condition,"_",i,"_",dname,".png"))
+    plot(density(-log(resContrast$padj)), 
+         main = paste(condition,i,"p-value density"),
+         xlab = "-log(padj)")
+    dev.off()
+    ####
+    
     resContrast_sig = resContrast[ !is.na(resContrast$padj) & resContrast$padj < pvalue , ]
     resContrast_sig = resContrast_sig[ resContrast_sig$log2FoldChange >= log2(FC) | resContrast_sig$log2FoldChange <= log2(1/FC), ]
     
@@ -78,20 +93,6 @@ for(i in names(comparisons)) {
       #### Création du tableau contennat les gènes significativement identifier comme déréguler ####
       res=as.data.frame(datasets[[dname]])
       #print(paste(i,dname,dim(res)[1]))
-      
-      ##### Répartition des p-value ####
-      png(paste0(img_dir,"p-value_density_",condition,"_",i,"_",dname,".png"))
-        plot(density(res$padj), 
-             main = paste(condition,i,"p-value density"),
-             xlab = "padj")
-      dev.off()
-      
-      png(paste0(img_dir,"p-value_log_density_",condition,"_",i,"_",dname,".png"))
-      plot(density(-log(res$padj)), 
-           main = paste(condition,i,"p-value density"),
-           xlab = "-log(padj)")
-      dev.off()
-      ####
       
       res=res[,c("baseMean","log2FoldChange","padj")]
       res$REGULATION=ifelse(res$log2FoldChange>0,"Up-regulated","Down-regulated")

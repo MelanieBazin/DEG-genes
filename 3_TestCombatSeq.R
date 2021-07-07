@@ -15,6 +15,7 @@ source("3_Visualisation_des_donnees_fonction.R")
 
 analyseName = paste0("Test_Combatseq")
 
+analyseName = paste0(Sys.Date(),"_", analyseName)
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 
@@ -80,13 +81,13 @@ for (distance in c("Pearson", "Spearman")){
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){
     matDist = as.matrix(cor(data_tab))
-    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
+    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition), cluster_rows = F, cluster_cols = F)
     print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
     
   }else if (distance == "Spearman"){
     matDist = as.matrix(cor(data_tab,method="spearman"))
-    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
+    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition), cluster_rows = F, cluster_cols = F)
     print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
   }
@@ -162,13 +163,13 @@ for (distance in c("Pearson", "Spearman")){
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){
     matDist = as.matrix(cor(data_tab))
-    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
+    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition), cluster_rows = F, cluster_cols = F)
     print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
     
   }else if (distance == "Spearman"){
     matDist = as.matrix(cor(data_tab,method="spearman"))
-    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
+    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition), cluster_rows = F, cluster_cols = F)
     print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
   }

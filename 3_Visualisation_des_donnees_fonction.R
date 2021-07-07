@@ -148,9 +148,9 @@ CreatInfoData2 <- function(conditions=NULL){
 }
 
 CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
-  infodata = matrix(NA,nrow = ncol(countdata), ncol = 7)
+  infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Noms", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
+  colnames(infodata) = c("Noms","Echantillion", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
   
   infodata[,"Noms"] = colnames(countdata)
   
@@ -163,11 +163,12 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
   feeding = c()
   condition = c()
   labo = c()
+
   for(r in rnai){
   
     timing = c(timing,timing_list[[r]])
     clust = c(clust, cluster[[r]])
-    
+
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
       feeding =c(feeding, rep("ctrl", length(timing_list[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
@@ -199,6 +200,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
   infodata[,"Batch"] = batch
   infodata[,"Condition"]= condition
   infodata[,"Labo"]= labo
+  infodata[,"Echantillion"] = str_remove_all(infodata[,"Noms"],"bis")
   
   infodata = as.data.frame(infodata)
   

@@ -79,6 +79,14 @@ for(i in names(comparisons)) {
       res=as.data.frame(datasets[[dname]])
       #print(paste(i,dname,dim(res)[1]))
       
+      ##### Répartition des p-value ####
+      png(paste0(img_dir,"DEgenes_",condition,"_",i,"_",dname,"_p-value_density.png"))
+        plot(density(-log(res$padj)), 
+             main = paste(condition,i,"p-value_density.png"),
+             xlab = "-log(padj)")
+      dev.off()
+      ####
+      
       res=res[,c("baseMean","log2FoldChange","padj")]
       res$REGULATION=ifelse(res$log2FoldChange>0,"Up-regulated","Down-regulated")
       res.annot= merge(res,annotation,by.x="row.names",by.y="ID")
@@ -86,6 +94,9 @@ for(i in names(comparisons)) {
       colnames(res.annot)[1]="ID"
       
       write.table(res.annot,paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,".tab"),sep="\t",quote=F,row.names=F)
+      
+
+      
       #####
       
       
@@ -114,16 +125,16 @@ for(i in names(comparisons)) {
         }
         dev.off()
         
-        ##### Variables "genes" non définie pour le volcanoplot #####
-        # png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-        #   plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-        #   for(id in names(genes)) {
-        #     #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
-        #     points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
-        #     text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),genes[[id]])
-        #     #}
-        #   }
-        # dev.off()
+        ##### Volcanoplot avec nom choisis #####
+        png(paste0(img_dir,"volcano_plot_",analysis_name,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
+          plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+          for(id in select_ID) {
+            #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
+            points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
+            text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),annotation_synonyms$NAME[grep(id,annotation_synonyms$ID)])
+            #}
+          }
+        dev.off()
         #####
         
         

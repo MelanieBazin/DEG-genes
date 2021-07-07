@@ -70,13 +70,16 @@ condition = names(rnai_list)[1]
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
 
-  # Crataion de l'objet DESeq2
+  # Créataion de l'objet DESeq2
   countdata = as.matrix(countdata)
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
-                                 design   = ~ Condition
-                                 # design   = ~ Feeding + Cluster
-                                 )
+                                 design   = ~ Condition)
+  
+  # Definition des réplicats techniques
+  ddsCollapsed <- collapseReplicates(deseq, 
+                                     groupby = deseq$Echantillion, 
+                                     run     = deseq$Noms)
   
   
   # Analyse DESeq2
@@ -99,13 +102,13 @@ condition = names(rnai_list)[1]
   
   #### Lancer l'analyse de gènes dérégulés ####
 
-  # Definir les condtion à analyser
+  # Definir les condition à analyser
   RNAi_list = unique(rnai_list[[condition ]][-grep("ND7",rnai_list[[condition ]])])
   if (is.element("ICL7", RNAi_list)){
     RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
   }
-  # RNAi = RNAi_list[1]
-  # Regarder la derégulation dnas chaque condtion
+  RNAi = RNAi_list[1]
+  # Regarder la derégulation dnas chaque condition
   for (RNAi in RNAi_list){
     print(paste(condition, ": Analyse des donnees pour ", RNAi ))
     

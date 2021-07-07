@@ -16,16 +16,16 @@ source("3_Visualisation_des_donnees_fonction.R")
 source("3_Functions_AnalyeDESeq2.R")
 
 
-analyseName = paste0("Analyse_DESeq2_tout_07-07")
+analyseName = paste0("Analyse_DESeq2_tout_CombatON")
 
-path_dir = paste0("./Analyse/",analyseName,"/")
-dir.create(path_dir,recursive=T,showWarnings=F)
-
-##### Pour analyse DESeq2 uniquement #####
-# Definiton des variables DESeq2
+#### Definiton des variables DESeq2 ####
 FC = 1.5 #Mini 1.5 -> XRCC4 = 2
 pvalue = 0.05 #Maxi 0.05 -> XRCC4 = 0.01
 
+analyseName = paste0(Sys.Date(),"_", analyseName, "_FC-", FC, "_pval-", pvalue)
+
+path_dir = paste0("./Analyse/",analyseName,"/")
+dir.create(path_dir,recursive=T,showWarnings=F)
 
 ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
 Filtering= list()
@@ -34,19 +34,20 @@ Filtering= NULL
 # ou entre plusieurs manip control ==> des faux positifs
 
 
-### Vecteur de couleur pour les heatmap
+#### Vecteur de couleur pour les heatmap ####
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
 
-### Limiter le fichier annotation aux gènes avec synonyme ###
+#### Limiter le fichier annotation aux gènes avec synonyme ####
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
 # annotation_synonyms = annotation[annotation$SYNONYMS != "",]
 rownames(annotation)=annotation$ID
 
-condition = names(rnai_list)[1]
 
+
+condition = names(rnai_list)[1]
 # for (condition in names(rnai_list)){
   print(paste("On analyse le jeu de donnee :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
   
@@ -77,14 +78,16 @@ condition = names(rnai_list)[1]
                                  design   = ~ Condition)
   
   # Definition des réplicats techniques
-  ddsCollapsed <- collapseReplicates(deseq, 
-                                     groupby = deseq$Echantillion, 
-                                     run     = deseq$Noms)
-  
+  deseq = collapseReplicates(deseq, 
+                             groupby = deseq$Echantillion, 
+                             run     = deseq$Noms)
+
+  write.table(as.data.frame(colData(deseq)),paste0(path,condition ,"_infodata_collapse.tab"), sep="\t",row.names=T,quote=F)
   
   # Analyse DESeq2
   print(paste(condition , "-----> Analyse DESeq2"))
   deseq = DESeq(deseq)
+  
   
   # Graphique du paramètre de dispersion
   # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
@@ -98,7 +101,7 @@ condition = names(rnai_list)[1]
   
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
 
-  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #a supprimer si source réactivé
+  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #necessaire pour les heatmap
   
   #### Lancer l'analyse de gènes dérégulés ####
 
@@ -110,7 +113,7 @@ condition = names(rnai_list)[1]
   RNAi = RNAi_list[1]
   # Regarder la derégulation dnas chaque condition
   for (RNAi in RNAi_list){
-    print(paste(condition, ": Analyse des donnees pour ", RNAi ))
+    print(paste(condition, ": Analyse des donnees pour  ----->", RNAi ))
     
     #### Création des dossier pour ranger les données ####
     base_img_dir=paste0("./Analyse/",analyseName,"/",condition,"/DESeq/",RNAi,"/Images/")
@@ -122,11 +125,12 @@ condition = names(rnai_list)[1]
     
     source("3_Analyse_DESeq2.R")
     
-    print(paste("Analyse des donnee fini pour", condition, RNAi))
+    print(paste(condition, ": Analyse des donnee fini pour ----->",  RNAi))
   }
   
   #### Lancer les visulalisation des données ####
-  data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
+  # data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
+  data_tab = counts(deseq,normalized=T)
   data_tab = as.matrix(data_tab)
   path = "./Analyse/Data_DESeq2_toutBatch/tout_Rstudio/"
   dir.create(path,recursive=T,showWarnings=F)

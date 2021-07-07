@@ -73,8 +73,41 @@ PCA_plot_generator(data_tab,colors = color,
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
+print(paste( condition, "-----> Clustering en cours"))
+dir.create(paste0(path,"SANS_ComBat/4Cluster/"),recursive=T,showWarnings=F)
+for (distance in c("Pearson", "Spearman")){
+  png(paste0(path,"SANS_ComBat/4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+  # Choisir le mode de calcule des distances
+  if (distance == "Pearson"){
+    matDist = as.matrix(cor(data_tab))
+    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
+    print(p)
+    matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
+    
+  }else if (distance == "Spearman"){
+    matDist = as.matrix(cor(data_tab,method="spearman"))
+    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
+    print(p)
+    matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
+  }
+  dev.off()
+  
+  
+  for (method in c("kmeans", "HCL")){
+    print(paste(distance, method))
+    png(paste0(path,"SANS_ComBat/4Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
+    Clustering(matDist = matDist,
+               nb_cluster = 5,
+               method = method,
+               titre = paste("DESeq2", condition),
+               colors = color)
+    dev.off()
+  }
+}
 
-#####  AVEC correction de l'effet Batch ####
+
+
+##### AVEC correction de l'effet Batch ####
 countdata = read.table(paste0("./DATA/Pour_DESeq/",condition,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
 
 # Création du tableau avec les info des colonnes
@@ -122,7 +155,39 @@ PCA_plot_generator(data_tab,colors = color,
                    sortie = "png")
 
 
-#### SEquencer en 2014 ####
+print(paste( condition, "-----> Clustering en cours"))
+dir.create(paste0(path,"AVEC_ComBat/4Cluster/"),recursive=T,showWarnings=F)
+for (distance in c("Pearson", "Spearman")){
+  png(paste0(path,"AVEC_ComBat/4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+  # Choisir le mode de calcule des distances
+  if (distance == "Pearson"){
+    matDist = as.matrix(cor(data_tab))
+    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
+    print(p)
+    matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
+    
+  }else if (distance == "Spearman"){
+    matDist = as.matrix(cor(data_tab,method="spearman"))
+    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
+    print(p)
+    matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
+  }
+  dev.off()
+  
+  
+  for (method in c("kmeans", "HCL")){
+    print(paste(distance, method))
+    png(paste0(path,"AVEC_ComBat/4Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
+    Clustering(matDist = matDist,
+               nb_cluster = 5,
+               method = method,
+               titre = paste("DESeq2", condition),
+               colors = color)
+    dev.off()
+  }
+}
+
+#### Seq 2014 ####
 
 condition = names(rnai_list)[3]
 
@@ -162,7 +227,7 @@ for (j in rnai_list[[condition]]){
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat"),
+                   save_path = paste0(path,"/SANS_ComBat2014"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -175,7 +240,7 @@ for (j in rnai_list[[condition]]){
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat_cluster"),
+                   save_path = paste0(path,"/SANS_ComBat_cluster2014"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -220,7 +285,7 @@ for (j in rnai_list[[condition]]){
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat"),
+                   save_path = paste0(path,"/SANS_ComBat2020"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -233,6 +298,9 @@ for (j in rnai_list[[condition]]){
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat_cluster"),
+                   save_path = paste0(path,"/SANS_ComBat_cluster2020"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
+
+
+

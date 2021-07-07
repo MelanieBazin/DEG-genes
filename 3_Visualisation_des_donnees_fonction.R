@@ -47,32 +47,32 @@ DivideByGeneSeize <- function(countdata){
   return(data_tab_seize)
 }
 
-MeanTabCalculation <- function(data_tab, rnai_list, cluster,i){
+MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition){
   
   mean_data_tab =data.frame(ID=rownames(data_tab))
-  c_split = c()
-  
-  for (a in rnai_list[[i]]){
-    tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
-    colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
-    
-    
-    # Calculer la moyenne pour les points que l'on veux grouper dans la cinétique
-    mean_tab =data.frame(ID=rownames(data_tab))
-    for (b in unique(cluster[[a]])){
-      temp = grep(b, colnames(tab))
-      if(length(temp) == 1){
-        mean_tab[,b] = tab[,temp]
-      }else{
-        mean_tab[,b] = apply(tab[,temp], 1, mean)
+
+  for (a in rnai_list[[condition]]){
+    if(length(grep(paste0(a,"_"), colnames(data_tab)))==0){}else{
+      tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
+      colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
+      
+      
+      # Calculer la moyenne pour les points que l'on veux grouper dans la cinétique
+      mean_tab =data.frame(ID=rownames(data_tab))
+      for (b in unique(cluster[[a]])){
+        temp = grep(b, colnames(tab))
+        if(length(temp) == 1){
+          mean_tab[,b] = tab[,temp]
+        }else{
+          mean_tab[,b] = apply(tab[,temp], 1, mean)
+        }
       }
+      
+      colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
+      mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
+      rm(mean_tab, tab)
     }
-    
-    colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
-    mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
-    rm(mean_tab, tab)
   }
-  
   # Passage de la colonne des ID en rowname
   if (colnames(mean_data_tab)[1]=="ID"){
     rownames(mean_data_tab)=mean_data_tab$ID

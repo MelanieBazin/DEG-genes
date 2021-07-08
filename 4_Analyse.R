@@ -28,9 +28,19 @@ path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
 
+#### Limiter le fichier annotation aux gènes avec synonyme ####
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
+rownames(annotation)=annotation$ID
+
 ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
-Filtering= list()
-Filtering= NULL
+select_tab = read.table(paste0("Analyse/","2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05","/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", h=T )$ID
+Filtering= list(
+  select_tab = annotation$ID[which(!is.element(annotation$ID,select_tab))],
+  connu = annotation$ID[which(!is.element(annotation$ID,select_ID))]
+)
+# Filtering= NULL
+
 # par exemple : retirer les gènes qui sont DE pendant une manip de silencing,
 # ou entre plusieurs manip control ==> des faux positifs
 
@@ -39,14 +49,6 @@ Filtering= NULL
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
-
-#### Limiter le fichier annotation aux gènes avec synonyme ####
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
-# annotation_synonyms = annotation[annotation$SYNONYMS != "",]
-rownames(annotation)=annotation$ID
-
-
 
 condition = names(rnai_list)[1]
 # for (condition in names(rnai_list)){

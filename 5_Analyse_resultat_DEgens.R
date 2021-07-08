@@ -1,25 +1,28 @@
 options(stringsAsFactors = FALSE)
 library("stringr") 
+library(ggvenn)
 
 source("0_Cluster.R")
 
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-for (i in grep("PTIWI",annotation$SYNONYMS)){
-  annotation$NAME[i]= str_split(annotation$SYNONYMS[i],",")[1]
-}
+file_name = "2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05"
+
+annotation_basic = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
+my_annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation = merge(annotation_basic[,c(1,4:7)], my_annotation[,c(1,2,3:7)], by = "ID")[,c(1,7,8,2:6,9:11)]
+rm(annotation_basic,my_annotation)
 
 
-ID_tab = annotation[,1:5]
+ID_tab = annotation
 condition =  names(rnai_list)[1]
 
 # for (condition in names(rnai_list)){
   RNAi_list = unique(rnai_list[[condition ]][-grep("ND7",rnai_list[[condition ]])])
-  if (is.element("ICL7", RNAi_list)){
-    RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
-  }
+  RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
+  RNAi_list = RNAi_list[-grep("bis",RNAi_list)]
+
   
   # RNAi = RNAi_list[1]
-  # Regarder la derégulation dnas chaque condtion
+  # Regarder la derégulation dans chaque condition
   for (RNAi in RNAi_list){
     if (RNAi == "CTIP"){
       timing = c("EARLY","INTER")
@@ -27,50 +30,45 @@ condition =  names(rnai_list)[1]
       timing = "LATE"
     }
     for (t in timing){
-    tab = read.table(paste0("Analyse/Analyse_DESeq2_test03_tout_batch/",condition,"/DESeq/",RNAi,"/NoFilter/DEgenes_",condition,"_",t,"_NoFilter.tab"), header = T, sep = "\t")
+    tab = read.table(paste0("Analyse/",file_name,"/",condition,"/DESeq/",RNAi,"/NoFilter/DEgenes_",condition,"_",t,"_NoFilter.tab"), header = T, sep = "\t")
     colnames(tab)[3:5]= paste(RNAi,t,colnames(tab)[3:5], sep = "_")
     ID_tab = merge(ID_tab, tab[,c(1,3:5)], by = "ID", all = T)
+    colnames(ID_tab) = str_remove_all(str_remove_all(colnames(ID_tab), ".x"),".y")
     }
   }
+  
+  write.table(as.matrix(ID_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes.tab"), sep = "\t", row.names = T)  
+
+  
+  selection = list(
+    CTIP_down = ID_tab$ID[unique(
+      grep("Down-regulated",ID_tab$CTIP_EARLY_REGULATION),
+      grep("Down-regulated",ID_tab$CTIP_INTER_REGULATION))],
+    PGM_up = ID_tab$ID[grep("Up-regulated",ID_tab$PGM_LATE_REGULATION)],
+    KU80c_up = ID_tab$ID[grep("Up-regulated",ID_tab$KU80c_LATE_REGULATION)],
+    XRCC4_up = ID_tab$ID[grep("Up-regulated",ID_tab$XRCC4_LATE_REGULATION)]
+  )
+  png(paste0("Analyse/",file_name,"/",condition,"/Venn_selection.png"))
+  ggvenn(selection,
+         fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
+         stroke_size = 0.5,
+         set_name_size = 5,
+         set_name_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"))
+  dev.off()
+  
+  select_ID = Reduce(intersect, selection)
+  select_tab = ID_tab[is.element(ID_tab$ID, select_ID),]
+  
+  write.table(as.matrix(select_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", row.names = F )
+  
+  
+  
 # }
-ID_tab = as.matrix(ID_tab)
-write.table(ID_tab,"Analyse/Analyse_DESeq2_test03_tout_batch/tout/Resumer_DEgenes.tab", sep = "\t", row.names = T)
-
-
-ID_ctip = ID_tab[which(
-  ID_tab$CTIP_EARLY_REGULATION == "Down-regulated" |
-  ID_tab$CTIP_INTER_REGULATION == "Down-regulated"
-  ),c(1,grep("CTIP", colnames(ID_tab)))] 
-ID_up = ID_tab[which(
-  ID_tab$PGM_LATE_REGULATION =="Up-regulated" & 
-  ID_tab$KU80c_LATE_REGULATION == "Up-regulated" &
-  ID_tab$XRCC4_LATE_REGULATION == "Up-regulated"
-  ),-grep("CTIP", colnames(ID_tab))] 
-
-select_ET = merge(ID_up, ID_ctip, by = "ID")
-select_ET = as.matrix(select_ETselect_ET)
-write.table(select_ET,"Analyse/Analyse_DESeq2_test03_tout_batch/tout/Resumer_DEgenes_select_ET.tab", sep = "\t", row.names = F)
-
-select_OU = ID_tab[which(
-  ID_tab$CTIP_EARLY_REGULATION == "Down-regulated" |
-  ID_tab$CTIP_INTER_REGULATION == "Down-regulated"|
-  ID_tab$PGM_LATE_REGULATION =="Up-regulated" | 
-  ID_tab$KU80c_LATE_REGULATION == "Up-regulated" |
-  ID_tab$XRCC4_LATE_REGULATION == "Up-regulated"
-),] 
-
-write.table(select_OU,"Analyse/Analyse_DESeq2_test03_tout_batch/Resumer_DEgenes_select_OU.tab", sep = "\t", row.names = F )
 
 
 
-rownames(select_OU)= 1:nrow(select_OU)
-nm = grep("PTET", select_OU$NAME)
-syn = c(grep("PTET", select_OU$SYNONYMS),grep("PTMB", select_OU$SYNONYMS),grep("rab", select_OU$SYNONYMS))
-a = intersect(nm, syn)
 
-abs =as.numeric(rownames(select_OU)[which(select_OU$SYNONYMS == "")])
-b = intersect(nm, abs)
-c = c(a, b)
 
-select_OUbis = select_OU[-c,]
-write.table(select_OUbis,"Analyse/Analyse_DESeq2_test03_tout_batch/Resumer_DEgenes_select_OUbis.tab", sep = "\t", row.names = F )
+
+
+

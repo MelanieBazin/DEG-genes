@@ -73,6 +73,10 @@ for (i in mt$ID){
   annotation$NAME[grep(i,annotation$ID)]=mt$SYNONYMS[grep(i,mt$ID)]
 }
 
+for (i in grep("PTIWI",annotation$SYNONYMS)){
+  annotation$NAME[i]= str_split(annotation$SYNONYMS[i],",")[[1]][1]
+}
+
 gene_autogamy=read.table("DATA/autogamy_ptetraurelia_mac_51_annotation_v2.0_significant.tab", header=T, sep="\t")
 annotation = merge(annotation[,1:3],gene_autogamy[,c(1,6)],by.x = "ID", by.y = "ID")
 deg_eva = read.table("DATA/EVA_Siginificantly_DEGenes_PGM_KU80.tab", header=T, sep="\t")

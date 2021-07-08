@@ -763,12 +763,40 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
 }
 
 # Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés
-ExpressionProfils <- function(type = "RPKM", rnai = NULL){
-  dir.create("./Analyse/Profils/",recursive=T,showWarnings=F)
+ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL, select_ID = NULL){
   
-  EXPRESSION = ConcatTab(type, conditions = rnai)
+   if (type  == "DESeq2"){
+    path = paste0(file,condition,"/")
+    EXPRESSION = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"))
+    
+    path = paste0(path,"Visualisation/profils/")
+    dir.create(path,recursive=T,showWarnings=F)
+    
+    rnai = rnai_list[[condition]]
+    
+    
+   }else{
+    path = "./Analyse/Profils/"
+    dir.create(path,recursive=T,showWarnings=F)
+    EXPRESSION = ConcatTab(type, conditions = rnai)
+    
+   }
+  
+  if(!is.null(select_ID)){
+    EXPRESSION = EXPRESSION[select_ID,]
+  }
+  
   MAX = apply(EXPRESSION,1, max)
   names(MAX)=rownames(EXPRESSION)
+  
+  timing_list = list()
+  for(r in rnai){
+    timing = str_remove_all(colnames(EXPRESSION)[grep(r, colnames(EXPRESSION))], paste0(r,"_"))
+    timing_list = c(timing_list, list(timing))
+  }
+  names(timing_list)=rnai
+  timing_list = timing_list[-grep("bis",names(timing_list))]
+  
   
   if(!is.null(rnai)){
     timing_list = timing_list[rnai]
@@ -777,15 +805,14 @@ ExpressionProfils <- function(type = "RPKM", rnai = NULL){
     rnai_name= "all"
   }
   
-  
-  pdf(paste0("./Analyse/Profils/Profils",type,"_",rnai_name,".pdf"))
-  for (s in 1:length(select_ID)){
+  pdf(paste0(path,type,"_",rnai_name,"profils_par_genes.pdf"))
+  for (s in rownames(EXPRESSION)){
     x_axis = unique(unlist(timing_list))
     x_axis_order = c(1,order(as.numeric(gsub("T", "", x_axis[2:length(x_axis)])))+1)
     x_axis = x_axis[x_axis_order]
     
     plot(NULL, xlim = c(1,length(x_axis)),
-         ylim=c(0,MAX[select_ID[s]]),
+         ylim=c(0,MAX[s]),
          axes=F,ylab=type,
          xlab="Timing Autogamie",
          main=paste("Profils expression",names(select_ID)[s]))

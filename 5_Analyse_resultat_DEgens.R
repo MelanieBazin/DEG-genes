@@ -57,10 +57,10 @@ condition =  names(rnai_list)[1]
   )
   png(paste0("Analyse/",file_name,"/",condition,"/Venn_selection.png"))
   ggvenn(selection,
-         fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"),
+         fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
          stroke_size = 0.5,
          set_name_size = 5,
-         set_name_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "#CD534CFF"))
+         set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
   dev.off()
   
   select_ID = Reduce(intersect, selection)
@@ -75,10 +75,10 @@ condition =  names(rnai_list)[1]
   )
   png(paste0("Analyse/",file_name,"/",condition,"/Venn_selection_UP.png"))
   ggvenn(selection1,
-         fill_color = c( "#EFC000FF", "#868686FF", "#CD534CFF"),
+         fill_color = c( "chocolate", "#868686FF", "darkolivegreen3"),
          stroke_size = 0.5,
          set_name_size = 5,
-         set_name_color = c("#EFC000FF", "#868686FF", "#CD534CFF"))
+         set_name_color = c("chocolate", "#868686FF", "darkolivegreen3"))
   dev.off()
   
   select1_ID = Reduce(intersect, selection1)
@@ -118,10 +118,10 @@ condition =  names(rnai_list)[1]
   )
   png(paste0("Analyse/",file_name,"/",condition,"/Venn_turbo_selection.png"))
   ggvenn(turbo,
-         fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "coral2"),
+         fill_color = c("#0073C2FF", "chocolate", "plum", "coral2"),
          stroke_size = 0.5,
          set_name_size = 5,
-         set_name_color = c("#0073C2FF", "#EFC000FF", "#868686FF", "coral2"))
+         set_name_color = c("#0073C2FF", "chocolate", "plum", "coral2"))
   dev.off()
   
   turbo_ID = Reduce(intersect, turbo)
@@ -140,10 +140,10 @@ condition =  names(rnai_list)[1]
   )
   png(paste0("Analyse/",file_name,"/",condition,"/Venn_turbo_ctip.png"))
   ggvenn(turbo1,
-         fill_color = c("#0073C2FF", "#EFC000FF", "#868686FF"),
+         fill_color = c("#0073C2FF", "chocolate", "plum"),
          stroke_size = 0.5,
          set_name_size = 5,
-         set_name_color = c("#0073C2FF", "#EFC000FF", "#868686FF"))
+         set_name_color = c("#0073C2FF", "chocolate", "plum"))
   dev.off()
   
   turbo1_ID = Reduce(intersect, turbo1)
@@ -159,10 +159,10 @@ condition =  names(rnai_list)[1]
   )
   png(paste0("Analyse/",file_name,"/",condition,"/Venn_turbo_up.png"))
   ggvenn(turbo2,
-         fill_color = c("#0073C2FF", "#EFC000FF","coral2"),
+         fill_color = c("chocolate", "plum","coral2"),
          stroke_size = 0.5,
          set_name_size = 5,
-         set_name_color = c("#0073C2FF", "#EFC000FF", "coral2"))
+         set_name_color = c("chocolate", "plum", "coral2"))
   dev.off()
   
   turbo2_ID = Reduce(intersect, turbo2)

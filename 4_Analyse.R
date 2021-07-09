@@ -26,23 +26,35 @@ analyseName = paste0(Sys.Date(),"_", analyseName, "_FC-", FC, "_pval-", pvalue)
 
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
-dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
 
 #### Limiter le fichier annotation aux gènes avec synonyme ####
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation_basic = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
+my_annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation = merge(annotation_basic[,c(1,4:7)], my_annotation[,c(1,2,3:7)], by = "ID")[,c(1,7,8,2:6,9:11)]
+rm(annotation_basic,my_annotation)
 annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
 rownames(annotation)=annotation$ID
 
 ### Création  de liste de gènes filtrés (retirés de l'analyse) ###
-select_tab = read.table(paste0("Analyse/","2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05","/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", h=T )$ID
-Filtering= list(
-  select_tab = annotation$ID[which(!is.element(annotation$ID,select_tab))],
-  connu = annotation$ID[which(!is.element(annotation$ID,select_ID))]
-)
-# Filtering= NULL
-
 # par exemple : retirer les gènes qui sont DE pendant une manip de silencing,
 # ou entre plusieurs manip control ==> des faux positifs
+file_name = "2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05"
+condition = "tout"
+Ctip_Ku_Pgm_Xrcc4 = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", h=T )$ID
+Ku_Pgm_Xrcc4 = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_UP.tab"), sep = "\t", h=T )$ID
+Ctip_UP = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_CTIP_DOWN-et-UP.tab"), sep = "\t", h=T )$ID
+TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")$PROTEIN_NAME
+TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')$PROTEIN_NAME
+
+Filtering= list(
+  connu = annotation$ID[which(!is.element(annotation$ID,select_ID))],
+  Ctip_Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ctip_Ku_Pgm_Xrcc4))],
+  Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ku_Pgm_Xrcc4))],
+  Ctip_UP = annotation$ID[which(!is.element(annotation$ID,Ctip_UP))],
+  TurboPGM = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGM))],
+  TurboPGML4 = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGML4))]
+)
+# Filtering= NULL
 
 
 #### Vecteur de couleur pour les heatmap ####
@@ -56,6 +68,7 @@ condition = names(rnai_list)[1]
   
   path = paste0(path_dir,condition ,"/")
   dir.create(path,recursive=T,showWarnings=F)
+  dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
   
   ##### Analyse DESeq2 ####
   # Ouverture des fichiers countdata sans correction de l'effet Batch

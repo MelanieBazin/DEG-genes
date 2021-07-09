@@ -27,6 +27,13 @@ dev.off()
 
 print("Boxplot fini")
 
+##### Dessiner les profils d'une selection de gènes ####
+
+ExpressionProfils(type = "DESeq2", 
+                  condition = "tout", 
+                  file = path_dir,
+                  select_ID = select_ID)
+
 ##### Analyse multi-variée des données pour clustering  #####
 # Créaction du vecteur de couleur par cluster
 color = colnames(data_tab)

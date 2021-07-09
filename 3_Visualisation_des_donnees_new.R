@@ -89,8 +89,8 @@ ProfilsPNG(save_path = paste0(path,"profils/"), data_tab, condition =  condition
 ProfilsPDF(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
 
 # problème avec EZL1 a cause des EZL1bis
-MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
+# MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab, condition =  condition, sortie = "png")
+# MyHeatmaps(paste0(path,"HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
@@ -98,7 +98,7 @@ mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
 ProfilsPNG(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-MyHeatmaps(paste0(path,"Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
+# MyHeatmaps(paste0(path,"Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
+# MyHeatmaps(paste0(path,"HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
 
 

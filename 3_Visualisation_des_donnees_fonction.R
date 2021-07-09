@@ -763,6 +763,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
 }
 
 # Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés
+library("RColorBrewer")
 ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL, select_ID = NULL){
   
    if (type  == "DESeq2"){
@@ -773,7 +774,7 @@ ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL,
     dir.create(path,recursive=T,showWarnings=F)
     
     rnai = rnai_list[[condition]]
-    
+    rnai = rnai[-grep("bis",rnai)]
     
    }else{
     path = "./Analyse/Profils/"
@@ -790,19 +791,25 @@ ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL,
   names(MAX)=rownames(EXPRESSION)
   
   timing_list = list()
+  col_order = c()
   for(r in rnai){
     timing = str_remove_all(colnames(EXPRESSION)[grep(r, colnames(EXPRESSION))], paste0(r,"_"))
+    timing = timing[c(length(timing), order(as.numeric(gsub("T", "", timing[1:(length(timing)-1)]))))]
     timing_list = c(timing_list, list(timing))
+    for (t in timing){
+      col_order = c(col_order,
+                    grep(paste(r,t,sep="_"), colnames(EXPRESSION))[1])
+    } 
   }
   names(timing_list)=rnai
-  timing_list = timing_list[-grep("bis",names(timing_list))]
   
+  EXPRESSION = EXPRESSION[,col_order]
   
-  if(!is.null(rnai)){
+  if(condition != "tout"){if (!is.null(rnai)){
     timing_list = timing_list[rnai]
     rnai_name = paste(rnai, collapse = "_")
-  }else{
-    rnai_name= "all"
+  }}else{
+    rnai_name = "tout_"
   }
   
   pdf(paste0(path,type,"_",rnai_name,"profils_par_genes.pdf"))
@@ -815,25 +822,26 @@ ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL,
          ylim=c(0,MAX[s]),
          axes=F,ylab=type,
          xlab="Timing Autogamie",
-         main=paste("Profils expression",names(select_ID)[s]))
+         main=paste("Profils expression",names(select_ID)[grep(s,select_ID)]))
     
     
     
     axis(1,at=1:length(x_axis),labels=x_axis,las=2)
     axis(2)
     
-    legend("topleft",legend=names(timing_list),col=c(1:length(names(timing_list))),lwd=2, cex = 0.75,bty = "n") 
+    col_pal = brewer.pal(n = length(names(timing_list)), name = "Set1")
+    legend("topleft",legend=names(timing_list),col=col_pal,lwd=2, cex = 0.75,bty = "n") 
     
     color = 0
     for (i in names(timing_list)){
       color = color+1
-      expression = EXPRESSION[select_ID[s],grep(i, colnames(EXPRESSION))]
+      expression = EXPRESSION[s,grep(paste0(i,"_"), colnames(EXPRESSION))]
       positions = c()
       for (g in gsub(paste0(i, "_"),"", colnames(expression))){
-        positions = c(positions,which(g == x_axis))
+        positions = c(positions,grep(g, x_axis)[1])
       }
       
-      lines(positions,expression,col=color,lwd=2)
+      lines(positions,expression,col=col_pal[color],lwd=2)
       
     } 
     

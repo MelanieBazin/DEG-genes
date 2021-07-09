@@ -219,7 +219,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   significant_up_ids=DEgenes[DEgenes$REGULATION=="Up-regulated",]$ID
   significant_down_ids=DEgenes[DEgenes$REGULATION=="Down-regulated",]$ID
   
-  #### Représentation des gènes up et down reguler par digramme d eVenn, boxplot et heat map ####
+  #### Représentation des gènes up et down reguler par digramme de Venn, boxplot et heat map ####
   png(paste(img_dir,"venn_",condition,"_",dname,"_Up_and_Down-regulated.png",sep=""))
   ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
   dev.off()
@@ -249,7 +249,7 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
   if(dname == "NoFilter" & !is.null(names(Filtering))) {
     
     for(fname in names(Filtering)) {
-      png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",fname,".png",sep=""))
+      png(paste(img_dir,"venn_",condition,"_",dname,"_And_",fname,".png",sep=""))
       ggvenn(list("Significant"=significant_ids,"Filtered"=Filtering[[fname]]), stroke_size = 0.5, set_name_size = 4)
       dev.off()
     }
@@ -260,12 +260,12 @@ for(dname in unique(c(names(significant_up),names(significant_down)))) {
       dv[[fname]]=Filtering[[fname]]
     }
     dv[["ExcisionComplexFiltering"]]=NULL
-    png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_",paste(names(Filtering),collapse="_"),".png",sep=""))
+    png(paste(img_dir,"venn_",condition,"_",dname,"_And_",paste(names(Filtering),collapse="_"),".png",sep=""))
     ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
     dev.off()
     
     dv=list("Significant"=significant_ids,"PGM_Filtering"=pgm_degenes$ID,"Controls"=ctl_rnai_degenes$ID)
-    png(paste(img_dir,"venn_",analysis_name,"_",dname,"_And_PGM_Filtering_Controls.png",sep=""))
+    png(paste(img_dir,"venn_",condition,"_",dname,"_And_PGM_Filtering_Controls.png",sep=""))
     ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
     dev.off()
     

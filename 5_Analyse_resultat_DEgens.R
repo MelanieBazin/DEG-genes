@@ -59,7 +59,9 @@ condition =  names(rnai_list)[1]
   ggvenn(selection,
          fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
          set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
   dev.off()
   
@@ -77,7 +79,9 @@ condition =  names(rnai_list)[1]
   ggvenn(selection1,
          fill_color = c( "chocolate", "#868686FF", "darkolivegreen3"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
          set_name_color = c("chocolate", "#868686FF", "darkolivegreen3"))
   dev.off()
   
@@ -96,7 +100,9 @@ condition =  names(rnai_list)[1]
   ggvenn(selection2,
          fill_color = c( "#0073C2FF", "coral2"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 10,
          set_name_color = c("#0073C2FF", "coral2"))
   dev.off()
   
@@ -105,7 +111,27 @@ condition =  names(rnai_list)[1]
   
   write.table(as.matrix(select2_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_CTIP_DOWN-et-UP.tab"), sep = "\t", row.names = F )
   
+  select2_expression = read.table("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab",sep = "\t", h=T, row.names = 1)
+  col = c(grep("ICL7", colnames(select2_expression)),grep("ND7", colnames(select2_expression)),grep("CTIP", colnames(select2_expression)))
+  select2_expression = select2_expression[is.element(rownames(select2_expression),select2_ID),col]
+  col = c(7,1,5,2:4,6,13,8,12,9:11,20,14,19,15:18,25,21,24,22:23,30,26,29,27:28)
+  select2_expression = select2_expression[,col]
+  col = grep("Veg",colnames(select2_expression))
+  select2_expression = select2_expression[,-col]
   
+  MyHeatmaps(path = paste0("Analyse/",file_name,"/",condition,"/"),
+             data_tab = select2_expression,
+             condition = condition)
+  
+  low = select2_expression[select2_expression$CTIP_T12.5 < 200,]
+  select2_low = ID_tab[is.element(ID_tab$ID, rownames(low)),]
+  MyHeatmaps(path = paste0("Analyse/",file_name,"/",condition,"/low_FC2"),
+             data_tab = low,
+             condition = condition)
+  
+  write.table(as.matrix(select2_low),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_low_CTIP_DOWN-et-UP.tab"), sep = "\t", row.names = F )
+  
+  summary(select2_expression)
   
   #### Croiser avec les résultat de BioID ####
   turbo = list(
@@ -120,7 +146,9 @@ condition =  names(rnai_list)[1]
   ggvenn(turbo,
          fill_color = c("#0073C2FF", "chocolate", "plum", "coral2"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
          set_name_color = c("#0073C2FF", "chocolate", "plum", "coral2"))
   dev.off()
   
@@ -142,7 +170,9 @@ condition =  names(rnai_list)[1]
   ggvenn(turbo1,
          fill_color = c("#0073C2FF", "chocolate", "plum"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
          set_name_color = c("#0073C2FF", "chocolate", "plum"))
   dev.off()
   
@@ -161,7 +191,9 @@ condition =  names(rnai_list)[1]
   ggvenn(turbo2,
          fill_color = c("chocolate", "plum","coral2"),
          stroke_size = 0.5,
-         set_name_size = 5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
          set_name_color = c("chocolate", "plum", "coral2"))
   dev.off()
   

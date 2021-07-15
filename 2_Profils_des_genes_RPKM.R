@@ -10,10 +10,12 @@ for (i in names(rnai_list)){
   ExpressionProfils("RPKM", rnai, select_ID = select_ID)
 }
 
-
+select_tab = read.table("Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/Resumer_DEgenes_selection_CTIP_DOWN-et-UP.tab", sep = "\t", h=T )
+selectID = select_tab$ID
+names(selectID)= select_tab$NAME
 
 ExpressionProfils(type = "DESeq2", 
                   condition = "tout", 
                   file = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/",
-                  select_ID = select_ID)
+                  select_ID = selectID)
 

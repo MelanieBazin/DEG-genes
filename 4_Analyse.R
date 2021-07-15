@@ -45,16 +45,16 @@ Ku_Pgm_Xrcc4 = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DE
 Ctip_UP = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_CTIP_DOWN-et-UP.tab"), sep = "\t", h=T )$ID
 TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")$PROTEIN_NAME
 TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')$PROTEIN_NAME
-
-Filtering= list(
-  connu = annotation$ID[which(!is.element(annotation$ID,select_ID))],
-  Ctip_Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ctip_Ku_Pgm_Xrcc4))],
-  Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ku_Pgm_Xrcc4))],
-  Ctip_UP = annotation$ID[which(!is.element(annotation$ID,Ctip_UP))],
-  TurboPGM = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGM))],
-  TurboPGML4 = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGML4))]
-)
-# Filtering= NULL
+# 
+# Filtering= list(
+#   connu = annotation$ID[which(!is.element(annotation$ID,select_ID))],
+#   Ctip_Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ctip_Ku_Pgm_Xrcc4))],
+#   Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ku_Pgm_Xrcc4))],
+#   Ctip_UP = annotation$ID[which(!is.element(annotation$ID,Ctip_UP))],
+#   TurboPGM = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGM))],
+#   TurboPGML4 = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGML4))]
+# )
+Filtering= NULL
 
 
 #### Vecteur de couleur pour les heatmap ####

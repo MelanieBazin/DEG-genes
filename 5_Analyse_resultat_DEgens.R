@@ -70,6 +70,7 @@ condition =  names(rnai_list)[1]
   
   write.table(as.matrix(select_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", row.names = F )
   
+  #### Selection des gènes UP DEG en PGM, KU & XRCC4 ####
   selection1 = list(
     PGM_up = ID_tab$ID[grep("Up-regulated",ID_tab$PGM_LATE_REGULATION)],
     KU80c_up = ID_tab$ID[grep("Up-regulated",ID_tab$KU80c_LATE_REGULATION)],
@@ -90,6 +91,28 @@ condition =  names(rnai_list)[1]
   
   write.table(as.matrix(select1_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_UP.tab"), sep = "\t", row.names = F )
   
+  #### Selection des gènes DOWN DEG en PGM, KU & XRCC4 ####
+  selection1bis = list(
+    PGM_up = ID_tab$ID[grep("Down-regulated",ID_tab$PGM_LATE_REGULATION)],
+    KU80c_up = ID_tab$ID[grep("Down-regulated",ID_tab$KU80c_LATE_REGULATION)],
+    XRCC4_up = ID_tab$ID[grep("Down-regulated",ID_tab$XRCC4_LATE_REGULATION)]
+  )
+  png(paste0("Analyse/",file_name,"/",condition,"/Venn_DOWN.png"))
+  ggvenn(selection1bis,
+         fill_color = c( "chocolate", "#868686FF", "darkolivegreen3"),
+         stroke_size = 0.5,
+         set_name_size = 7,
+         show_percentage = F,
+         text_size = 7,
+         set_name_color = c("chocolate", "#868686FF", "darkolivegreen3"))
+  dev.off()
+  
+  select1bis_ID = Reduce(intersect, selection1bis)
+  select1bis_tab = ID_tab[is.element(ID_tab$ID, select1bis_ID),]
+  
+  write.table(as.matrix(select1bis_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_DOWN.tab"), sep = "\t", row.names = F )
+  
+  #### Selection des gènes UP DEG en PGM, KU & XRCC4 et DOWN DEG en CTIP ####
   selection2 = list(
     CTIP_down = ID_tab$ID[unique(
       grep("Down-regulated",ID_tab$CTIP_EARLY_REGULATION),
@@ -134,6 +157,7 @@ condition =  names(rnai_list)[1]
   summary(select2_expression)
   
   #### Croiser avec les résultat de BioID ####
+  #### Selection des gènes UP DEG en PGM, KU & XRCC4 et DOWN DEG en CTIP et présent dans les bioID de Marc ####
   turbo = list(
     CTIP_down = ID_tab$PROTEIN_NAME[unique(
       grep("Down-regulated",ID_tab$CTIP_EARLY_REGULATION),
@@ -158,7 +182,7 @@ condition =  names(rnai_list)[1]
   write.table(as.matrix(turbo_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_turbo_selection.tab"), sep = "\t", row.names = F )
   
   
-  
+  #### Selection des gènes DOWN DEG en CTIP et preésent dans les bioID de Marc ####
   turbo1 = list(
     CTIP_down = ID_tab$PROTEIN_NAME[unique(
       grep("Down-regulated",ID_tab$CTIP_EARLY_REGULATION),
@@ -181,7 +205,7 @@ condition =  names(rnai_list)[1]
   
   write.table(as.matrix(turbo1_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_turbo_ctip.tab"), sep = "\t", row.names = F )
   
-  
+  #### Selection des gènes UP DEG en PGM, KU & XRCC4 et présent ans les BioID de Marc ####
   turbo2 = list(
     TurboPGM = TurboPGM$PROTEIN_NAME,
     TurboPGML4 = TurboPGML4$PROTEIN_NAME,
@@ -201,8 +225,6 @@ condition =  names(rnai_list)[1]
   turbo2_tab = ID_tab[is.element(ID_tab$PROTEIN_NAME, turbo2_ID),]
   
   write.table(as.matrix(turbo2_tab),paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_turbo_UP.tab"), sep = "\t", row.names = F )
-  
-  
   
   
 # }

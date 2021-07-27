@@ -19,3 +19,7 @@ ExpressionProfils(type = "DESeq2",
                   file = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/",
                   select_ID = selectID)
 
+source("3_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+ExpressionProfils(type = "DESeq2", 
+                  condition = "tout", 
+                  file = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/")

@@ -785,6 +785,9 @@ ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL,
   
   if(!is.null(select_ID)){
     EXPRESSION = EXPRESSION[select_ID,]
+  } else {
+    select_ID = annotation$ID
+    names(select_ID) = annotation$NAME
   }
   
   MAX = apply(EXPRESSION,1, max)

@@ -11,16 +11,17 @@ all_deg = read.table(paste0(path,"Resumer_DEgenes.tab"), header = T)
 colors=c("purple", "orange", "red3","forestgreen", "royalblue","deeppink", "grey")
 
 # path = paste0(path,"Motif_20ntmax/parmis tout les genes/")
-path = paste0(path,"Motif_intermed/Parmis tous le sgènes/")
+path = paste0(path,"Motif_intermed/Parmis tous les gènes/FIMO/")
+dir.create(path, recursive=T,showWarnings=F)
 
-# depuis les listes sortie des différents motif selon le jeu de gene controle (1-5 liste de genes randomiser des 816 genes et la liste de touts les genes)
+# depuis les listes sortie par FIMO des différents motif selon le jeu de gene controle (1-5 liste de genes randomiser des 816 genes et la liste de touts les genes)
 files = list.files(path, pattern = ".tsv")
 for (f in files){
   # Filtre sur le nombre de motif présent dans les promoteurs
   prom_with_motif = read.table(paste0(path,f), header=T, sep="\t")
   
   tab_annot = merge(annotation, prom_with_motif, by.x = "ID", by.y = "sequence_name")
-  write.table(tab_annot, paste0(path, "Motif_tab_",sub(".tsv","",f),".tab"), row.names = T, sep = "\t")  
+  write.table(tab_annot, paste0(path, "Motif_tab_",sub(".tsv","",f),".tab"), sep = "\t")  
   
   multi = prom_with_motif[is.element(prom_with_motif$sequence_name, unique(prom_with_motif$sequence_name[duplicated(prom_with_motif$sequence_name)])),]
   unique = setdiff(prom_with_motif$sequence_name,unique(multi$sequence_name))
@@ -154,4 +155,3 @@ for (f in files){
   }
   dev.off()
 }
-

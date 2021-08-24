@@ -71,7 +71,7 @@ for (type in c("fimo","fuzznuc")){
         prom_select[[i]] = c(rep("-",max(tab_annot_select_plus$START)-tab_annot_select_plus$START[grep(i,tab_annot_select_plus$ID)[1]]),prom_select[[i]])
       }
       
-      write.fasta(sequences = prom_select, names = names(prom_select), file.out = paste0(save_path, sub(".gff","",sub(".gff3","",f)),"_prom",strand,".fa") )
+      write.fasta(sequences = prom_select, names = name, file.out = paste0(save_path, sub(".gff","",sub(".gff3","",f)),"_prom",strand,".fa") )
     }
     
   }

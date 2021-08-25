@@ -1,7 +1,6 @@
 options(stringsAsFactors = FALSE)
 library(seqinr)
 library(stringr) 
-source("0_Cluster.R")
 
 # f = files[1]
 # type = "fimo" #fuzznuc ou fimo
@@ -13,6 +12,7 @@ annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 
 colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATTRIBUTES")
 
+UP = read.table(paste0(path,"Resumer_DEgenes_selection_UP.tab"), header = T)
 
 for (type in c("fuzznuc", "fimo")){
   
@@ -61,7 +61,7 @@ for (type in c("fuzznuc", "fimo")){
     
     for (strand in c("+","-")){
       tab_annot_select = tab_annot[tab_annot$STRAND == strand,]
-      for(j in c("local", "loin","proche", "all")){
+      for(j in c("local", "loin","proche", "all", "UP", "UP_int")){
         if (j == "all"){
           tab_annot_select_plus = tab_annot_select
         }else if (j == "local"){
@@ -70,21 +70,26 @@ for (type in c("fuzznuc", "fimo")){
           tab_annot_select_plus = tab_annot_select[tab_annot_select$START < -70,]
         }else if(j == "proche"){
           tab_annot_select_plus = tab_annot_select[tab_annot_select$START > -30,]
+        }else if (j =="UP"){
+          tab_annot_select_plus = tab_annot_select[which(is.element(tab_annot_select$ID, UP$ID)),]
+        }else if(j == "UP_int"){
+          tab_annot_select_plus = tab_annot_select[which(is.element(tab_annot_select$ID, UP$ID)),]
+          tab_annot_select_plus = tab_annot_select_plus[tab_annot_select_plus$EXPRESSION_PROFIL == "Intermediate peak",]
         }
         if (nrow(tab_annot_select_plus) > 5){
           if (nrow(tab_annot_select_plus)>=100){
             tab_annot_select_plus = tab_annot_select_plus[1:100,]
           }
-          
-          tab_tab_annot_select_plus = tab_annot_select_plus[order(tab_annot_select_plus$SCORE),]
 
           prom_select = promoteur[which(is.element(names(promoteur),tab_annot_select_plus$ID))]
-          prom_select = prom_select[order(tab_annot_select_plus$START)]
-          name = tab_annot_select_plus$NAME[order(tab_annot_select_plus$START)]
-          
           for (i in na.omit(names(prom_select))){
             repet = max(tab_annot_select_plus$START)-max(tab_annot_select_plus$START[grep(i,tab_annot_select_plus$ID)])
             prom_select[[i]] = c(rep("-",repet ),prom_select[[i]])
+          }
+
+          name = c()
+          for (n in names(prom_select)){
+            name = c(name, tab_annot$NAME[grep(n, tab_annot$ID)])
           }
           
           write.fasta(sequences = prom_select, names = name, file.out = paste0(save_path, sub(".gff","",sub(".gff3","",f)),"_prom",strand,"_",j,".fa") )

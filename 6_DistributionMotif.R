@@ -1,5 +1,5 @@
 options(stringsAsFactors = FALSE)
-# library(seqinr)
+library(ggvenn)
 library(stringr) 
 
 
@@ -8,6 +8,7 @@ colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATT
 
 
 path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/"
+path_motif = paste0(path, "MOTIF/Motif_dans_prom/Motif_intermed/Parmis_tous_les_genes/")
 
 #### Initialisation des filtres ####
 infogenes = read.table(paste0(path,"Resumer_DEgenes.tab"), header = T)
@@ -32,7 +33,6 @@ UP_PKXE_inter = unique(intersect(Pic_intermediaire,UP_PKXE))
 UP_PKX_DOWN_inter = unique(intersect(Pic_intermediaire,UP_PKX_DOWN_CTIP))
 UP_DOWN_inter = unique(intersect(Pic_intermediaire,UP_DOWN))
 
-
 FILTRES = list(Tous_les_genes,Genes_codant,
                UP_PGM, UP_KU80c, UP_XRCC4, UP_EZL1, DOWN_CTIP,
                UP_PGM_KU80c, UP_PKX, UP_PKXE, 
@@ -49,10 +49,22 @@ names(FILTRES) = c("Tous_les_genes","Genes_codant",
                    "UP_PKX_inter", "UP_PKXE_inter",
                    "UP_PKX_DOWN_inter", "UP_DOWN_inter")
 
+#### Faire diagramme de Venne pour les gènes selectionnée comme étant la population de gènes positif pour STREM ####
+selection = list(UP_PGM, UP_KU80c, UP_XRCC4, Pic_intermediaire)
+names(selection)=c("UP_PGM", "UP_KU80c", "UP_XRCC4", "Pic_intermediaire")
+png(paste0(path_motif,"Venn_selection.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
+dev.off()
+
+
+
 ### Ouverture des liste de gènes avec motifs ####
-
-path_motif = paste0(path, "MOTIF/Motif_dans_prom/Motif_intermed/Parmis_tous_les_genes/")
-
 for (type in c("fuzznuc", "fimo")){
   # type = "fimo"
   if(type == "fimo"){
@@ -71,7 +83,7 @@ for (type in c("fuzznuc", "fimo")){
     # f = files[1]
     print(f)
     
-    # Création du tableau de donnée pour stockerles effectif pour chaque filtre
+    # Création du tableau de donnée pour stocker les effectifs pour chaque filtres
     effectif_tab = data.frame(as.numeric(summary(FILTRES)[1:length(FILTRES)]), row.names = rownames(summary(FILTRES)))
     colnames(effectif_tab) = "Effectifs"
     effectif_tab[,"Sans_Motif"]= NA
@@ -184,3 +196,6 @@ for (type in c("fuzznuc", "fimo")){
   }
   
 }
+
+
+#### Faire la réciproque : chercher un enrichissement dans certain groupe parmis les gènes avec motif ####

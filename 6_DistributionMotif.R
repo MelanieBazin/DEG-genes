@@ -65,13 +65,14 @@ dev.off()
 
 
 ### Ouverture des liste de gènes avec motifs ####
-for (type in c("fuzznuc", "fimo")){
+for (type in c("fuzznuc", "fimo", "FIMO2")){
   # type = "fimo"
   if(type == "fimo"){
     dossier  = "FIMO/"
-    
   }else if (type == "fuzznuc"){
     dossier  = "FUZZNUC/"
+  }else if (type == "FIMO2"){
+    dossier  = "FIMO2/"
   }
   
   files = list.files(paste0(path_motif,dossier), pattern = ".gff")

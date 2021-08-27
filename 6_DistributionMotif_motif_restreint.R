@@ -57,7 +57,7 @@ rm(Tous_les_genes,Genes_codant,
    UP_PKX_DOWN_inter, UP_DOWN_inter)
 
 ### Ouverture des liste de gènes avec motifs ####
-for (type in c("fuzznuc", "fimo")){
+for (type in c("fuzznuc", "fimo", "FIMO2")){
   # type = "fimo"
   if(type == "fimo"){
     dossier  = "FIMO/"

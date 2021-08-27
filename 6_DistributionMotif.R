@@ -77,7 +77,7 @@ for (type in c("fuzznuc", "fimo", "FIMO2")){
   
   files = list.files(paste0(path_motif,dossier), pattern = ".gff")
   
-  save_path = paste0(path_motif,type,"_Ditribution_Motif/")
+  save_path = paste0(path_motif,type,"_Distribution_Motif/")
   dir.create(save_path, recursive=T,showWarnings=F)
   
   for (f in files){

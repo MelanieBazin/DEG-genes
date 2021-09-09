@@ -116,6 +116,7 @@ condition = names(rnai_list)[1]
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
+  # data_tab = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), row.names = 1, sep="\t", header = T)
 
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #necessaire pour les heatmap
   

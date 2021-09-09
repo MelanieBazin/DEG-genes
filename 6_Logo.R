@@ -5,7 +5,7 @@ library(ggplot2)
 library(ggseqlogo)
 
 path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/"
-path_logo = paste0(path, "MOTIF/Motif_dans_prom/Motif_intermed/STREME/")
+path_logo = paste0(path, "MOTIF/Motif_dans_prom/Motif_intermed/STREME_CTIP/")
 
 
 files = list.files(path_logo, pattern = ".txt")

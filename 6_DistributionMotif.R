@@ -1,7 +1,7 @@
 options(stringsAsFactors = FALSE)
 library(ggvenn)
 library(stringr) 
-
+library(seqinr)
 
 colors=c("purple", "orange", "red3","forestgreen", "royalblue","deeppink", "grey")
 colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATTRIBUTES")
@@ -33,6 +33,34 @@ UP_PKXE_inter = unique(intersect(Pic_intermediaire,UP_PKXE))
 UP_PKX_DOWN_inter = unique(intersect(Pic_intermediaire,UP_PKX_DOWN_CTIP))
 UP_DOWN_inter = unique(intersect(Pic_intermediaire,UP_DOWN))
 
+
+
+
+promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC_upstream_150nt_TSS.fa"))
+
+prom_UP_int = promoteur[which(is.element(names(promoteur),UP_PKXE_inter))]
+write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path_motif, "PromUP_PKXE_int.fa") )
+
+for (i in 1:5){
+  prom_rand = sample(names(promoteur),length(names(prom_UP_int)), replace = F)
+  prom_rand = promoteur[which(is.element(names(promoteur),prom_rand))]
+  
+  write.fasta(sequences = prom_rand, names = names(prom_rand), file.out = paste0(path_motif, "PromRand_PKXE_",i,".fa") )
+  
+}
+
+prom_UP_DOWN_int = promoteur[which(is.element(names(promoteur),UP_DOWN_inter))]
+write.fasta(sequences = prom_UP_DOWN_int, names = names(prom_UP_DOWN_int), file.out = paste0(path_motif, "PromUP_DOWN_int.fa") )
+for (i in 1:5){
+  prom_rand = sample(names(promoteur),length(names(prom_UP_DOWN_int)), replace = F)
+  prom_rand = promoteur[which(is.element(names(promoteur),prom_rand))]
+  
+  write.fasta(sequences = prom_rand, names = names(prom_rand), file.out = paste0(path_motif, "PromRand_PKXE_CTIP_",i,".fa") )
+  
+}
+
+
+
 FILTRES = list(Tous_les_genes,Genes_codant,
                UP_PGM, UP_KU80c, UP_XRCC4, UP_EZL1, DOWN_CTIP,
                UP_PGM_KU80c, UP_PKX, UP_PKXE, 
@@ -62,6 +90,54 @@ ggvenn(selection,
        set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
 dev.off()
 
+selection = list(UP_PGM, UP_KU80c, UP_XRCC4, UP_EZL1)
+names(selection)=c("UP_PGM", "UP_KU80c", "UP_XRCC4", "UP_EZL1")
+png(paste0(path_motif,"Venn_UP.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
+dev.off()
+
+selection = list(UP_PKXE, Pic_intermediaire)
+names(selection)=c("UP_PKXE","Pic_intermediaire")
+png(paste0(path_motif,"Venn_UP_inter.png"))
+ggvenn(selection,
+       fill_color = c("darkorange", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("darkorange","darkolivegreen3"))
+dev.off()
+
+selection = list(UP_PKXE, DOWN_CTIP, Pic_intermediaire)
+names(selection)=c("UP_PKXE", "DOWN_CTIP", "Pic_intermediaire")
+png(paste0(path_motif,"Venn_UP_DOWN_inter.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 7,
+       show_percentage = F,
+       text_size = 7,
+       set_name_color = c("#0073C2FF", "darkorange","darkolivegreen3"))
+dev.off()
+
+
+selection = list(UP_PKXE, DOWN_CTIP)
+names(selection)=c("UP_PKXE", "DOWN_CTIP")
+png(paste0(path_motif,"Venn_UP_DOWN.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange"))
+dev.off()
 
 
 ### Ouverture des liste de gènes avec motifs ####

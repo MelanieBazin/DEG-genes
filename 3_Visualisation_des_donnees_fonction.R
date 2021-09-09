@@ -83,6 +83,32 @@ MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition){
   
 }
 
+OrderColumn <- function(data_tab, cluster){
+  colum_order = c()
+  for (c in names(cluster)[order(names(cluster))]){
+    if (sum(grepl(c, colnames(data_tab)))>0){
+      column_position = grep(c, colnames(data_tab))
+      
+      veg_position = max(column_position)
+      
+      cluster_column = colnames(data_tab)[column_position]
+      cluster_column = cluster_column[-length(cluster_column)]
+      cluster_column = sub(paste0(c,"_T"),"",cluster_column )
+      cluster_column = as.numeric(cluster_column)
+      cluster_order = column_position[order(cluster_column)]
+      cluster_order = c(veg_position,cluster_order)
+      
+      colum_order = c(colum_order, cluster_order)
+    }
+  }
+  
+  ordered_tab = data_tab[,colum_order]
+  
+  return(ordered_tab)
+  
+}
+
+
 ##### Création tabeau info avec les métadonnées #####
 CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 5)
@@ -215,7 +241,6 @@ library(ggplot2)
 library(gtools)
 
 PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, sortie = "png", ...) {
-  save_path = paste0(save_path,"/ACP/")
   dir.create(save_path,recursive=T,showWarnings=F)
   
   resExp = PCA(t(Expression_Mat), graph = F)

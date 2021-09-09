@@ -35,18 +35,39 @@ ExpressionProfils(type = "DESeq2",
                   select_ID = select_ID)
 
 ##### Analyse multi-variée des données pour clustering  #####
-# Créaction du vecteur de couleur par cluster
+# Créaction du vecteur de couleur par anné de séquancage
 color = colnames(data_tab)
 for (j in rnai_list[[ condition]]){
-  color[grep(j, color)]=seq_color[[j]]
+  if(sum(grepl(j, colnames(data_tab)))>0){
+    color[grep(j, color)]=seq_color[[j]]
+  }
 }
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
 PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/color"),
+                   save_path = paste0(path,"Visualisation/ACP/color2/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
+
+# Créaction du vecteur de couleur par cluster
+color = colnames(data_tab)
+for (j in rnai_list[[condition]]){
+  if(sum(grepl(j, colnames(data_tab)))>0){
+    print(color[grep(j, color)])
+    print(cluster_color[[j]])
+    color[grep(j, color)]=cluster_color[[j]]
+
+  }
+}
+
+# Analyse en composante principale
+print(paste( condition, "-----> Analyse ACP"))
+PCA_plot_generator(data_tab,colors = color,
+                   save_path = paste0(path,"Visualisation/ACP/color4/"),
+                   main = paste0("ACP ", condition," (DESeq2)"),
+                   sortie = "png")
+
 
 ##### Clustering hierarchique  #####
 print(paste( condition, "-----> Clustering en cours"))
@@ -85,20 +106,20 @@ for (distance in c("Pearson", "Spearman")){
 print(paste( condition, "-----> Conception des heatmap"))
 
 # Avant moyenne par cluster
-ProfilsPNG(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
+ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
+ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
 # problème avec EZL1 a cause des EZL1bis
-# MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab, condition =  condition, sortie = "png")
-# MyHeatmaps(paste0(path,"HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
+# MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab, condition =  condition, sortie = "png")
+# MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
 
-ProfilsPNG(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"profils/"), mean_data_tab, moyenne = T, condition =  condition)
+ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
+ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-# MyHeatmaps(paste0(path,"Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
-# MyHeatmaps(paste0(path,"HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
+# MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
+# MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
 
 

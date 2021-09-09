@@ -68,15 +68,18 @@ for(j in names(cluster)){
 
 seq_2014 = "chartreuse4"
 seq_2020 = "blue4"
+both = "mediumturquoise"
 
 seq_color = list()
 for(k in names(cluster)){
   vec = cluster[[k]]
   color = c()
-  if (is.element(k,c("XRCC4","ND7_X","CTIP","ND7_C", "ICL7bis", "EZL1bis"))){
+  if (is.element(k,c("XRCC4","ND7_X","CTIP","ND7_C"))){
     color=c(color,rep(seq_2020,length(vec)))
-  }else if (is.element(k, c("KU80c","ND7_K","PGM", "ICL7", "EZL1"))){
+  }else if (is.element(k, c("KU80c","ND7_K","PGM"))){
     color=c(color,rep(seq_2014, length(vec)))
+  }else if(is.element(k, c("ICL7", "EZL1", "ICL7bis", "EZL1bis"))){
+    color=c(color,rep(both, length(vec)))
   }
   
   seq_color[[k]] = color

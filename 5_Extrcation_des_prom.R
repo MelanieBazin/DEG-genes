@@ -27,12 +27,13 @@ for (i in 1:5){
   
 }
 
+
 # prom_UP_rand500 =   sample(names(prom_UP_int),500, replace = F)
 # prom_UP_rand500 = promoteur[which(is.element(names(prom_UP_int),prom_UP_rand500))]
 # write.fasta(sequences = prom_UP_rand500, names = names(prom_UP_rand500), file.out = paste0(path, "PromUP500.fa") )
 
 path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/MOTIF/Autre_motif/"
-# Extraire les promteur ne portant pas le motif
+# Extraire les promteurs ne portant pas le motif
 # prom_with_motif = read.table(paste0(path,"IN_MAC_Motif_upstream_150nt_TSS.fuzznuc.gff3"), header=F, sep="\t")
 prom_with_motif = read.table(paste0(path,"fimo.gff"), header=F, sep="\t")
 colnames(prom_with_motif)=colnamesgff3

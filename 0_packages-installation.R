@@ -67,46 +67,56 @@ annotation$NAME[grep("PTET.51.1.G0460033",annotation$ID)]="PolXc"
 annotation$NAME[grep("PTET.51.1.G1010039",annotation$ID)]="PolXd"
 
 
-annotation$NAME[grep("PTET.51.1.G0330337",annotation$ID)]="HMG2a"
-annotation$NAME[grep("PTET.51.1.G0450312",annotation$ID)]="HMG2b"
-annotation$NAME[grep("PTET.51.1.G0380231",annotation$ID)]="HMG2c"
-annotation$NAME[grep("PTET.51.1.G0500224",annotation$ID)]="HMG2d"
+annotation$NAME[grep("PTET.51.1.G0330337",annotation$ID)]="HMGB2a"
+annotation$NAME[grep("PTET.51.1.G0450312",annotation$ID)]="HMGB2b"
+annotation$NAME[grep("PTET.51.1.G0380231",annotation$ID)]="HMGB2c"
+annotation$NAME[grep("PTET.51.1.G0500224",annotation$ID)]="HMGB2d"
 
-annotation$NAME[grep("PTET.51.1.G0550242",annotation$ID)]="HMG3a"
-annotation$NAME[grep("PTET.51.1.G1080160",annotation$ID)]="HMG3b"
-annotation$NAME[grep("PTET.51.1.G1210130",annotation$ID)]="HMG3c"
-annotation$NAME[grep("PTET.51.1.G1050131",annotation$ID)]="HMG3d"
-annotation$NAME[grep("PTET.51.1.G1450030",annotation$ID)]="HMG3e"
-annotation$NAME[grep("PTET.51.1.G1520034",annotation$ID)]="HMG3f"
-annotation$NAME[grep("PTET.51.1.G0800204",annotation$ID)]="HMG3g"
+annotation$NAME[grep("PTET.51.1.G0550242",annotation$ID)]="HMGB3a"
+annotation$NAME[grep("PTET.51.1.G1080160",annotation$ID)]="HMGB3b"
+annotation$NAME[grep("PTET.51.1.G1210130",annotation$ID)]="HMGB3c"
+annotation$NAME[grep("PTET.51.1.G1050131",annotation$ID)]="HMGB3d"
+annotation$NAME[grep("PTET.51.1.G1450030",annotation$ID)]="HMGB3e"
+annotation$NAME[grep("PTET.51.1.G1520034",annotation$ID)]="HMGB3f"
+annotation$NAME[grep("PTET.51.1.G0800204",annotation$ID)]="HMGB3g"
 
-annotation$NAME[grep("PTET.51.1.G1280139",annotation$ID)]="HMG6"
+annotation$NAME[grep("PTET.51.1.G1280139",annotation$ID)]="HMGB6"
 
-annotation$NAME[grep("PTET.51.1.G1660041",annotation$ID)]="HMG7a"
-annotation$NAME[grep("PTET.51.1.G0400270",annotation$ID)]="HMG7b"
-annotation$NAME[grep("PTET.51.1.G1100130",annotation$ID)]="HMG7c"
-annotation$NAME[grep("PTET.51.1.G1110064",annotation$ID)]="HMG7e"
-annotation$NAME[grep("PTET.51.1.G0850121",annotation$ID)]="HMG7f"
-annotation$NAME[grep("PTET.51.1.G1420074",annotation$ID)]="HMG7g"
+annotation$NAME[grep("PTET.51.1.G1660041",annotation$ID)]="HMGB7a"
+annotation$NAME[grep("PTET.51.1.G0400270",annotation$ID)]="HMGB7b"
+annotation$NAME[grep("PTET.51.1.G1100130",annotation$ID)]="HMGB7c"
+annotation$NAME[grep("PTET.51.1.G1110064",annotation$ID)]="HMGB7e"
+annotation$NAME[grep("PTET.51.1.G0850121",annotation$ID)]="HMGB7f"
+annotation$NAME[grep("PTET.51.1.G1420074",annotation$ID)]="HMGB7g"
 
-annotation$NAME[grep("PTET.51.1.G1550114",annotation$ID)]="HMG10a"
-annotation$NAME[grep("PTET.51.1.G1070037",annotation$ID)]="HMG10b"
+annotation$NAME[grep("PTET.51.1.G1550114",annotation$ID)]="HMGB10a"
+annotation$NAME[grep("PTET.51.1.G1070037",annotation$ID)]="HMGB10b"
 
-annotation$NAME[grep("PTET.51.1.G0540171",annotation$ID)]="HMG13a"
-annotation$NAME[grep("PTET.51.1.G1350008",annotation$ID)]="HMG13b"
+annotation$NAME[grep("PTET.51.1.G0540171",annotation$ID)]="HMGB13a"
+annotation$NAME[grep("PTET.51.1.G1350008",annotation$ID)]="HMGB13b"
 annotation$NAME[grep("PTET.51.1.G0390142",annotation$ID)]="HMG13d"
 
-annotation$NAME[grep("PTET.51.1.G0100092",annotation$ID)]="HMG14a"
-annotation$NAME[grep("PTET.51.1.G0050352",annotation$ID)]="HMG14c"
+annotation$NAME[grep("PTET.51.1.G0100092",annotation$ID)]="HMGB14a"
+annotation$NAME[grep("PTET.51.1.G0050352",annotation$ID)]="HMGB14c"
 
-annotation$NAME[grep("PTET.51.1.G1490060",annotation$ID)]="HMG15a"
-annotation$NAME[grep("PTET.51.1.G1270097",annotation$ID)]="HMG15b"
-annotation$NAME[grep("PTET.51.1.G0560078",annotation$ID)]="HMG15c"
-annotation$NAME[grep("PTET.51.1.G0580048",annotation$ID)]="HMG15d"
+annotation$NAME[grep("PTET.51.1.G1490060",annotation$ID)]="HMGB15a"
+annotation$NAME[grep("PTET.51.1.G1270097",annotation$ID)]="HMGB15b"
+annotation$NAME[grep("PTET.51.1.G0560078",annotation$ID)]="HMGB15c"
+annotation$NAME[grep("PTET.51.1.G0580048",annotation$ID)]="HMGB15d"
 
-annotation$NAME[grep("PTET.51.1.G0090176",annotation$ID)]="HMG18a"
-annotation$NAME[grep("PTET.51.1.G0260144",annotation$ID)]="HMG18b"
-annotation$NAME[grep("PTET.51.1.G0650159",annotation$ID)]="HMG18c"
+annotation$NAME[grep("PTET.51.1.G0090176",annotation$ID)]="HMGB18a"
+annotation$NAME[grep("PTET.51.1.G0260144",annotation$ID)]="HMGB18b"
+annotation$NAME[grep("PTET.51.1.G0650159",annotation$ID)]="HMGB18c"
+
+annotation$NAME[grep("PTET.51.1.G0620188",annotation$ID)]="PHD-finger_Emmerich"
+
+annotation$NAME[grep("PTET.51.1.G0140243",annotation$ID)]="ISWI1a"
+annotation$NAME[grep("PTET.51.1.G0420126",annotation$ID)]="ISWI1b"
+annotation$NAME[grep("PTET.51.1.G0290211",annotation$ID)]="ISWI1c"
+annotation$NAME[grep("PTET.51.1.G0410183",annotation$ID)]="ISWI1d"
+
+annotation$NAME[grep("PTET.51.1.G1470016",annotation$ID)]="ISWI2"
+
 
 
 mt = read.table("./DATA/mtF_ID.csv", sep = ";", header = T)

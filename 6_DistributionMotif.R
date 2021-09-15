@@ -33,7 +33,21 @@ UP_PKXE_inter = unique(intersect(Pic_intermediaire,UP_PKXE))
 UP_PKX_DOWN_inter = unique(intersect(Pic_intermediaire,UP_PKX_DOWN_CTIP))
 UP_DOWN_inter = unique(intersect(Pic_intermediaire,UP_DOWN))
 
+DOWN_PGM = unique(na.omit(infogenes$ID[infogenes$PGM_LATE_REGULATION == "Down-regulated"]))
+DOWN_KU80c = unique(na.omit(infogenes$ID[infogenes$KU80c_LATE_REGULATION == "Down-regulated"]))
+DOWN_XRCC4 = unique(na.omit(infogenes$ID[infogenes$XRCC4_LATE_REGULATION == "Down-regulated"]))
+DOWN_EZL1 = unique(na.omit(infogenes$ID[infogenes$EZL1_LATE_REGULATION == "Down-regulated"]))
+UP_CTIP = unique(na.omit(infogenes$ID[infogenes$CTIP_EARLY_REGULATION == "Up-regulated" | infogenes$CTIP_INTER_REGULATION == "Up-regulated"]))
+DOWN_PGM_KU80c = unique(intersect(DOWN_PGM, DOWN_KU80c))
+DOWN_PKX = unique(intersect(DOWN_PGM_KU80c, DOWN_XRCC4))
+DOWN_PKXE= unique(intersect(DOWN_PKX, DOWN_EZL1))
+DOWN_PKX_UP_CTIP = unique(intersect(DOWN_PKX, UP_CTIP))
+DOWN_UP = unique(intersect(DOWN_PKXE, UP_CTIP))
 
+DOWN_PKX_inter = unique(intersect(Pic_intermediaire,DOWN_PKX))
+DOWN_PKXE_inter = unique(intersect(Pic_intermediaire,DOWN_PKXE))
+DOWN_PKX_UP_inter = unique(intersect(Pic_intermediaire,DOWN_PKX_UP_CTIP))
+DOWN_UP_inter = unique(intersect(Pic_intermediaire,DOWN_UP))
 
 
 promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC_upstream_150nt_TSS.fa"))
@@ -76,6 +90,22 @@ names(FILTRES) = c("Tous_les_genes","Genes_codant",
                    "DE_autogamie", "Pic_intermediaire",
                    "UP_PKX_inter", "UP_PKXE_inter",
                    "UP_PKX_DOWN_inter", "UP_DOWN_inter")
+
+ANTIFILTRES = list(Tous_les_genes,Genes_codant,
+               DOWN_PGM, DOWN_KU80c, DOWN_XRCC4, DOWN_EZL1, UP_CTIP,
+               DOWN_PGM_KU80c, DOWN_PKX, DOWN_PKXE, 
+               DOWN_PKX_UP_CTIP, DOWN_UP ,
+               DE_autogamie, Pic_intermediaire,
+               DOWN_PKX_inter, DOWN_PKXE_inter,
+               DOWN_PKX_UP_inter, DOWN_UP_inter)
+
+names(ANTIFILTRES) = c("Tous_les_genes","Genes_codant",
+                       "DOWN_PGM", "DOWN_KU80c", "DOWN_XRCC4", "DOWN_EZL1", "UP_CTIP",
+                       "DOWN_PGM_KU80c", "DOWN_PKX", "DOWN_PKXE", 
+                       "DOWN_PKX_UP_CTIP", "DOWN_UP" ,
+                       "DE_autogamie", "Pic_intermediaire",
+                       "DOWN_PKX_inter", "DOWN_PKXE_inter",
+                       "DOWN_PKX_UP_inter", "DOWN_UP_inter")
 
 #### Faire diagramme de Venne pour les gènes selectionnée comme étant la population de gènes positif pour STREM ####
 selection = list(UP_PGM, UP_KU80c, UP_XRCC4, Pic_intermediaire)
@@ -139,17 +169,81 @@ ggvenn(selection,
        set_name_color = c("#0073C2FF", "darkorange"))
 dev.off()
 
+#### Faire diagramme de Venne pour les gènes non-selectionnée ####
+selection = list(DOWN_PGM, DOWN_KU80c, DOWN_XRCC4, Pic_intermediaire)
+names(selection)=c("DOWN_PGM", "DOWN_KU80c", "DOWN_XRCC4", "Pic_intermediaire")
+png(paste0(path_motif,"Venn_DOWN_selection.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
+dev.off()
+
+selection = list(DOWN_PGM, DOWN_KU80c, DOWN_XRCC4, DOWN_EZL1)
+names(selection)=c("DOWN_PGM", "DOWN_KU80c", "DOWN_XRCC4", "DOWN_EZL1")
+png(paste0(path_motif,"Venn_DOWN.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange", "#868686FF", "darkolivegreen3"))
+dev.off()
+
+selection = list(DOWN_PKXE, Pic_intermediaire)
+names(selection)=c("DOWN_PKXE","Pic_intermediaire")
+png(paste0(path_motif,"Venn_DOWN_inter.png"))
+ggvenn(selection,
+       fill_color = c("darkorange", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("darkorange","darkolivegreen3"))
+dev.off()
+
+selection = list(DOWN_PKXE, UP_CTIP, Pic_intermediaire)
+names(selection)=c("DOWN_PKXE", "UP_CTIP", "Pic_intermediaire")
+png(paste0(path_motif,"Venn_DOWN_UP_inter.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange", "darkolivegreen3"),
+       stroke_size = 0.5,
+       set_name_size = 7,
+       show_percentage = F,
+       text_size = 7,
+       set_name_color = c("#0073C2FF", "darkorange","darkolivegreen3"))
+dev.off()
+
+
+selection = list(DOWN_PKXE, UP_CTIP)
+names(selection)=c("DOWN_PKXE", "UP_CTIP")
+png(paste0(path_motif,"Venn_DOWN_UP.png"))
+ggvenn(selection,
+       fill_color = c("#0073C2FF", "darkorange"),
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 6,
+       set_name_color = c("#0073C2FF", "darkorange"))
+dev.off()
+
 
 ### Ouverture des liste de gènes avec motifs ####
-for (type in c("fuzznuc", "fimo", "FIMO2")){
-  # type = "fimo"
-  if(type == "fimo"){
-    dossier  = "FIMO/"
-  }else if (type == "fuzznuc"){
-    dossier  = "FUZZNUC/"
-  }else if (type == "FIMO2"){
-    dossier  = "FIMO2/"
-  }
+type = "FIMO2"
+dossier  = "FIMO2/"
+# for (type in c("fuzznuc", "fimo", "FIMO2")){
+#   # type = "fimo"
+#   if(type == "fimo"){
+#     dossier  = "FIMO/"
+#   }else if (type == "fuzznuc"){
+#     dossier  = "FUZZNUC/"
+#   }else if (type == "FIMO2"){
+#     dossier  = "FIMO2/"
+#   }
   
   files = list.files(paste0(path_motif,dossier), pattern = ".gff")
   
@@ -176,6 +270,8 @@ for (type in c("fuzznuc", "fimo", "FIMO2")){
     
     pdf(paste0(save_path,sub(".gff","",sub(".gff3","",f)),"_graphs.pdf"))
     par(mfrow=c(2,2), cex.axis = 0.75)
+    
+    
     for(filtre in names(FILTRES)){
       selection = FILTRES[[filtre]]
       filter_motif = prom_with_motif[is.element(prom_with_motif$ID, selection),]
@@ -272,7 +368,106 @@ for (type in c("fuzznuc", "fimo", "FIMO2")){
     dev.off()
   }
   
-}
+# }
 
 
 #### Faire la réciproque : chercher un enrichissement dans certain groupe parmis les gènes avec motif ####
+type = "FIMO2"
+dossier  = "FIMO2/"
+
+files = list.files(paste0(path_motif,dossier), pattern = ".gff")
+
+save_path = paste0(path_motif,type,"_Distribution_Motif/")
+dir.create(save_path, recursive=T,showWarnings=F)
+
+for (f in files){
+  # f = files[1]
+  print(f)
+  
+  # Création du tableau de donnée pour stocker les effectifs pour chaque filtres
+  effectif_tab = data.frame(as.numeric(summary(FILTRES)[1:length(FILTRES)]), row.names = rownames(summary(FILTRES)))
+  colnames(effectif_tab) = "Effectifs"
+  effectif_tab[,"Sans_Motif"]= NA
+  effectif_tab[,"Avec_Motif"]= NA
+  effectif_tab[,"Motif_-"]= NA
+  effectif_tab[,"Motif_+"]= NA
+  
+  effectif_tab_Noduplicat = effectif_tab
+  effectif_tab_Noduplicat[,"Motif_+/-"] = 0
+  
+  prom_with_motif = read.table(paste0(path_motif,dossier,f), header=F, sep="\t")
+  colnames(prom_with_motif)=colnamesgff3
+  
+  for(filtre in names(ANTIFILTRES)){
+    # filtre = names(ANTIFILTRES)[3]
+    
+    selection = ANTIFILTRES[[filtre]]
+    filter_motif = prom_with_motif[is.element(prom_with_motif$ID, selection),]
+    
+    #### Calcul des effectifs pour chaque condition ####
+    effectif = effectif_tab[filtre, "Effectifs"]
+    motifs_nb = table(filter_motif$STRAND)
+    if (is.na(motifs_nb["+"])){
+      motifs_nb["+"] = 0
+    }
+    if (is.na(motifs_nb["-"])){
+      motifs_nb["-"] = 0
+    }
+    effectif_tab[filtre,2:ncol(effectif_tab)] = c(effectif-sum(motifs_nb),sum(motifs_nb), motifs_nb["-"], motifs_nb["+"])
+    
+    ### Faire une liste de genes uniques ###
+    # Les gènes avec plus d'un motif sont réparti de la facon suivent :
+    # - les gènes avec uniquemnt les motifs plus sont dans "Motif_+"
+    # - les gènes avec uniquemnt les motifs moins sont dans "Motif_-"
+    # - les gènes avec au moins une forme plus et une forme moins sont dans "Motif_+/-"
+    multi = unique(filter_motif$ID[duplicated(filter_motif$ID)])
+    if (length(multi)>0){
+      ## Retirer tous les genes avec plus d'un motif ##
+      filter_motif_NOduplicat = filter_motif[which(!is.element(filter_motif$ID,multi)),]
+      motif_uniq_tot = length(unique(filter_motif$ID))
+      motifs_nb = table(filter_motif_NOduplicat$STRAND)
+      if (is.na(motifs_nb["+"])){
+        motifs_nb["+"] = 0
+      }
+      if (is.na(motifs_nb["-"])){
+        motifs_nb["-"] = 0
+      }
+      
+      ## Compter les genes ayant plus d'un motif ##
+      motif_both = 0
+      for (id in multi){
+        
+        motif_tab_temp = filter_motif[grep(id, filter_motif$ID),]
+        motif_strands = names(table(motif_tab_temp$STRAND))
+        if(length(motif_strands)==1){
+          if (motif_strands == "-"){
+            motifs_nb["-"] = motifs_nb["-"]+1
+          }else if (motif_strands == "+"){
+            motifs_nb["+"] = motifs_nb["+"]+1
+          }}else{
+            motif_both = motif_both+1
+          }
+      }
+      
+      ## Editer le tableau des effectifs ##
+      if(motif_uniq_tot == sum(motifs_nb, motif_both)){
+        effectif_tab_Noduplicat[filtre,2:ncol(effectif_tab_Noduplicat)] = c(effectif-motif_uniq_tot,sum(motifs_nb), motifs_nb,motif_both)
+      }
+    }else{
+      motif_uniq_tot = 0
+      motif_both = 0
+      motifs_nb = c(0,0)
+      effectif_tab_Noduplicat[filtre,2:ncol(effectif_tab_Noduplicat)] = c(effectif-motif_uniq_tot,sum(motifs_nb), motifs_nb,motif_both)
+    }
+  }
+  write.table(effectif_tab, paste0(save_path,sub(".gff","",sub(".gff3","",f)),"_Effectifs_avec_duplicat_DOWN.tab"), sep = "\t")
+
+  
+  ### Effectif avec les gènes sans duplicat ###
+  if (sum(effectif_tab_Noduplicat$`Motif_+/-`)>0){
+    write.table(effectif_tab_Noduplicat, paste0(save_path,sub(".gff","",sub(".gff3","",f)),"_sans_duplicat_DOWN.tab"), sep = "\t")
+
+    
+  }
+ 
+}

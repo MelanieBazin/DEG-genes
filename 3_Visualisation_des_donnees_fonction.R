@@ -611,7 +611,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     #   draw(h)
     # dev.off()
 
-    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 500, height = 600)
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 900, height = 800)
       draw(h1)
     dev.off()
 
@@ -619,12 +619,12 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     #   draw(h2)
     # dev.off()
     
-    png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue_unraster.png"),width = 500, height = 600)
+    png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue_unraster.png"),width = 800, height = 800)
       draw(h3)
     dev.off()
     
   }else if (sortie == "pdf"){
-    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 500, height = 600)
+    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 800, height = 800)
       # draw(h)
       draw(h1)
       # draw(h2)

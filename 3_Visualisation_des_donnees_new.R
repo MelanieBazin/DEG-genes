@@ -1,10 +1,19 @@
 
 #### A lancer depuis 4_Analyse.R #####
-# Permet de générler des visulaisation 
-#  - des donnée avant et après clustering (heatmp et plot)
+# Permet de générer des visualisations 
+#  - des données avant et après clustering (heatmp et plot)
 #  - ACP, LDA, heatmap, clustering herarchique
 
 #  condition correspond aux names(rnai_list) et donc aux groupe de RNA-seq analysés ensembles
+
+
+
+##### Pour ouvrir sur les dernère données générées ####
+# source("0_Cluster.R")
+# source("3_Visualisation_des_donnees_fonction.R")
+# condition =  names(rnai_list)[1]
+# path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/"
+# data_tab = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), row.names = 1, sep="\t", header = T)
 
 
 ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
@@ -35,6 +44,9 @@ ExpressionProfils(type = "DESeq2",
                   select_ID = select_ID)
 
 ##### Analyse multi-variée des données pour clustering  #####
+
+data_tab = OrderColumn(data_tab, cluster)
+
 # Créaction du vecteur de couleur par anné de séquancage
 color = colnames(data_tab)
 for (j in rnai_list[[ condition]]){
@@ -44,7 +56,7 @@ for (j in rnai_list[[ condition]]){
 }
 
 # Analyse en composante principale
-print(paste( condition, "-----> Analyse ACP"))
+print(paste( condition, "-----> Analyse ACP couleur par année"))
 PCA_plot_generator(data_tab,colors = color,
                    save_path = paste0(path,"Visualisation/ACP/color2/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
@@ -54,15 +66,13 @@ PCA_plot_generator(data_tab,colors = color,
 color = colnames(data_tab)
 for (j in rnai_list[[condition]]){
   if(sum(grepl(j, colnames(data_tab)))>0){
-    print(color[grep(j, color)])
-    print(cluster_color[[j]])
     color[grep(j, color)]=cluster_color[[j]]
 
   }
 }
 
 # Analyse en composante principale
-print(paste( condition, "-----> Analyse ACP"))
+print(paste( condition, "-----> Analyse ACP couleur par cluster"))
 PCA_plot_generator(data_tab,colors = color,
                    save_path = paste0(path,"Visualisation/ACP/color4/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
@@ -110,8 +120,8 @@ ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, conditio
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
 # problème avec EZL1 a cause des EZL1bis
-# MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab, condition =  condition, sortie = "png")
-# MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab, condition =  condition, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
@@ -119,7 +129,7 @@ mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
 ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-# MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
-# MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
 
 

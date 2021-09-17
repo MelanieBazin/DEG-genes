@@ -1,31 +1,31 @@
-install.packages("RColorBrewer")
-install.packages("pheatmap")
-install.packages("seqinr")
-install.packages("latticeExtra") # Erreur d'installation sur R4.0.4
-install.packages("FactoMineR")
-install.packages("factoextra")
-install.packages("gplots")
-install.packages("ggplot2")
-install.packages("ggrepel")
-install.packages("viridis")
-install.packages("caret")
-install.packages("magick")
-
-if (!requireNamespace("BiocManager", quietly = TRUE))
-install.packages("BiocManager")
-BiocManager::install("vsn")
-BiocManager::install("DESeq")
-BiocManager::install("DESeq2")
-BiocManager::install("topGO")
-BiocManager::install("latticeExtra") # Erreur d'installation sur R4.0.4
-BiocManager::install("lifecycle")
-BiocManager::install("heatmaps") # Erreur d'installation sur R4.0.4
-BiocManager::install("sva")
-BiocManager::install("klaR")
-BiocManager::install("ComplexHeatmap")
-
-if (!require(devtools)) install.packages("devtools")
-devtools::install_github("yanlinlin82/ggvenn")
+# install.packages("RColorBrewer")
+# install.packages("pheatmap")
+# install.packages("seqinr")
+# install.packages("latticeExtra") # Erreur d'installation sur R4.0.4
+# install.packages("FactoMineR")
+# install.packages("factoextra")
+# install.packages("gplots")
+# install.packages("ggplot2")
+# install.packages("ggrepel")
+# install.packages("viridis")
+# install.packages("caret")
+# install.packages("magick")
+# 
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+# install.packages("BiocManager")
+# BiocManager::install("vsn")
+# BiocManager::install("DESeq")
+# BiocManager::install("DESeq2")
+# BiocManager::install("topGO")
+# BiocManager::install("latticeExtra") # Erreur d'installation sur R4.0.4
+# BiocManager::install("lifecycle")
+# BiocManager::install("heatmaps") # Erreur d'installation sur R4.0.4
+# BiocManager::install("sva")
+# BiocManager::install("klaR")
+# BiocManager::install("ComplexHeatmap")
+# 
+# if (!require(devtools)) install.packages("devtools")
+# devtools::install_github("yanlinlin82/ggvenn")
 
 
 
@@ -128,14 +128,10 @@ for (i in grep("PTIWI",annotation$SYNONYMS)){
   annotation$NAME[i]= str_split(annotation$SYNONYMS[i],",")[[1]][1]
 }
 
-<<<<<<< HEAD
+
 gene_autogamy=read.table("DATA/autogamy_ptetraurelia_mac_51_annotation_v2.0_significant.tab", header=T, sep="\t")
 annotation = merge(annotation,gene_autogamy[,c(1,6)],by.x = "ID", by.y = "ID")
 
-=======
-# gene_autogamy=read.table("DATA/autogamy_ptetraurelia_mac_51_annotation_v2.0_significant.tab", header=T, sep="\t")
-# annotation = merge(annotation[,1:3],gene_autogamy[,c(1,6)],by.x = "ID", by.y = "ID")
->>>>>>> 25032cbe1df8439b1072345c199f215ee80b880f
 # deg_eva = read.table("DATA/EVA_Siginificantly_DEGenes_PGM_KU80.tab", header=T, sep="\t")
 # annotation$PGM = NA
 # annotation$KU80 = NA

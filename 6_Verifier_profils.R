@@ -38,3 +38,28 @@ write.table(tab_select, paste0(path, "CinetiqueDEGUP_PKXE.tab"),sep = "\t", row.
 file = list.files(path_motif, pattern = "IN_MAC_CDS.gff")
 prom_with_motif = read.table(paste0(path_motif, file), header=F, sep="\t")
 colnames(prom_with_motif)=colnamesgff3
+
+suspect = c()
+for (r in c("PGM","KU80c","XRCC4","EZL1")){
+
+  s = is.element(tab_select[,grep(paste0(r,"_INTER"), colnames(tab_select))], "Down-regulated")
+  s = tab_select$ID[s]
+  suspect = c( suspect,s)
+}
+
+suspect = tab_select[is.element(tab_select$ID,suspect),]
+
+suspect_motif = intersect(suspect$ID, prom_with_motif$ID)
+
+source("0_Cluster.R")
+source("3_Visualisation_des_donnees_fonction.R", encoding = "UTF-8")
+
+selectID = suspect
+names(selectID)= tab_select$NAME[is.element(tab_select$ID,suspect)]
+
+ExpressionProfils(type = "DESeq2", 
+                  condition = "tout", 
+                  file = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/",
+                  select_ID = selectID)
+
+

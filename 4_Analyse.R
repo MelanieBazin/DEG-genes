@@ -15,6 +15,9 @@ source("3_Visualisation_des_donnees_fonction.R")
 # Récupéreation des fonction d'Olivier pour les analyse des gènes dérégulés
 source("3_Functions_AnalyeDESeq2.R")
 
+##### Ouvir fichier des données ###
+# data_tab = read.table("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab", row.names = 1, sep="\t", header = T)
+
 
 analyseName = paste0("Analyse_DESeq2_tout_CombatON")
 
@@ -116,7 +119,7 @@ condition = names(rnai_list)[1]
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
-  # data_tab = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), row.names = 1, sep="\t", header = T)
+  
 
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #necessaire pour les heatmap
   

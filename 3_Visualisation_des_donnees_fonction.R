@@ -505,10 +505,6 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   # Reordonner les colonne
   data_log = data_log[,c_order]
   
-  save = data_log
-  
-  data_log = save
-  
   # Ajout des annotation au tableau
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
   data_log = merge(data_log, annotation, by = 0)
@@ -529,27 +525,29 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   
   # Definition des couleurs
   color_vec = c(0,quantile(data_log_mat)[[2]],median(data_log_mat),
-                quantile(data_log_mat)[[4]],max(data_log_mat))
+                max(data_log_mat))
   color_vec = colorRamp2(color_vec,
-                         c("white","#FEE0D2","#FB6A4A","#BD0026","#67000D"))
+                         c("white","#FEE0D2","#FB6A4A","#BD0026"))
 
-  # h = Heatmap(data_log_mat,
-  #             name = Ylab,
-  #             column_title = condition,
-  #             col = color_vec,
-  #             cluster_rows = F, cluster_columns = F, # turn off  clustering
-  #             cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-  #             show_row_names = F,
-  # 
-  #             row_order = 1:nrow(data_log),
-  #             row_split = data_log$EXPRESSION_PROFIL,
-  #             row_title_rot = 0,
-  # 
-  #             column_split = factor(c_split, levels = unique(c_split)),
-  #             column_order = 1:ncol(data_log_mat),
-  # 
-  #             use_raster = T #reduce the original image seize
-  #             )
+  color_vec = brewer.pal(9, "OrRd")
+  
+  h = Heatmap(data_log_mat,
+              name = Ylab,
+              column_title = condition,
+              col = color_vec,
+              cluster_rows = F, cluster_columns = F, # turn off  clustering
+              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+              show_row_names = F,
+
+              row_order = 1:nrow(data_log),
+              row_split = data_log$EXPRESSION_PROFIL,
+              row_title_rot = 0,
+
+              column_split = factor(c_split, levels = unique(c_split)),
+              column_order = 1:ncol(data_log_mat),
+
+              use_raster = T #reduce the original image seize
+              )
 
 
    h1 = Heatmap(data_log_mat,
@@ -570,27 +568,27 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
                 use_raster = F #reduce the original image seize
                 )
 
-  # h2 = Heatmap(data_log_mat,
-  #              name = Ylab,
-  #              column_title = condition,
-  #              # col = color_vec,
-  #              cluster_rows = F, cluster_columns = F, # turn off  clustering
-  #              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-  #              show_row_names = F,
-  # 
-  #              row_order = 1:nrow(data_log),
-  #              row_split = data_log$EXPRESSION_PROFIL,
-  #              row_title_rot = 0,
-  # 
-  #              column_split = factor(c_split, levels = unique(c_split)),
-  #              column_order = 1:ncol(data_log_mat),
-  # 
-  #              use_raster = T #reduce the original image seize
-  #               )
+  h2 = Heatmap(data_log_mat,
+               name = Ylab,
+               column_title = condition,
+               col = rev(brewer.pal(10, "RdYlBu")),
+               cluster_rows = F, cluster_columns = F, # turn off  clustering
+               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+               show_row_names = F,
+
+               row_order = 1:nrow(data_log),
+               row_split = data_log$EXPRESSION_PROFIL,
+               row_title_rot = 0,
+
+               column_split = factor(c_split, levels = unique(c_split)),
+               column_order = 1:ncol(data_log_mat),
+
+               use_raster = T #reduce the original image seize
+                )
   h3 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
-               # col = color_vec,
+               col = rev(brewer.pal(10, "RdYlBu")),
                cluster_rows = F, cluster_columns = F, # turn off  clustering
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
@@ -607,17 +605,17 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
 
 
   if (sortie == "png"){
-    # png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 500, height = 600)
-    #   draw(h)
-    # dev.off()
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 800, height = 800)
+      draw(h)
+    dev.off()
 
-    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 900, height = 800)
+    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 800, height = 800)
       draw(h1)
     dev.off()
 
-    # png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 500, height = 600)
-    #   draw(h2)
-    # dev.off()
+    png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 800, height = 800)
+      draw(h2)
+    dev.off()
     
     png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue_unraster.png"),width = 800, height = 800)
       draw(h3)
@@ -625,9 +623,9 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     
   }else if (sortie == "pdf"){
     pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 800, height = 800)
-      # draw(h)
+      draw(h)
       draw(h1)
-      # draw(h2)
+      draw(h2)
       draw(h3)
     dev.off()
   }

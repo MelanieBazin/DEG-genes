@@ -68,6 +68,7 @@ FILTRE_MOTIF = list(
 row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
 colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
 save_path = "Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/DESeq/Plots/"
+
   
 ### Calcule des nombre de gène up et down en rouge sur les volcanoplot ####
 # tab = table(PGM$REGULATION)
@@ -99,7 +100,7 @@ save_path = "Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/to
 # f_motif = names(FILTRE_MOTIF)[1]
 # f_arni = names(FILTRE_ARNi)[2]
 
-
+sink(file = NULL)
 t = table(ALL$EXPRESSION_PROFIL)
 TAB= array(dim = c(length(t),length(names(FILTRE_MOTIF))*length(names(FILTRE_ARNi))))
 rownames(TAB) = names(t)
@@ -129,15 +130,25 @@ for(f_motif in names(FILTRE_MOTIF)){
     name = c(name, paste(f_arni,f_motif, sep = "_"))
 
     if (f_arni != names(FILTRE_ARNi)[1]){
+      sink(file = paste0(save_path,f_motif,"/",f_arni,"_Profil_Chi2.txt"))
+      print(paste(f_motif,f_arni))
       sTAB = cbind(TAB[,1], TAB[,col])
       colnames(sTAB) = c(names(FILTRE_ARNi)[1],f_arni)
+      sTAB = sTAB[row_order,]
       pvalue = c()
       star = c()
       for (p in rownames(sTAB)){
-        chi2 = chisq.test(sTAB[p,])
-        pvalue = c(pvalue, chi2$p.value)
+        stab = matrix(data = NA, nrow = 2, ncol = 2)
+        stab[,1] = c(sTAB[p,2],sTAB[p,"ALL"]) 
+        stab[,2] = c(sum(sTAB[,2])-sTAB[p,2], sum(sTAB[,"ALL"])-sTAB[p,"ALL"])
         
-        if (chi2$p.value < 1e-200){
+        chi2 = chisq.test(stab)
+        chi2$pvalue = c(pvalue, chi2$p.value)
+        print(p)
+        print(chi2)
+        if (chi2$p.value == 0 | is.na(chi2$p.value)){
+          star = c(star," ")
+        }else if (chi2$p.value < 1e-200){
           star = c(star,"****")
         }else if (chi2$p.value < 1e-100){
           star = c(star,"***")
@@ -161,7 +172,8 @@ for(f_motif in names(FILTRE_MOTIF)){
       barplot(t(data_plot),
               col = c("#353436","#1b98e0"),
               beside = TRUE,
-              main = f_arni)
+              main = f_arni,
+              ylab = "% de gènes")
       
       legend("topleft",
              legend = c("Reference","ARNi"),
@@ -179,11 +191,13 @@ for(f_motif in names(FILTRE_MOTIF)){
       png(paste0(save_path,f_motif,"/",f_arni,"_Profils_barplot_pile.png"),width = 200, height = 500)
        barplot(data_plot,
               col = colors,
-              main = f_arni)
+              main = f_arni,
+              ylab = "% de gènes")
 
       dev.off()
       }
-    }
+      sink(file = NULL)
+      }
 
   }
   
@@ -206,7 +220,7 @@ dev.off()
 
 
 #### Regarder le nombre de gènes IES + parmis les différnets cathégories ###
-
+sink(file = NULL)
 TAB= array(dim = c(2,length(names(FILTRE_MOTIF))*length(names(FILTRE_ARNi))))
 rownames(TAB) = c("SANS_IES","AVEC_IES")
 
@@ -229,15 +243,25 @@ for(f_motif in names(FILTRE_MOTIF)){
     name = c(name, paste(f_arni,f_motif, sep = "_"))
     
     if (f_arni != names(FILTRE_ARNi)[1]){
+      sink(file = paste0(save_path,f_motif,"/",f_arni,"_IES_Chi2.txt"))
+      print(paste(f_motif,f_arni))
+      
       sTAB = cbind(TAB[,1], TAB[,col])
       colnames(sTAB) = c(names(FILTRE_ARNi)[1],f_arni)
       pvalue = c()
       star = c()
       for (p in rownames(sTAB)){
-        chi2 = chisq.test(sTAB[p,])
-        pvalue = c(pvalue, chi2$p.value)
+        stab = matrix(data = NA, nrow = 2, ncol = 2)
+        stab[,1] = c(sTAB[p,2],sTAB[p,"ALL"]) 
+        stab[,2] = c(sum(sTAB[,2])-sTAB[p,2], sum(sTAB[,"ALL"])-sTAB[p,"ALL"])
         
-        if (chi2$p.value < 1e-200){
+        chi2 = chisq.test(stab)
+        chi2$pvalue = c(pvalue, chi2$p.value)
+        print(p)
+        print(chi2)
+        if (chi2$p.value == 0 | is.na(chi2$p.value)){
+          star = c(star," ")
+        }else if (chi2$p.value < 1e-200){
           star = c(star,"****")
         }else if (chi2$p.value < 1e-100){
           star = c(star,"***")
@@ -260,7 +284,8 @@ for(f_motif in names(FILTRE_MOTIF)){
       barplot(t(data_plot),
               col = c("#353436","#1b98e0"),
               beside = TRUE,
-              main = f_arni)
+              main = f_arni,
+              ylab = "% de gènes")
       
       legend("topright",
              legend = c("Reference","ARNi"),
@@ -278,10 +303,12 @@ for(f_motif in names(FILTRE_MOTIF)){
         png(paste0(save_path,f_motif,"/",f_arni,"_IES_barplot_pile.png"),width = 200, height = 500)
         barplot(data_plot,
                 col = c("#353436","#1b98e0"),
-                main = f_arni)
+                main = f_arni,
+                ylab = "% de gènes")
         
         dev.off()
       }
+      sink(file = NULL)
     }
     
     

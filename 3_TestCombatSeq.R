@@ -33,6 +33,11 @@ countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition
 # Création du tableau avec les info des colonnes
 infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
 
+# Se limiter au données présentes dans les 2 séquancages
+time = unique(infodata$Timing[which(infodata$Batch == "seq_2020")])
+countdata = countdata[,is.element(infodata$Timing, time)]
+infodata = infodata[is.element(infodata$Timing, time),]
+
 # Creataion de l'objet DESeq2
 countdata = as.matrix(countdata)
 deseq = DESeqDataSetFromMatrix(countData = countdata,
@@ -48,29 +53,65 @@ deseq = DESeq(deseq)
 data_tab = counts(deseq,normalized=T)
 
 ##### Analyse multi-variée des données pour clustering  #####
-# Créaction du vecteur de couleur par cluster
-color = colnames(data_tab)
+# Créaction du vecteur de couleur par année de sequancage
+seq_2014 = "chartreuse4"
+seq_2020 = "blue4"
+
+seq_color = c()
 for (j in rnai_list[[condition]]){
-  color[grep(paste0(j,"_"), color)]=seq_color[[j]]
+  if (is.element(j,c("ICL7bis", "EZL1bis"))){
+    seq_color=c(seq_color,rep(seq_2020,length(time)))
+  }else if (is.element(j, c("ICL7", "EZL1"))){
+    seq_color=c(seq_color,rep(seq_2014, length(time)))
+  }
 }
+names(seq_color) = colnames(data_tab)
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
-PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat"),
+PCA_plot_generator(data_tab,colors = seq_color,
+                   save_path = paste0(path,"/SANS_ComBat/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
 # Créaction du vecteur de couleur par cluster
-color = colnames(data_tab)
+veg_color = "darkorange1"
+early_color = "deepskyblue"
+inter_color = "chartreuse3"
+late_color = "red"
+very_late_color = "deeppink2"
+
+cluster = list(
+  ICL7 = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  ICL7bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  EZL1 = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  EZL1bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2))
+)
+
+
+clust_color = c()
 for (j in rnai_list[[condition]]){
-  color[grep(paste0(j,"_"), color)]=cluster_color[[j]]
+  vec = cluster[[j]]
+  for (i in 1:length(vec)){
+    if (vec[i] == "VEG"){
+      clust_color=c(clust_color,veg_color)
+    }else if (vec[i] == "EARLY"){
+      clust_color=c(clust_color,early_color)
+    }else if (vec[i] == "INTER"){
+      clust_color=c(clust_color,inter_color)
+    }else if (vec[i] == "LATE"){
+      clust_color=c(clust_color,late_color)
+    }else if (vec[i] == "VERY_LATE"){
+      clust_color=c(clust_color,very_late_color)
+    }
+  }
 }
+names(clust_color) = colnames(data_tab)
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
-PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/SANS_ComBat_cluster"),
+PCA_plot_generator(data_tab,colors = clust_color,
+                   save_path = paste0(path,"/SANS_ComBat_cluster/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -109,12 +150,20 @@ for (distance in c("Pearson", "Spearman")){
 
 
 ##### AVEC correction de l'effet Batch ####
+cluster = list(
+  ICL7 = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  ICL7bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  EZL1 = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
+  EZL1bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2))
+)
+
 countdata = read.table(paste0("./DATA/Pour_DESeq/",condition,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
 
 # Création du tableau avec les info des colonnes
-infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
+infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster, Timing = time)
 
-# Creataion de l'objet DESeq2
+
+# Creation de l'objet DESeq2
 countdata = as.matrix(countdata)
 deseq = DESeqDataSetFromMatrix(countData = countdata,
                                colData  = infodata,
@@ -129,29 +178,19 @@ deseq = DESeq(deseq)
 data_tab = counts(deseq,normalized=T)
 
 ##### Analyse multi-variée des données pour clustering  #####
-# Créaction du vecteur de couleur par cluster
-color = colnames(data_tab)
-for (j in rnai_list[[condition]]){
-  color[grep(paste0(j,"_"), color)]=seq_color[[j]]
-}
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
-PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/AVEC_ComBat"),
+PCA_plot_generator(data_tab,colors = seq_color,
+                   save_path = paste0(path,"/AVEC_ComBat/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
-# Créaction du vecteur de couleur par cluster
-color = colnames(data_tab)
-for (j in rnai_list[[condition]]){
-  color[grep(paste0(j,"_"), color)]=cluster_color[[j]]
-}
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP"))
-PCA_plot_generator(data_tab,colors = color,
-                   save_path = paste0(path,"/AVEC_ComBat_cluster"),
+PCA_plot_generator(data_tab,colors = clust_color,
+                   save_path = paste0(path,"/AVEC_ComBat_cluster/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 

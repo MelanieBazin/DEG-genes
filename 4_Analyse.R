@@ -38,27 +38,6 @@ rm(annotation_basic,my_annotation)
 annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
 rownames(annotation)=annotation$ID
 
-### Création  de liste de gènes filtrés (retirés de l'analyse) ###
-# par exemple : retirer les gènes qui sont DE pendant une manip de silencing,
-# ou entre plusieurs manip control ==> des faux positifs
-file_name = "2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05"
-condition = "tout"
-Ctip_Ku_Pgm_Xrcc4 = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection.tab"), sep = "\t", h=T )$ID
-Ku_Pgm_Xrcc4 = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_UP.tab"), sep = "\t", h=T )$ID
-Ctip_UP = read.table(paste0("Analyse/",file_name,"/",condition,"/Resumer_DEgenes_selection_CTIP_DOWN-et-UP.tab"), sep = "\t", h=T )$ID
-TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")$PROTEIN_NAME
-TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')$PROTEIN_NAME
-# 
-# Filtering= list(
-#   connu = annotation$ID[which(!is.element(annotation$ID,select_ID))],
-#   Ctip_Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ctip_Ku_Pgm_Xrcc4))],
-#   Ku_Pgm_Xrcc4 = annotation$ID[which(!is.element(annotation$ID,Ku_Pgm_Xrcc4))],
-#   Ctip_UP = annotation$ID[which(!is.element(annotation$ID,Ctip_UP))],
-#   TurboPGM = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGM))],
-#   TurboPGML4 = annotation$ID[which(!is.element(annotation$PROTEIN_NAME,TurboPGML4))]
-# )
-Filtering= NULL
-
 
 #### Vecteur de couleur pour les heatmap ####
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
@@ -107,6 +86,8 @@ condition = names(rnai_list)[1]
   print(paste(condition , "-----> Analyse DESeq2"))
   deseq = DESeq(deseq)
   
+
+  
   
   # Graphique du paramètre de dispersion
   # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
@@ -119,9 +100,11 @@ condition = names(rnai_list)[1]
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
+  write.table(infodata,paste0(path,condition ,"_infodataDESeq2.tab"), sep="\t",row.names=T,quote=F)
   
 
   mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #necessaire pour les heatmap
+  write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
   
   #### Lancer l'analyse de gènes dérégulés ####
 

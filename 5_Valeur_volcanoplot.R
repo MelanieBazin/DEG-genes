@@ -146,7 +146,7 @@ for(f_motif in names(FILTRE_MOTIF)){
         chi2$pvalue = c(pvalue, chi2$p.value)
         print(p)
         print(chi2)
-        if (chi2$p.value == 0 | is.na(chi2$p.value)){
+        if (is.na(chi2$p.value)){
           star = c(star," ")
         }else if (chi2$p.value < 1e-200){
           star = c(star,"****")
@@ -213,7 +213,7 @@ write.table(TAB, paste0(save_path,"Expression_profil_FIMO2_IN_MAC_CDS_table.tab"
 png(paste0(save_path,"/Legend_pile_Profils.png"),width = 500, height = 500)
 plot(NULL)
 legend("topleft",
-       legend = rev(rownames(data_plot)),
+       legend = rev(row_order),
        fill = rev(colors),
        bty = "n")
 dev.off()

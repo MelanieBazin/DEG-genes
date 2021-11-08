@@ -4,6 +4,7 @@ options(stringsAsFactors = FALSE)
 source("0_Cluster.R")
 source("3_Visualisation_des_donnees_fonction.R")
 library(sva)
+
 set.seed(10111)
 
 dir.create("./DATA/Pour_DESeq/",recursive=T,showWarnings=F)
@@ -29,6 +30,9 @@ for (i in names(rnai_list)[1:2]){
     timing = unique(infodata$Timing[which(infodata$Batch == "seq_2020")])
     countdata = countdata[,is.element(infodata$Timing, timing)]
     infodata = infodata[is.element(infodata$Timing, timing),]
+    countdata2 = ComBat_seq(countdata, batch = infodata$Batch)
+    write.table(countdata2,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=T,quote=F)
+    
     countdata = ComBat_seq(countdata, batch = infodata$Batch, group = infodata$Timing)
   } else if (length(grep("ICL7", colnames(countdata)))>0){
     write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)

@@ -24,6 +24,8 @@ for (i in names(rnai_list)[1:2]){
   if (i =="tout"){
     write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
     batch = paste(infodata$Batch,infodata$Labo, sep = "_")
+    countdata2 = ComBat_seq(countdata, batch = infodata$Batch)
+    
     countdata = ComBat_seq(countdata, batch = batch, group = infodata$Cluster)
   } else if(i == "seq2014vs2020"){
     write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
@@ -31,13 +33,15 @@ for (i in names(rnai_list)[1:2]){
     countdata = countdata[,is.element(infodata$Timing, timing)]
     infodata = infodata[is.element(infodata$Timing, timing),]
     countdata2 = ComBat_seq(countdata, batch = infodata$Batch)
-    write.table(countdata2,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=T,quote=F)
+    
     
     countdata = ComBat_seq(countdata, batch = infodata$Batch, group = infodata$Timing)
   } else if (length(grep("ICL7", colnames(countdata)))>0){
     write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
     countdata = ComBat_seq(countdata, batch = infodata$Labo, group = infodata$Cluster)
+    countdata2 = ComBat_seq(countdata, batch = infodata$Labo)
   }
+  write.table(countdata2,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=T,quote=F)
   write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=T,quote=F)
   
   print(paste("Tableau pour la condition",i, "termine"))

@@ -173,7 +173,7 @@ CreatInfoData2 <- function(conditions=NULL){
   return(infodata)
 }
 
-CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
+CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
   colnames(infodata) = c("Noms","Echantillion", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
@@ -189,37 +189,43 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster){
   feeding = c()
   condition = c()
   labo = c()
-
   for(r in rnai){
-  
-    timing = c(timing,timing_list[[r]])
     clust = c(clust, cluster[[r]])
 
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
-      feeding =c(feeding, rep("ctrl", length(timing_list[[r]])))
+      feeding =c(feeding, rep("ctrl", length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
     }else if (length(grep("EZL1",r))>0){
-      feeding =c(feeding, rep("EZL1", length(timing_list[[r]])))
+      feeding =c(feeding, rep("EZL1", length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],"EZL1",sep = "_"))
     }else{
-      feeding =c(feeding, rep(r, length(timing_list[[r]])))
+      feeding =c(feeding, rep(r, length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
     }
 
     
     if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7" | r == "EZL1"){
-      batch = c(batch,rep("seq_2014", length(timing_list[[r]])))
+      batch = c(batch,rep("seq_2014", length(cluster[[r]])))
     }else{
-      batch = c(batch,rep("seq_2020",length(timing_list[[r]])))
+      batch = c(batch,rep("seq_2020",length(cluster[[r]])))
     }
     
     if ( r == "ICL7" | r == "ICL7bis" | r == "EZL1" | r == "EZL1bis"){
-      labo = c(labo,rep("Duharcourt", length(timing_list[[r]])))
+      labo = c(labo,rep("Duharcourt", length(cluster[[r]])))
     }else{
-      labo = c(labo,rep("Betermier",length(timing_list[[r]])))
+      labo = c(labo,rep("Betermier",length(cluster[[r]])))
+    }
+  
+  
+  
+    if (is.null(Timing)){
+      timing = c(timing,timing_list[[r]])
+    }else {
+      timing = rep(Timing, 4)
     }
   }
   
+
   infodata[,"Feeding"] = feeding
   infodata[,"Timing"] = timing
   infodata[,"Cluster"] = clust

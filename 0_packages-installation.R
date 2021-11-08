@@ -10,6 +10,7 @@
 # install.packages("viridis")
 # install.packages("caret")
 # install.packages("magick")
+# install.packages("devtools")
 # 
 # if (!requireNamespace("BiocManager", quietly = TRUE))
 # install.packages("BiocManager")
@@ -26,7 +27,7 @@
 # 
 # if (!require(devtools)) install.packages("devtools")
 # devtools::install_github("yanlinlin82/ggvenn")
-
+# devtools::install_github("zhangyuqing/sva-devel")
 
 
 options(stringsAsFactors = FALSE)

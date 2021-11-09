@@ -176,7 +176,7 @@ CreatInfoData2 <- function(conditions=NULL){
 CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Names","samples", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
+  colnames(infodata) = c("Names","Samples", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
   
   infodata[,"Names"] = colnames(countdata)
   

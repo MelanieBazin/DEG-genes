@@ -14,7 +14,7 @@ ConcatTab <- function(type, conditions = NULL){
   }
   
   count = gsub(extention,"",list.files(path))
-               
+  
   if (!is.null(conditions)){
     count =  count[which(is.element(count, conditions))]
   }
@@ -47,15 +47,27 @@ DivideByGeneSeize <- function(countdata){
   return(data_tab_seize)
 }
 
-MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition){
+MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition, infodata){
   
   mean_data_tab =data.frame(ID=rownames(data_tab))
-
+  
   for (a in rnai_list[[condition]]){
-    if(length(grep(paste0(a,"_"), colnames(data_tab)))==0){}else{
-      tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
-      colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
+    if(length(grep(paste0(a,"_"), colnames(data_tab)))==0){
       
+    }else{
+      if(is.element("ctrl", infodata$Feeding[grep(a,infodata$Samples)])){
+        tab = data_tab[,grep("ctrl", infodata$Feeding)]
+        for (c in names(cluster)){
+          if (is.element(T,grepl(c, colnames(tab)))){
+            colnames(tab)[str_which(colnames(tab),c)] = cluster[[c]]
+            data_tab = data_tab[,-str_which(colnames(data_tab),c)]
+          }
+        }
+        
+      }else{
+        tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
+        colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
+      }
       
       # Calculer la moyenne pour les points que l'on veux grouper dans la cinétique
       mean_tab =data.frame(ID=rownames(data_tab))
@@ -67,8 +79,12 @@ MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition){
           mean_tab[,b] = apply(tab[,temp], 1, mean)
         }
       }
+      if(is.element("ctrl", infodata$Feeding[grep(a,infodata$Samples)]) & !is.element(T,grepl("Ctrl", colnames(mean_data_tab)))){
+        colnames(mean_tab)[2:ncol(mean_tab)]=paste0("Ctrl_",colnames(mean_tab)[2:ncol(mean_tab)])
+      }else{
+        colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
+      }
       
-      colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
       mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
       rm(mean_tab, tab)
     }
@@ -116,7 +132,7 @@ CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   colnames(infodata) = c("Noms", "Feeding", "Timing","Cluster", "Conditions")
   
   infodata[,"Noms"] = colnames(countdata)
-
+  
   rnai = names(timing_list)
   timing = c()
   clust = c()
@@ -124,7 +140,7 @@ CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
   for(r in rnai){
     timing = c(timing,timing_list[[r]])
     clust = c(clust, cluster[[r]])
-
+    
     for (g in timing_list[r]){
       feeding = str_replace_all(feeding, timing_list[r], "")
     }
@@ -164,9 +180,9 @@ CreatInfoData2 <- function(conditions=NULL){
   }
   infodata[,"RNAi"] = rnai
   infodata = as.data.frame(infodata)
-
-
-
+  
+  
+  
   if (!is.null(conditions)){
     infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]
   }
@@ -191,7 +207,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
   labo = c()
   for(r in rnai){
     clust = c(clust, cluster[[r]])
-
+    
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
       feeding =c(feeding, rep("ctrl", length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
@@ -202,7 +218,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
       feeding =c(feeding, rep(r, length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
     }
-
+    
     
     if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7" | r == "EZL1"){
       batch = c(batch,rep("seq_2014", length(cluster[[r]])))
@@ -215,9 +231,9 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
     }else{
       labo = c(labo,rep("Betermier",length(cluster[[r]])))
     }
-  
-  
-  
+    
+    
+    
     if (is.null(Timing)){
       timing = c(timing,timing_list[[r]])
     }else {
@@ -225,7 +241,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
     }
   }
   
-
+  
   infodata[,"Feeding"] = feeding
   infodata[,"Timing"] = timing
   infodata[,"Cluster"] = clust
@@ -236,7 +252,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
   
   infodata = as.data.frame(infodata)
   
-return(infodata)
+  return(infodata)
 }
 
 ##### Analyse multi-variée #####
@@ -256,16 +272,16 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
     if (sortie == "png") {png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
     }else if (sortie =="pdf"){
       pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
-      }
+    }
     
-      barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
-              main = "Variances",
-              xlab = "Principal Components",
-              ylab = "Percentage of variances",
-              col ="gray")
-      if(vline!=0) {
-        abline(v=vline,lty=2,lwd=2)
-      }
+    barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
+            main = "Variances",
+            xlab = "Principal Components",
+            ylab = "Percentage of variances",
+            col ="gray")
+    if(vline!=0) {
+      abline(v=vline,lty=2,lwd=2)
+    }
     dev.off()
   }    
   
@@ -276,7 +292,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
     ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
- return(resExp)
+  return(resExp)
 }
 
 library(ggplot2)
@@ -290,7 +306,7 @@ LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, pa
   }else if (sortie =="pdf"){
     pdf(paste0(path,condition,"_",type,"_hist.pdf"),width = 480, height = 1000)
   }
-    plot(lda_model, dimen = 1, type = "b")
+  plot(lda_model, dimen = 1, type = "b")
   dev.off()
   # plot(lda_model, col = color, dimen = 2)
   
@@ -428,14 +444,14 @@ Clustering <- function(matDist, nb_cluster, method, titre, colors = NULL){
                     xlab = "Principal Component 1",
                     ylab = "Principal Component 2")
     print(p)
-
+    
   }else if(method  == "HCL"){
     res = hclust(matDist)
     #Fait un dendrogramme
     p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
     print(p)
   }
-
+  
   
 }
 
@@ -489,17 +505,29 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   }else{
     moyenne = ""
   }
-
+  
   c_split = c()
   c_split_ctr = c()
   c_order = c()
   c_order_ctr = c()
   for (a in rnai_list[[condition]]){
     x = grep(a, colnames(data_log))
-
-    if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0){
+    
+    if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0 ){
+      
+      if (is.element(T,grepl("Ctrl", colnames(data_tab)))){
+        a = "Ctrl"
+        x = grep(a, colnames(data_log))
+        if (length(c_order_ctr)==0){
+        c_order_ctr = c(c_order_ctr,x)
+        c_split_ctr = c(c_split_ctr,rep(a,length(x)))
+        }
+        
+      }else{
       c_order_ctr = c(c_order_ctr,x)
       c_split_ctr = c(c_split_ctr,rep(a,length(x)))
+      }
+
     }else{
       c_order = c(c_order, x)
       c_split = c(c_split,rep(a,length(x)))
@@ -534,7 +562,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
                 max(data_log_mat))
   color_vec = colorRamp2(color_vec,
                          c("white","#FEE0D2","#FB6A4A","#BD0026"))
-
+  
   color_vec = brewer.pal(9, "OrRd")
   
   h = Heatmap(data_log_mat,
@@ -544,36 +572,36 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
               cluster_rows = F, cluster_columns = F, # turn off  clustering
               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
               show_row_names = F,
-
+              
               row_order = 1:nrow(data_log),
               row_split = data_log$EXPRESSION_PROFIL,
               row_title_rot = 0,
-
+              
               column_split = factor(c_split, levels = unique(c_split)),
               column_order = 1:ncol(data_log_mat),
-
+              
               use_raster = T #reduce the original image seize
-              )
-
-
-   h1 = Heatmap(data_log_mat,
-                name = Ylab,
-                column_title = condition,
-                col = color_vec,
-                cluster_rows = F, cluster_columns = F, # turn off  clustering
-                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-                show_row_names = F,
-                
-                row_order = 1:nrow(data_log),
-                row_split = data_log$EXPRESSION_PROFIL,
-                row_title_rot = 0,
-                
-                column_split = factor(c_split, levels = unique(c_split)),
-                column_order = 1:ncol(data_log_mat),
-                
-                use_raster = F #reduce the original image seize
-                )
-
+  )
+  
+  
+  h1 = Heatmap(data_log_mat,
+               name = Ylab,
+               column_title = condition,
+               col = color_vec,
+               cluster_rows = F, cluster_columns = F, # turn off  clustering
+               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
+               show_row_names = F,
+               
+               row_order = 1:nrow(data_log),
+               row_split = data_log$EXPRESSION_PROFIL,
+               row_title_rot = 0,
+               
+               column_split = factor(c_split, levels = unique(c_split)),
+               column_order = 1:ncol(data_log_mat),
+               
+               use_raster = F #reduce the original image seize
+  )
+  
   h2 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
@@ -581,16 +609,16 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
                cluster_rows = F, cluster_columns = F, # turn off  clustering
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
-
+               
                row_order = 1:nrow(data_log),
                row_split = data_log$EXPRESSION_PROFIL,
                row_title_rot = 0,
-
+               
                column_split = factor(c_split, levels = unique(c_split)),
                column_order = 1:ncol(data_log_mat),
-
+               
                use_raster = T #reduce the original image seize
-                )
+  )
   h3 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
@@ -608,35 +636,35 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
                
                use_raster = F #reduce the original image seize
   )
-
-
+  
+  
   if (sortie == "png"){
     png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.png"),width = 800, height = 800)
-      draw(h)
+    draw(h)
     dev.off()
-
+    
     png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red_unraster.png"),width = 800, height = 800)
-      draw(h1)
+    draw(h1)
     dev.off()
-
+    
     png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue.png"),width = 800, height = 800)
-      draw(h2)
+    draw(h2)
     dev.off()
     
     png(paste0(path,condition, "_AllPoint_",moyenne,"heatmap_blue_unraster.png"),width = 800, height = 800)
-      draw(h3)
+    draw(h3)
     dev.off()
     
   }else if (sortie == "pdf"){
     pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_red.pdf"),width = 800, height = 800)
-      draw(h)
-      draw(h1)
-      draw(h2)
-      draw(h3)
+    draw(h)
+    draw(h1)
+    draw(h2)
+    draw(h3)
     dev.off()
   }
-
-
+  
+  
 }
 
 # plotGenes fait par Gaëlle
@@ -678,7 +706,7 @@ plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
 
 # Dessine les profils des groupes de gènes + trace le profils moyen
 ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne = F, condition, Log = T){
-
+  
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
   expr_profil = unique(annotation$EXPRESSION_PROFIL)[-1]
@@ -735,12 +763,12 @@ ProfilsPDF <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
 }
 
 ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne = F, condition, Log = T){
-
+  
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   annotation = annotation[which(is.element(annotation$ID, rownames(data_tab))),]
   expr_profil = unique(annotation$EXPRESSION_PROFIL)[-1]
   expr_none = unique(annotation$EXPRESSION_PROFIL)[1]
-
+  
   dir.create(save_path,recursive=T,showWarnings=F)
   if (moyenne == T){
     moyenne = "MOYENNE"
@@ -762,17 +790,17 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
       png(paste0(save_path,condition,"_Profil_",moyenne,r,p,".png"))
-        graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
-        print(graph)
+      graph = plotGenes(data_tab[id,rnai], title = paste(r,p), yMax = max(data_tab[id,rnai]))
+      print(graph)
       dev.off()
     }
     
     for( p in expr_profil){
       id = annotation$ID[grep(p, annotation$EXPRESSION_PROFIL)]
       png(paste0(save_path,condition,"_Boxplot_",moyenne,r,p,".png"))
-        graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
-                        xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-        print(graph)
+      graph = boxplot(data_log[id,rnai],main = paste(r,p) ,ylab = Ylab,
+                      xlab = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+      print(graph)
       dev.off()
     }
     
@@ -780,13 +808,13 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
     par(mfrow=c(1,1))
     id = annotation$ID[grep("none", annotation$EXPRESSION_PROFIL)]
     png(paste0(save_path,condition,"_Profils",moyenne,r,"_none.png"))
-      graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
-      print(graph)
+    graph = plotGenes(data_tab[id,rnai], title = paste(r,"none"), yMax = max(data_tab[id,rnai]))
+    print(graph)
     dev.off()
     png(paste0(save_path,condition,"_Boxplot",moyenne,r,"_none.png"))
-      graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
-                      names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
-      print(graph)
+    graph = boxplot(data_log[id,rnai], main = paste(r,"none"), ylab = Ylab,
+                    names = str_replace_all(colnames(data_log)[rnai],paste0(r,"_"),""))
+    print(graph)
     dev.off()
   }
 }
@@ -795,7 +823,7 @@ ProfilsPNG <- function(save_path = paste0(path,"/profils/"), data_tab, moyenne =
 library("RColorBrewer")
 ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL, select_ID = NULL){
   
-   if (type  == "DESeq2"){
+  if (type  == "DESeq2"){
     path = paste0(file,condition,"/")
     EXPRESSION = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"))
     
@@ -805,12 +833,12 @@ ExpressionProfils <- function(type , condition = NULL, file = NULL, rnai = NULL,
     rnai = rnai_list[[condition]]
     rnai = rnai[-grep("bis",rnai)]
     
-   }else{
+  }else{
     path = "./Analyse/Profils/"
     dir.create(path,recursive=T,showWarnings=F)
     EXPRESSION = ConcatTab(type, conditions = rnai)
     
-   }
+  }
   
   if(!is.null(select_ID)){
     EXPRESSION = EXPRESSION[select_ID,]

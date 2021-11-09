@@ -124,12 +124,16 @@ MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab, condition =  c
 MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
 
 # Avec calcul des moyennes sur les clusters
-mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition)
+data_tab = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=1,header =  T)
+infodata = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_infodata_collapse.tab"), sep="\t",row.names=1,header =  T)
 
-ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
+mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition, infodata)
+write.table(mean_data_tab,paste0(path,condition ,"_test_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
 
-MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
+ProfilsPNG(save_path = paste0(path,"Visualisation/profils/test_"), mean_data_tab, moyenne = T, condition =  condition)
+ProfilsPDF(save_path = paste0(path,"Visualisation/profils/test_"), mean_data_tab, moyenne = T, condition =  condition)
+
+MyHeatmaps(paste0(path,"Visualisation/Heatmap/test_"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/test_"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
 
 

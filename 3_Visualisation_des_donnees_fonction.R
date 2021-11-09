@@ -176,9 +176,9 @@ CreatInfoData2 <- function(conditions=NULL){
 CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Noms","Echantillion", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
+  colnames(infodata) = c("Names","samples", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
   
-  infodata[,"Noms"] = colnames(countdata)
+  infodata[,"Names"] = colnames(countdata)
   
   rnai = rnai_list[[conditions]]
   rnai = rnai[order(rnai)]
@@ -232,7 +232,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
   infodata[,"Batch"] = batch
   infodata[,"Condition"]= condition
   infodata[,"Labo"]= labo
-  infodata[,"Echantillion"] = str_remove_all(infodata[,"Noms"],"bis")
+  infodata[,"Samples"] = str_remove_all(infodata[,"Names"],"bis")
   
   infodata = as.data.frame(infodata)
   

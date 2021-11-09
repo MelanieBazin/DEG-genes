@@ -7,10 +7,6 @@ labels=colnames(countdata)
 
 countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE))
 
-#### Moyenne des valeurs de comptage normalisées pour chaque point du timining####
-#Utiliser pour les heatmap seulement
-meanGeneNormCountsTable = mean_data_tab
-
 #### Comparaison point par point des différents timing ####
 time_points = infodata$Condition
 comparisons = list(

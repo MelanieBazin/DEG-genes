@@ -19,7 +19,7 @@ analyseName = paste0(Sys.Date(),"_", analyseName)
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 
-condition = names(rnai_list)[1]
+condition = names(rnai_list)[2]
 
 print(paste("On analyse le jeu de donnee :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
 
@@ -53,6 +53,7 @@ deseq = DESeq(deseq)
 
 # Récupération des données de comptage normalisées
 data_tab = counts(deseq,normalized=T)
+write.table(data_tab,paste0("./DATA/DESeq2/",condition,"_expression_table_sansBatch.tab"), sep="\t",row.names=T,quote=F)
 
 ##### Analyse multi-variée des données pour clustering  #####
 # Créaction du vecteur de couleur par année de sequancage
@@ -188,6 +189,7 @@ for (version in 1:2){
   
   # Récupération des données de comptage normalisées
   data_tab = counts(deseq,normalized=T)
+  write.table(data_tab,paste0("./DATA/DESeq2/",condition,"_expression_table_avecBatchv",version,".tab"), sep="\t",row.names=T,quote=F)
   
   ##### Analyse multi-variée des données pour clustering  #####
   
@@ -240,7 +242,45 @@ for (version in 1:2){
   }
 }
 
+
+
+
+
 if (condition == names(rnai_list)[2]){
+  #### Martice de corrélation ####
+  
+  sansBatch = read.table(paste0("./DATA/DESeq2/",condition,"_expression_table_sansBatch.tab"), sep="\t",row.names=1,header =  T)
+  
+  
+  for (version in 1:2){
+    avecBatch = read.table(paste0("./DATA/DESeq2/",condition,"_expression_table_avecBatchv",version,".tab"), sep="\t",row.names=1,header =  T)
+    colnames(avecBatch) = paste0(colnames(avecBatch),"corrected", sep = "_")
+    
+    data_tab = cbind(sansBatch, avecBatch)
+    
+    
+      for (distance in c("Pearson", "Spearman")){
+    png(paste0(path,"AVEC_ComBatv",version,"/4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+    # Choisir le mode de calcule des distances
+    if (distance == "Pearson"){
+      matDist = as.matrix(cor(data_tab))
+      p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition), cluster_rows = F, cluster_cols = F)
+      print(p)
+      matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
+      
+    }else if (distance == "Spearman"){
+      matDist = as.matrix(cor(data_tab,method="spearman"))
+      p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition), cluster_rows = F, cluster_cols = F)
+      print(p)
+      matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
+    }
+    dev.off()
+  }
+  }
+  
+  
+
+  
   #### Seq 2014 ####
   
   condition = names(rnai_list)[3]

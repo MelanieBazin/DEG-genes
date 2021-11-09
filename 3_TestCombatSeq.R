@@ -19,7 +19,7 @@ analyseName = paste0(Sys.Date(),"_", analyseName)
 path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 
-condition = names(rnai_list)[2]
+condition = names(rnai_list)[1]
 
 print(paste("On analyse le jeu de donnee :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
 
@@ -40,11 +40,12 @@ if (condition == names(rnai_list)[2]){
   infodata = infodata[is.element(infodata$Timing, time),]
 }
 
+
 # Creataion de l'objet DESeq2
 countdata = as.matrix(countdata)
 deseq = DESeqDataSetFromMatrix(countData = countdata,
                                colData  = infodata,
-                               design   = ~ Condition)
+                               design   = ~ Samples)
 
 
 # Analyse DESeq2
@@ -180,7 +181,7 @@ for (version in 1:2){
   countdata = as.matrix(countdata)
   deseq = DESeqDataSetFromMatrix(countData = countdata,
                                  colData  = infodata,
-                                 design   = ~ Condition)
+                                 design   = ~ Samples)
   
   
   # Analyse DESeq2
@@ -254,13 +255,14 @@ if (condition == names(rnai_list)[2]){
   
   for (version in 1:2){
     avecBatch = read.table(paste0("./DATA/DESeq2/",condition,"_expression_table_avecBatchv",version,".tab"), sep="\t",row.names=1,header =  T)
-    colnames(avecBatch) = paste0(colnames(avecBatch),"corrected", sep = "_")
+    colnames(avecBatch) = paste0(colnames(avecBatch),"_corrected")
     
     data_tab = cbind(sansBatch, avecBatch)
+    data_tab = data_tab[,c(grep("EZL1", colnames(data_tab)),grep("ICL7", colnames(data_tab)))]
     
-    
+    dir.create(paste0(path,"AVEC_ComBatv",version),recursive=T,showWarnings=F)
       for (distance in c("Pearson", "Spearman")){
-    png(paste0(path,"AVEC_ComBatv",version,"/4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+    png(paste0(path,"AVEC_ComBatv",version,"/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
     # Choisir le mode de calcule des distances
     if (distance == "Pearson"){
       matDist = as.matrix(cor(data_tab))

@@ -63,7 +63,7 @@ condition = names(rnai_list)[1]
     CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
-  # Ouverture des fichiers countdata avec correction de l'effet Batch
+  # Ouverture des fichiers countdata avec correction de l'effet Batch sur les groupe
   countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
   
   # Création du tableau avec les info des colonnes
@@ -77,8 +77,8 @@ condition = names(rnai_list)[1]
   
   # Definition des réplicats techniques
   deseq = collapseReplicates(deseq, 
-                             groupby = deseq$Echantillion, 
-                             run     = deseq$Noms)
+                             groupby = deseq$Samples, 
+                             run     = deseq$Names)
 
   write.table(as.data.frame(colData(deseq)),paste0(path,condition ,"_infodata_collapse.tab"), sep="\t",row.names=T,quote=F)
   
@@ -103,8 +103,8 @@ condition = names(rnai_list)[1]
   write.table(infodata,paste0(path,condition ,"_infodataDESeq2.tab"), sep="\t",row.names=T,quote=F)
   
 
-  mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster,condition ) #necessaire pour les heatmap
-  write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
+  
+  
   
   #### Lancer l'analyse de gènes dérégulés ####
 

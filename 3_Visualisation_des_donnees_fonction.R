@@ -94,30 +94,38 @@ MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition, infodata)
     rownames(mean_data_tab)=mean_data_tab$ID
     mean_data_tab = mean_data_tab[,-1]
   }
+  ctrl_position = grep("Ctrl", colnames(mean_data_tab))
+  mean_data_tab = cbind(mean_data_tab[,ctrl_position],mean_data_tab[,-ctrl_position])
   mean_data_tab = as.matrix(mean_data_tab)
   return(mean_data_tab)
   
 }
 
-OrderColumn <- function(data_tab, cluster){
-  colum_order = c()
-  for (c in names(cluster)[order(names(cluster))]){
-    if (sum(grepl(c, colnames(data_tab)))>0){
-      column_position = grep(c, colnames(data_tab))
-      
-      veg_position = max(column_position)
-      
-      cluster_column = colnames(data_tab)[column_position]
-      cluster_column = cluster_column[-length(cluster_column)]
-      cluster_column = sub(paste0(c,"_T"),"",cluster_column )
-      cluster_column = as.numeric(cluster_column)
-      cluster_order = column_position[order(cluster_column)]
-      cluster_order = c(veg_position,cluster_order)
-      
-      colum_order = c(colum_order, cluster_order)
+OrderColumn <- function(data_tab, infodata){
+  colum_order_ctrl = c()
+  colum_order_rnai = c()
+  
+  rnai = sub("_Veg","",infodata$Names[grep("Veg", infodata$Names)])
+  
+  for (r in rnai){
+    cluster_timing = infodata$Timing[grep(r, infodata$Names)]
+    veg_pos = grep("Veg", cluster_timing)
+    cluster_timing = cluster_timing[-veg_pos]
+    timing_pos = mixedorder(cluster_timing)
+    
+    cluster_position = str_which(infodata$Names, r)
+    cluster_position = cluster_position[c(veg_pos, timing_pos)]
+    
+    if (infodata$Feeding[grep(r, infodata$Names)][1] == "ctrl"){
+      colum_order_ctrl = c(colum_order_ctrl, cluster_position)
+    }else{
+      colum_order_rnai = c(colum_order_rnai, cluster_position)
     }
+    
   }
   
+  colum_order = c(colum_order_ctrl, colum_order_rnai)
+
   ordered_tab = data_tab[,colum_order]
   
   return(ordered_tab)
@@ -490,8 +498,17 @@ library("ComplexHeatmap")
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie = "png"){
+MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T, sortie = "png"){
   dir.create(path,recursive=T,showWarnings=F)
+  
+  if (moyenne == T){
+    moyenne = "MOYENNE"
+  }else{
+    moyenne = ""
+    data_tab = OrderColumn(data_tab, infodata)
+  }
+  
+  
   if (Log == T){
     data_log =  as.data.frame(log(data_tab+1))
     Ylab = "log(expres)"
@@ -500,44 +517,13 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     Ylab = "expres"
   }
   
-  if (moyenne == T){
-    moyenne = "MOYENNE"
-  }else{
-    moyenne = ""
-  }
+  rnai = sub("_Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)])
   
   c_split = c()
-  c_split_ctr = c()
-  c_order = c()
-  c_order_ctr = c()
-  for (a in rnai_list[[condition]]){
+  for (a in rnai){
     x = grep(a, colnames(data_log))
-    
-    if (length(grep("ND7",a)) > 0 | length(grep("ICL7",a)) > 0 ){
-      
-      if (is.element(T,grepl("Ctrl", colnames(data_tab)))){
-        a = "Ctrl"
-        x = grep(a, colnames(data_log))
-        if (length(c_order_ctr)==0){
-        c_order_ctr = c(c_order_ctr,x)
-        c_split_ctr = c(c_split_ctr,rep(a,length(x)))
-        }
-        
-      }else{
-      c_order_ctr = c(c_order_ctr,x)
-      c_split_ctr = c(c_split_ctr,rep(a,length(x)))
-      }
-
-    }else{
-      c_order = c(c_order, x)
-      c_split = c(c_split,rep(a,length(x)))
-    }
+    c_split = c(c_split,rep(a,length(x)))
   }
-  c_split = c(c_split_ctr, c_split)
-  c_order = c(c_order_ctr, c_order)
-  
-  # Reordonner les colonne
-  data_log = data_log[,c_order]
   
   # Ajout des annotation au tableau
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
@@ -605,7 +591,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   h2 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
-               col = rev(brewer.pal(10, "RdYlBu")),
+               col = rev(colorRampPalette(brewer.pal(10,"RdBu"))(255)),
                cluster_rows = F, cluster_columns = F, # turn off  clustering
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
@@ -622,7 +608,7 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
   h3 = Heatmap(data_log_mat,
                name = Ylab,
                column_title = condition,
-               col = rev(brewer.pal(10, "RdYlBu")),
+               col = rev(colorRampPalette(brewer.pal(10,"RdBu"))(255)),
                cluster_rows = F, cluster_columns = F, # turn off  clustering
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
@@ -663,7 +649,6 @@ MyHeatmaps <- function(path, data_tab, moyenne = F, condition, Log = T, sortie =
     draw(h3)
     dev.off()
   }
-  
   
 }
 

@@ -47,55 +47,28 @@ DivideByGeneSeize <- function(countdata){
   return(data_tab_seize)
 }
 
-MeanTabCalculation <- function(data_tab, rnai_list, cluster,condition, infodata){
+MeanTabCalculation <- function(data_tab, infodata){
+  rnai = sub("_Veg","",colnames(data_tab)[grep("Veg", colnames(data_tab))])
   
-  mean_data_tab =data.frame(ID=rownames(data_tab))
-  
-  for (a in rnai_list[[condition]]){
-    if(length(grep(paste0(a,"_"), colnames(data_tab)))==0){
-      
+  colnames(data_tab) = infodata$Condition
+  mean_data_tab = data.frame(row.names= rownames(data_tab))
+  for (c in unique(infodata$Condition)){
+    temp = data_tab[,grep(c, colnames(data_tab))]
+    if (typeof(temp) == "list"){
+      temp = apply(temp, 1, mean)
     }else{
-      if(is.element("ctrl", infodata$Feeding[grep(a,infodata$Samples)])){
-        tab = data_tab[,grep("ctrl", infodata$Feeding)]
-        for (c in names(cluster)){
-          if (is.element(T,grepl(c, colnames(tab)))){
-            colnames(tab)[str_which(colnames(tab),c)] = cluster[[c]]
-            data_tab = data_tab[,-str_which(colnames(data_tab),c)]
-          }
-        }
-        
-      }else{
-        tab = data_tab[,grep(paste0(a,"_"), colnames(data_tab))] # Récupération des colonnes correspodant a une cinétique
-        colnames(tab) = cluster[[a]] # Donner le nom des groupes de points aux colonnes
-      }
-      
-      # Calculer la moyenne pour les points que l'on veux grouper dans la cinétique
-      mean_tab =data.frame(ID=rownames(data_tab))
-      for (b in unique(cluster[[a]])){
-        temp = grep(b, colnames(tab))
-        if(length(temp) == 1){
-          mean_tab[,b] = tab[,temp]
-        }else{
-          mean_tab[,b] = apply(tab[,temp], 1, mean)
-        }
-      }
-      if(is.element("ctrl", infodata$Feeding[grep(a,infodata$Samples)]) & !is.element(T,grepl("Ctrl", colnames(mean_data_tab)))){
-        colnames(mean_tab)[2:ncol(mean_tab)]=paste0("Ctrl_",colnames(mean_tab)[2:ncol(mean_tab)])
-      }else{
-        colnames(mean_tab)[2:ncol(mean_tab)]=paste0(a,"_",colnames(mean_tab)[2:ncol(mean_tab)])
-      }
-      
-      mean_data_tab = merge.data.frame(mean_data_tab, mean_tab, by = "ID")
-      rm(mean_tab, tab)
+      names(temp) = rownames(data_tab)
     }
+    temp = as.data.frame(temp)
+    colnames(temp)= c
+    mean_data_tab = merge(mean_data_tab, temp, by = "row.names")
+    rownames(mean_data_tab)=mean_data_tab$Row.names
   }
-  # Passage de la colonne des ID en rowname
-  if (colnames(mean_data_tab)[1]=="ID"){
-    rownames(mean_data_tab)=mean_data_tab$ID
-    mean_data_tab = mean_data_tab[,-1]
-  }
-  ctrl_position = grep("Ctrl", colnames(mean_data_tab))
-  mean_data_tab = cbind(mean_data_tab[,ctrl_position],mean_data_tab[,-ctrl_position])
+  
+  mean_data_tab = mean_data_tab[,-grep("Row.names", colnames(mean_data_tab))]
+  
+  rm(data_tab, ctrl_pos)
+
   mean_data_tab = as.matrix(mean_data_tab)
   return(mean_data_tab)
   
@@ -105,18 +78,29 @@ OrderColumn <- function(data_tab, infodata){
   colum_order_ctrl = c()
   colum_order_rnai = c()
   
-  rnai = sub("_Veg","",infodata$Names[grep("Veg", infodata$Names)])
+  rnai = sub("Veg","",colnames(data_tab)[grep("Veg", colnames(data_tab), ignore.case = T)], ignore.case = T)
   
   for (r in rnai){
-    cluster_timing = infodata$Timing[grep(r, infodata$Names)]
-    veg_pos = grep("Veg", cluster_timing)
+    if (is.element("_ctrl",rnai)){
+      r = sub("_","",r)
+      print(r)
+      cluster_timing = sub(paste0("_",r),"",(colnames(data_tab)[grep(r, colnames(data_tab),ignore.case = T)]))
+      control = r =="ctrl"
+    }else{
+      str_sub(r,-1) = ""
+      cluster_timing = infodata$Timing[grep(r, infodata$Names)]
+      control = infodata$Feeding[grep(r, infodata$Names)][1] == "ctrl"
+    }
+    
+    veg_pos = grep("Veg", cluster_timing, ignore.case = T)
     cluster_timing = cluster_timing[-veg_pos]
     timing_pos = mixedorder(cluster_timing)
     
-    cluster_position = str_which(infodata$Names, r)
+    cluster_position = str_which(colnames(data_tab), r)
     cluster_position = cluster_position[c(veg_pos, timing_pos)]
+
     
-    if (infodata$Feeding[grep(r, infodata$Names)][1] == "ctrl"){
+    if (control == T){
       colum_order_ctrl = c(colum_order_ctrl, cluster_position)
     }else{
       colum_order_rnai = c(colum_order_rnai, cluster_position)
@@ -125,9 +109,9 @@ OrderColumn <- function(data_tab, infodata){
   }
   
   colum_order = c(colum_order_ctrl, colum_order_rnai)
-
-  ordered_tab = data_tab[,colum_order]
   
+  ordered_tab = data_tab[,colum_order]
+  colnames(ordered_tab)
   return(ordered_tab)
   
 }
@@ -501,11 +485,12 @@ library(gplots)
 MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T, sortie = "png"){
   dir.create(path,recursive=T,showWarnings=F)
   
+  data_tab = OrderColumn(data_tab, infodata)
+  
   if (moyenne == T){
     moyenne = "MOYENNE"
   }else{
     moyenne = ""
-    data_tab = OrderColumn(data_tab, infodata)
   }
   
   
@@ -517,7 +502,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
     Ylab = "expres"
   }
   
-  rnai = sub("_Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)])
+  rnai = sub("_","",sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T))
   
   c_split = c()
   for (a in rnai){

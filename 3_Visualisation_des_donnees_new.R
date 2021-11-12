@@ -12,8 +12,10 @@
 # source("0_Cluster.R")
 # source("3_Visualisation_des_donnees_fonction.R")
 # condition =  names(rnai_list)[1]
-# path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/"
-# data_tab = read.table(paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), row.names = 1, sep="\t", header = T)
+# path = "./Analyse/2021-07-09_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/test/"
+# data_tab = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=1,header =  T)
+# infodata = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_infodata_collapse.tab"), sep="\t",row.names=1,header =  T)
+# colnames(infodata)[1:2] = c("Names", "Samples")
 
 
 ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
@@ -119,21 +121,17 @@ print(paste( condition, "-----> Conception des heatmap"))
 ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
-# problème avec EZL1 a cause des EZL1bis
-MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab,infodata, condition =  condition, Log = F, sortie = "png")
 
 # Avec calcul des moyennes sur les clusters
-data_tab = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=1,header =  T)
-infodata = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_infodata_collapse.tab"), sep="\t",row.names=1,header =  T)
+mean_data_tab = MeanTabCalculation(data_tab, infodata)
+write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
 
-mean_data_tab = MeanTabCalculation(data_tab, rnai_list, cluster, condition, infodata)
-write.table(mean_data_tab,paste0(path,condition ,"_test_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
+ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
+ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-ProfilsPNG(save_path = paste0(path,"Visualisation/profils/test_"), mean_data_tab, moyenne = T, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"Visualisation/profils/test_"), mean_data_tab, moyenne = T, condition =  condition)
-
-MyHeatmaps(paste0(path,"Visualisation/Heatmap/test_"),mean_data_tab, moyenne = T, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/test_"),mean_data_tab, moyenne = T, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab,infodata, moyenne = T, condition =  condition, Log = F, sortie = "png")
 
 

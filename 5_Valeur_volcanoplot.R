@@ -14,6 +14,7 @@ UP = ALL[ALL$PGM_LATE_REGULATION == "Up-regulated" &
            ALL$XRCC4_LATE_REGULATION == "Up-regulated" &
            ALL$EZL1_LATE_REGULATION == "Up-regulated",]
 
+
 DOWN = ALL[ALL$PGM_LATE_REGULATION == "Down-regulated" &
              ALL$KU80c_LATE_REGULATION == "Down-regulated" &
              ALL$XRCC4_LATE_REGULATION == "Down-regulated" &
@@ -219,7 +220,7 @@ legend("topleft",
 dev.off()
 
 
-#### Regarder le nombre de gènes IES + parmis les différnets cathégories ###
+#### Regarder le nombre de gènes IES + parmis les différenets cathégories ###
 sink(file = NULL)
 TAB= array(dim = c(2,length(names(FILTRE_MOTIF))*length(names(FILTRE_ARNi))))
 rownames(TAB) = c("SANS_IES","AVEC_IES")

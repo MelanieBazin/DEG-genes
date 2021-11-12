@@ -83,7 +83,6 @@ OrderColumn <- function(data_tab, infodata){
   for (r in rnai){
     if (is.element("_ctrl",rnai)){
       r = sub("_","",r)
-      print(r)
       cluster_timing = sub(paste0("_",r),"",(colnames(data_tab)[grep(r, colnames(data_tab),ignore.case = T)]))
       control = r =="ctrl"
     }else{
@@ -109,9 +108,8 @@ OrderColumn <- function(data_tab, infodata){
   }
   
   colum_order = c(colum_order_ctrl, colum_order_rnai)
-  
   ordered_tab = data_tab[,colum_order]
-  colnames(ordered_tab)
+
   return(ordered_tab)
   
 }
@@ -502,7 +500,12 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
     Ylab = "expres"
   }
   
-  rnai = sub("_","",sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T))
+  rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
+  if (is.element("_ctrl",rnai)){
+    rnai = sub("_","",rnai)
+  }else{
+    str_sub(rnai,-1) = ""
+  }
   
   c_split = c()
   for (a in rnai){
@@ -534,7 +537,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
   color_vec = colorRamp2(color_vec,
                          c("white","#FEE0D2","#FB6A4A","#BD0026"))
   
-  color_vec = brewer.pal(9, "OrRd")
+  color_vec = brewer.pal(8, "OrRd")
   
   h = Heatmap(data_log_mat,
               name = Ylab,
@@ -544,7 +547,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
               cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
               show_row_names = F,
               
-              row_order = 1:nrow(data_log),
+              row_order = nrow(data_log):1,
               row_split = data_log$EXPRESSION_PROFIL,
               row_title_rot = 0,
               
@@ -563,7 +566,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
                
-               row_order = 1:nrow(data_log),
+               row_order = nrow(data_log):1,
                row_split = data_log$EXPRESSION_PROFIL,
                row_title_rot = 0,
                
@@ -581,7 +584,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
                
-               row_order = 1:nrow(data_log),
+               row_order = nrow(data_log):1,
                row_split = data_log$EXPRESSION_PROFIL,
                row_title_rot = 0,
                
@@ -598,7 +601,7 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, Log = T,
                cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
                show_row_names = F,
                
-               row_order = 1:nrow(data_log),
+               row_order = nrow(data_log):1,
                row_split = data_log$EXPRESSION_PROFIL,
                row_title_rot = 0,
                

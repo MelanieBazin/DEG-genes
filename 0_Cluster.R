@@ -40,52 +40,52 @@ cluster = list(
 
 
 #### Définition des couleur à attribuer pour les différents RNAi ###"
-veg_color = "darkorange1"
-early_color = "deepskyblue"
-inter_color = "chartreuse3"
-late_color = "red"
-very_late_color = "deeppink2"
+ clust_color = list(
+   veg = "darkorange1",
+   early = "deepskyblue",
+   inter = "chartreuse3",
+   late = "red",
+   very_late = "deeppink2"
+ )
 
-cluster_color = list()
-for(j in names(cluster)){
-  vec = cluster[[j]]
-  color = c()
-  for (i in 1:length(vec)){
-    if (vec[i] == "VEG"){
-      color=c(color,veg_color)
-    }else if (vec[i] == "EARLY"){
-      color=c(color,early_color)
-    }else if (vec[i] == "INTER"){
-      color=c(color,inter_color)
-    }else if (vec[i] == "LATE"){
-      color=c(color,late_color)
-    }else if (vec[i] == "VERY_LATE"){
-      color=c(color,very_late_color)
-    }
-  }
-  cluster_color[[j]] = color
-}
-
-seq_2014 = "chartreuse4"
-seq_2020 = "blue4"
-both = "mediumturquoise"
-
-seq_color = list()
-for(k in names(cluster)){
-  vec = cluster[[k]]
-  color = c()
-  if (is.element(k,c("XRCC4","ND7_X","CTIP","ND7_C"))){
-    color=c(color,rep(seq_2020,length(vec)))
-  }else if (is.element(k, c("KU80c","ND7_K","PGM"))){
-    color=c(color,rep(seq_2014, length(vec)))
-  }else if(is.element(k, c("ICL7", "EZL1", "ICL7bis", "EZL1bis"))){
-    color=c(color,rep(both, length(vec)))
+Culster_color <- function(data_tab, infodata, clust_color){
+  clus = c()
+  for (c in colnames(data_tab)){
+    pos = which(infodata$Names == c)
+    clus = c(clus, infodata$Cluster[pos])
   }
   
-  seq_color[[k]] = color
+  for (c in names(clust_color)){
+    pos = grep(c, clus, ignore.case = T)
+    clus[pos] = clust_color[[c]]
+  }
+  return(clus)
 }
 
-rm(i,j, k)
+batch_color = list(
+  seq_2014 = "chartreuse4",
+  seq_2020 = "blue4",
+  both = "mediumturquoise")
+
+
+Batch_color <- function(data_tab, infodata, batch_color){
+  clus = c()
+  for (c in colnames(data_tab)){
+    pos = which(infodata$Names == c)
+    if(grepl(",",infodata$runsCollapsed[pos])){
+      clus = c(clus, "both")
+    }else{
+      clus = c(clus, infodata$Batch[pos])
+    }
+  }
+  
+  for (c in names(batch_color)){
+    pos = grep(c, clus, ignore.case = T)
+    clus[pos] = batch_color[[c]]
+  }
+  return(clus)
+}
+rm(clus, pos, c)
 
 #### Definition de l'ordre des colonnes #####
 tabs = list.files("./DATA/EXPRESSION")

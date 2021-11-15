@@ -46,36 +46,26 @@ ExpressionProfils(type = "DESeq2",
                   select_ID = select_ID)
 
 ##### Analyse multi-variée des données pour clustering  #####
-
-data_tab = OrderColumn(data_tab, cluster)
-
+data_tab = OrderColumn(data_tab, infodata)
 # Créaction du vecteur de couleur par anné de séquancage
-color = colnames(data_tab)
-for (j in rnai_list[[ condition]]){
-  if(sum(grepl(j, colnames(data_tab)))>0){
-    color[grep(j, color)]=seq_color[[j]]
-  }
-}
+color = Batch_color(data_tab, infodata, batch_color)
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP couleur par année"))
-PCA_plot_generator(data_tab,colors = color,
+PCA_plot_generator(data_tab,
+                   colors = color,
                    save_path = paste0(path,"Visualisation/ACP/color2/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
-# Créaction du vecteur de couleur par cluster
-color = colnames(data_tab)
-for (j in rnai_list[[condition]]){
-  if(sum(grepl(j, colnames(data_tab)))>0){
-    color[grep(j, color)]=cluster_color[[j]]
 
-  }
-}
+# Créaction du vecteur de couleur par cluster
+color = Culster_color(data_tab, infodata, clust_color)
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-PCA_plot_generator(data_tab,colors = color,
+PCA_plot_generator(data_tab,
+                   colors = color,
                    save_path = paste0(path,"Visualisation/ACP/color4/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
@@ -128,8 +118,8 @@ MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab,infodata, conditi
 mean_data_tab = MeanTabCalculation(data_tab, infodata)
 write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
 
-ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
+# ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
+# ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
 MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition, sortie = "png")
 MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab,infodata, moyenne = T, condition =  condition, Log = F, sortie = "png")

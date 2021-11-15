@@ -252,10 +252,9 @@ library("factoextra")
 library(ggplot2)
 library(gtools)
 
-PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, sortie = "png", ...) {
+PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, sortie = "png", ...) {
   dir.create(save_path,recursive=T,showWarnings=F)
-  
-  resExp = PCA(t(Expression_Mat), graph = F)
+  resExp = PCA(t(data_tab), graph = F)
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
@@ -273,7 +272,7 @@ PCA_plot_generator <- function(Expression_Mat, colors,save_path, main,max_dim=3,
       abline(v=vline,lty=2,lwd=2)
     }
     dev.off()
-  }    
+  }  
   
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     

@@ -2,7 +2,7 @@
 #### A lancer depuis 4_Analyse.R #####
 # Permet de générer des visualisations 
 #  - des données avant et après clustering (heatmp et plot)
-#  - ACP, LDA, heatmap, clustering herarchique
+#  - ACP, heatmap, clustering herarchique
 
 #  condition correspond aux names(rnai_list) et donc aux groupe de RNA-seq analysés ensembles
 
@@ -16,7 +16,7 @@
 # data_tab = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=1,header =  T)
 # infodata = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_infodata_collapse.tab"), sep="\t",row.names=1,header =  T)
 # colnames(infodata)[1:2] = c("Names", "Samples")
-
+# 
 
 ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
 print(paste( condition, "-----> Creation BoxPlot normalise"))
@@ -39,11 +39,11 @@ dev.off()
 print("Boxplot fini")
 
 ##### Dessiner les profils d'une selection de gènes ####
-
 ExpressionProfils(type = "DESeq2", 
                   condition = "tout", 
                   file = path_dir,
                   select_ID = select_ID)
+
 
 ##### Analyse multi-variée des données pour clustering  #####
 data_tab = OrderColumn(data_tab, infodata)
@@ -111,17 +111,16 @@ print(paste( condition, "-----> Conception des heatmap"))
 ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
-MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),data_tab,infodata, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab2,infodata, condition =  condition)
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, infodata)
+mean_data_tab = OrderColumn(mean_data_tab, infodata)
 write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
 
 # ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 # ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition, sortie = "png")
-MyHeatmaps(paste0(path,"Visualisation/HeatmapNoLog/"),mean_data_tab,infodata, moyenne = T, condition =  condition, Log = F, sortie = "png")
+MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition)
 
 

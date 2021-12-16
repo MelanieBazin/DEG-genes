@@ -24,7 +24,7 @@ for (i in names(rnai_list)[1:2]){
   if (i =="tout"){
     write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
     batch = paste(infodata$Batch,infodata$Labo, sep = "_")
-    countdata2 = ComBat_seq(countdata, batch = infodata$Batch)
+    countdata2 = ComBat_seq(countdata, batch = batch)
     
     countdata = ComBat_seq(countdata, batch = batch, group = infodata$Cluster)
   } else if(i == "seq2014vs2020"){

@@ -52,7 +52,7 @@ condition = names(rnai_list)[1]
   dir.create(path,recursive=T,showWarnings=F)
   dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
   
-  ##### Analyse DESeq2 ####
+  #### Visualisation des donnée avant correction de l'effet Batch ####
   # Ouverture des fichiers countdata sans correction de l'effet Batch
   countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
   
@@ -60,9 +60,143 @@ condition = names(rnai_list)[1]
   print(paste(condition , "-----> Creation BoxPlot non-normalise"))
   # pdf(paste0(path,condition ,"_row.pdf"))
   png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_row.png"))
-    CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
+  CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
+  
+  ##### Création des groupe de pseudo-replicat ####
+  # Ouverture des fichiers avec correction de l'effet Batch sans la condition de groupe
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
+  
+  # Normalisation des données par rpkm
+  seqlength=read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.transcript.fa.seqlength",h=T)
+  rownames(seqlength)=sub("PTET.51.1.T","PTET.51.1.G",seqlength$ID)
+  
+  rpkm = matrix(data = NA,nrow = nrow(countdata),ncol = ncol(countdata))
+  colnames(rpkm) = colnames(countdata)
+  rownames(rpkm)=rownames(countdata)
+  
+  for (i in 1:(ncol(countdata))){
+    mapped_reads=sum(countdata[,i])
+    rpkm[,i] = (countdata[,i] *1e3) / (seqlength[rownames(countdata),]$LENGTH * (mapped_reads/1e6) )
+    
+  }
+  write.table(rpkm,paste0(path,condition ,"_expression_table_normaliserRPKM.tab"), sep="\t",row.names=T,quote=F)
+  
+  # ACP sur les données normalisées
+  infodata = CreatInfoData3(rpkm, conditions = condition , rnai_list, cluster)
+  data_tab = OrderColumn(rpkm, infodata)
+  
+  ## Couleur par cluster
+  color = Culster_color(rpkm, infodata, clust_color)
+  color = c()
+  for (r in colnames(data_tab)){
+    clust = infodata[r, "Cluster"]
+    if (clust == "VEG"){
+      color = c(color, clust_color["veg"])
+    } else if(clust == "EARLY" ){
+      color = c(color, clust_color["early"])
+    } else if(clust == "INTER" ){
+      color = c(color, clust_color["inter"])
+    } else if(clust == "LATE" ){
+      color = c(color, clust_color["late"])
+    }
+  }
+   
+  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
+  PCA_plot_generator(data_tab,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/ACP/RPKM_ssGRP_color4/"),
+                     main = paste0("ACP ", condition," (DESeq2)"),
+                     sortie = "png")
+  
+  ## Couleur par methode de sequencage
+  color = Culster_color(rpkm, infodata, clust_color)
+  color = c()
+  for (r in colnames(data_tab)){
+    clust = infodata[r, "Batch"]
+    if (clust == "seq_2020"){
+      color = c(color, batch_color["seq_2020"])
+    } else if(clust == "seq_2014" ){
+      color = c(color, batch_color["seq_2014"])
+    } 
+  }
+  
+  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
+  PCA_plot_generator(data_tab,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/ACP/RPKM_ssGRP_color2/"),
+                     main = paste0("ACP ", condition," (DESeq2)"),
+                     sortie = "png")
+  
+  
+  # Ouverture des fichiers avec correction de l'effet Batch avec la condition de groupe
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
+  
+  # Normalisation des données par rpkm
+  # seqlength=read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.transcript.fa.seqlength",h=T)
+  rownames(seqlength)=sub("PTET.51.1.T","PTET.51.1.G",seqlength$ID)
+  
+  rpkm = matrix(data = NA,nrow = nrow(countdata),ncol = ncol(countdata))
+  colnames(rpkm) = colnames(countdata)
+  rownames(rpkm)=rownames(countdata)
+  
+  for (i in 1:(ncol(countdata))){
+    mapped_reads=sum(countdata[,i])
+    rpkm[,i] = (countdata[,i] *1e3) / (seqlength[rownames(countdata),]$LENGTH * (mapped_reads/1e6) )
+    
+  }
+  write.table(rpkm,paste0(path,condition ,"_expression_table_normaliserRPKM_Grp.tab"), sep="\t",row.names=T,quote=F)
+  
+  # ACP sur les données normalisées
+  infodata = CreatInfoData3(rpkm, conditions = condition , rnai_list, cluster)
+  data_tab = OrderColumn(rpkm, infodata)
+  
+  ## Couleur par cluster
+  color = Culster_color(rpkm, infodata, clust_color)
+  color = c()
+  for (r in colnames(data_tab)){
+    clust = infodata[r, "Cluster"]
+    if (clust == "VEG"){
+      color = c(color, clust_color["veg"])
+    } else if(clust == "EARLY" ){
+      color = c(color, clust_color["early"])
+    } else if(clust == "INTER" ){
+      color = c(color, clust_color["inter"])
+    } else if(clust == "LATE" ){
+      color = c(color, clust_color["late"])
+    }
+  }
+  
+  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
+  PCA_plot_generator(data_tab,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/ACP/RPKM_avcGRP_color4/"),
+                     main = paste0("ACP ", condition," (DESeq2)"),
+                     sortie = "png")
+  
+  ## Couleur par methode de sequencage
+  color = Culster_color(rpkm, infodata, clust_color)
+  color = c()
+  for (r in colnames(data_tab)){
+    clust = infodata[r, "Batch"]
+    if (clust == "seq_2020"){
+      color = c(color, batch_color["seq_2020"])
+    } else if(clust == "seq_2014" ){
+      color = c(color, batch_color["seq_2014"])
+    } 
+  }
+  
+  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
+  PCA_plot_generator(data_tab,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/ACP/RPKM_avcGRP_color2/"),
+                     main = paste0("ACP ", condition," (DESeq2)"),
+                     sortie = "png")
+  
+  
+  ##### Analyse DESeq2 ####
+    
   # Ouverture des fichiers countdata avec correction de l'effet Batch sur les groupe
   countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
   

@@ -41,6 +41,7 @@ rownames(annotation)=annotation$ID
 
 #### Vecteur de couleur pour les heatmap ####
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
+hmcol = colorRampPalette(brewer.pal(9,"YlOrRd"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
 
@@ -62,138 +63,6 @@ condition = names(rnai_list)[1]
   png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_row.png"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
-  
-  
-  ##### Création des groupe de pseudo-replicat ####
-  # Ouverture des fichiers avec correction de l'effet Batch sans la condition de groupe
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
-  
-  # Normalisation des données par rpkm
-  seqlength=read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.transcript.fa.seqlength",h=T)
-  rownames(seqlength)=sub("PTET.51.1.T","PTET.51.1.G",seqlength$ID)
-  
-  rpkm = matrix(data = NA,nrow = nrow(countdata),ncol = ncol(countdata))
-  colnames(rpkm) = colnames(countdata)
-  rownames(rpkm)=rownames(countdata)
-  
-  for (i in 1:(ncol(countdata))){
-    mapped_reads=sum(countdata[,i])
-    rpkm[,i] = (countdata[,i] *1e3) / (seqlength[rownames(countdata),]$LENGTH * (mapped_reads/1e6) )
-    
-  }
-  write.table(rpkm,paste0(path,condition ,"_expression_table_normaliserRPKM.tab"), sep="\t",row.names=T,quote=F)
-  
-  # ACP sur les données normalisées
-  infodata = CreatInfoData3(rpkm, conditions = condition , rnai_list, cluster)
-  data_tab = OrderColumn(rpkm, infodata)
-  
-  ## Couleur par cluster
-  color = Culster_color(rpkm, infodata, clust_color)
-  color = c()
-  for (r in colnames(data_tab)){
-    clust = infodata[r, "Cluster"]
-    if (clust == "VEG"){
-      color = c(color, clust_color["veg"])
-    } else if(clust == "EARLY" ){
-      color = c(color, clust_color["early"])
-    } else if(clust == "INTER" ){
-      color = c(color, clust_color["inter"])
-    } else if(clust == "LATE" ){
-      color = c(color, clust_color["late"])
-    }
-  }
-   
-  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-  PCA_plot_generator(data_tab,
-                     colors = color,
-                     save_path = paste0(path,"Visualisation/ACP/RPKM_ssGRP_color4/"),
-                     main = paste0("ACP ", condition," (DESeq2)"),
-                     sortie = "png")
-  
-  ## Couleur par methode de sequencage
-  color = Culster_color(rpkm, infodata, clust_color)
-  color = c()
-  for (r in colnames(data_tab)){
-    clust = infodata[r, "Batch"]
-    if (clust == "seq_2020"){
-      color = c(color, batch_color["seq_2020"])
-    } else if(clust == "seq_2014" ){
-      color = c(color, batch_color["seq_2014"])
-    } 
-  }
-  
-  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-  PCA_plot_generator(data_tab,
-                     colors = color,
-                     save_path = paste0(path,"Visualisation/ACP/RPKM_ssGRP_color2/"),
-                     main = paste0("ACP ", condition," (DESeq2)"),
-                     sortie = "png")
-  
-  
-  # Ouverture des fichiers avec correction de l'effet Batch avec la condition de groupe
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
-  
-  # Normalisation des données par rpkm
-  # seqlength=read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.transcript.fa.seqlength",h=T)
-  rownames(seqlength)=sub("PTET.51.1.T","PTET.51.1.G",seqlength$ID)
-  
-  rpkm = matrix(data = NA,nrow = nrow(countdata),ncol = ncol(countdata))
-  colnames(rpkm) = colnames(countdata)
-  rownames(rpkm)=rownames(countdata)
-  
-  for (i in 1:(ncol(countdata))){
-    mapped_reads=sum(countdata[,i])
-    rpkm[,i] = (countdata[,i] *1e3) / (seqlength[rownames(countdata),]$LENGTH * (mapped_reads/1e6) )
-    
-  }
-  write.table(rpkm,paste0(path,condition ,"_expression_table_normaliserRPKM_Grp.tab"), sep="\t",row.names=T,quote=F)
-  
-  # ACP sur les données normalisées
-  infodata = CreatInfoData3(rpkm, conditions = condition , rnai_list, cluster)
-  data_tab = OrderColumn(rpkm, infodata)
-  
-  ## Couleur par cluster
-  color = Culster_color(rpkm, infodata, clust_color)
-  color = c()
-  for (r in colnames(data_tab)){
-    clust = infodata[r, "Cluster"]
-    if (clust == "VEG"){
-      color = c(color, clust_color["veg"])
-    } else if(clust == "EARLY" ){
-      color = c(color, clust_color["early"])
-    } else if(clust == "INTER" ){
-      color = c(color, clust_color["inter"])
-    } else if(clust == "LATE" ){
-      color = c(color, clust_color["late"])
-    }
-  }
-  
-  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-  PCA_plot_generator(data_tab,
-                     colors = color,
-                     save_path = paste0(path,"Visualisation/ACP/RPKM_avcGRP_color4/"),
-                     main = paste0("ACP ", condition," (DESeq2)"),
-                     sortie = "png")
-  
-  ## Couleur par methode de sequencage
-  color = Culster_color(rpkm, infodata, clust_color)
-  color = c()
-  for (r in colnames(data_tab)){
-    clust = infodata[r, "Batch"]
-    if (clust == "seq_2020"){
-      color = c(color, batch_color["seq_2020"])
-    } else if(clust == "seq_2014" ){
-      color = c(color, batch_color["seq_2014"])
-    } 
-  }
-  
-  print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-  PCA_plot_generator(data_tab,
-                     colors = color,
-                     save_path = paste0(path,"Visualisation/ACP/RPKM_avcGRP_color2/"),
-                     main = paste0("ACP ", condition," (DESeq2)"),
-                     sortie = "png")
-  
   
   ##### Analyse DESeq2 ####
     
@@ -263,11 +132,23 @@ condition = names(rnai_list)[1]
     source("3_Analyse_DESeq2.R")
     
     print(paste(condition, ": Analyse des donnee fini pour ----->",  RNAi))
+    
+    data_tab = assay(vst(deseq, blind = T))
+    data_tab = as.matrix(data_tab)
+    keep = c(grep("ICL7",colnames(data_tab)),grep("ND7",colnames(data_tab)),grep(RNAi,colnames(data_tab)))
+    data_tab = data_tab[,keep]
+    
+    path_img = paste0(path_dir,condition ,"/Visualisation/")
+
+    
+  
+    
   }
   
   #### Lancer les visulalisation des données ####
   # data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
-  data_tab = counts(deseq,normalized=T)
+  # data_tab = counts(deseq,normalized=T)
+  data_tab = assay(vst(deseq, blind = T))
   data_tab = as.matrix(data_tab)
   path = paste0(path_dir,condition ,"/Visualisation/")
   

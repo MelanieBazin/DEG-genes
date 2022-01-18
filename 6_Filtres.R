@@ -7,6 +7,7 @@ path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/
 infogenes = read.table(paste0(path,"Resumer_DEgenes.tab"), header = T)
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 
+motif = read.table(paste0(path, "MOTIF/Motif_dans_prom/Motif_intermed/Parmis_tous_les_genes/fimo_IN_MAC_CDS_motif.tab"), header=T,sep="\t")
 
 Tous_les_genes = unique(na.omit(infogenes$ID))
 Genes_codant = unique(na.omit(infogenes$ID[infogenes$TYPE == "Coding Gene"]))

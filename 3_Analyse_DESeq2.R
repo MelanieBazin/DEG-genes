@@ -5,8 +5,9 @@
 notAllZero = (rowSums(counts(deseq)) > 0 )
 labels=colnames(countdata)
 
-countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE))
-
+# countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE))
+countsTableNorm = as.data.frame(assay(vst(deseq, blind = F)))
+  
 #### Comparaison point par point des différents timing ####
 time_points = infodata$Condition
 comparisons = list(
@@ -65,20 +66,7 @@ for(i in names(comparisons)) {
     
     
     resContrast_sig = as.data.frame(resContrast_sig)
-    
-    ############ Zone de test de FC adapté aux données CTIP #################
-    # manuel_non_DEG=c("PTET.51.1.G0660118", "PTET.51.1.G1790042", "PTET.51.1.G0030302","PTET.51.1.G1740049","PTET.51.1.G0350134","PTET.51.1.G0230191","PTET.51.1.G0210241","PTET.51.1.G0770102","PTET.51.1.G0220178", "PTET.51.1.G0990073", "PTET.51.1.G0480035", "PTET.51.1.G0370168", "PTET.51.1.G0360062", "PTET.51.1.G1460025", "PTET.51.1.G0170355", "PTET.51.1.G0250220", "PTET.51.1.G0950175", "PTET.51.1.G0170354", "PTET.51.1.G0460033", "PTET.51.1.G1110086", "PTET.51.1.G1280115", "PTET.51.1.G1510135", "PTET.51.1.G1630015", "PTET.51.1.G0640197")
-    # manuel_DEG_down = c("PTET.51.1.G0540024","PTET.51.1.G0900102","PTET.51.1.G0020380","PTET.51.1.G0120328","PTET.51.1.G0870035","PTET.51.1.G0360066","PTET.51.1.G1010039","PTET.51.1.G0150242","PTET.51.1.G0980137","PTET.51.1.G0170233","PTET.51.1.G0120245","PTET.51.1.G0380022","PTET.51.1.G0230222","PTET.51.1.G0920155","PTET.51.1.G0490162","PTET.51.1.G0070121","PTET.51.1.G0610198","PTET.51.1.G1200062","PTET.51.1.G0680113","PTET.51.1.G1300067","PTET.51.1.G1400105","PTET.51.1.G0030168","PTET.51.1.G0380073","PTET.51.1.G0450225","PTET.51.1.G0620215","PTET.51.1.G0050231","PTET.51.1.G0020217","PTET.51.1.G0350154","PTET.51.1.G0350166","PTET.51.1.G0240239","PTET.51.1.G0010374","PTET.51.1.G0480099","PTET.51.1.G0080368","PTET.51.1.G0210235","PTET.51.1.G0110289","PTET.51.1.G1530110","PTET.51.1.G0260051","PTET.51.1.G1150114","PTET.51.1.G0590028","PTET.51.1.G0340197","PTET.51.1.G0110267","PTET.51.1.G1140146","PTET.51.1.G0350167","PTET.51.1.G0370136","PTET.51.1.G0210213","PTET.51.1.G0220140","PTET.51.1.G0360089","PTET.51.1.G0010451","PTET.51.1.G0020335","PTET.51.1.G0250013","PTET.51.1.G1330044","PTET.51.1.G0060034","PTET.51.1.G0530071")
-    # manuel_non_DEG = as.data.frame(resContrast)[is.element(row.names(as.data.frame(resContrast)),manuel_non_DEG),]
-    # summary(manuel_non_DEG)
-    # manuel_DEG_down = as.data.frame(resContrast)[is.element(row.names(as.data.frame(resContrast)), manuel_DEG_down),]
-    # summary(manuel_DEG_down)
-    # 
-    # log2FC = list(manuel_non_DEG$log2FoldChange, manuel_DEG_down$log2FoldChange)
-    # names(log2FC) =c("Non DEG", "DEG")
-    # boxplot(log2FC, main = paste("log2FC","\n",i), horizontal=F)
-    ##############
-    
+  
     # Initialisation du 1er set de data : sans filtre => aucun gènes supprimés
     datasets=list("NoFilter"=resContrast_sig)
     

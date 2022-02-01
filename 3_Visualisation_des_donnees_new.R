@@ -94,12 +94,11 @@ for (distance in c("Pearson", "Spearman")){
   
   for (method in c("kmeans", "HCL")){
     print(paste(distance, method))
-    png(paste0(path,"4Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
-    Clustering(matDist = matDist,
-               nb_cluster = 5,
-               method = method,
-               titre = paste("DESeq2", condition),
-               colors = color)
+    png(paste0(path,"Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
+    res = hclust(matDist)
+    #Fait un dendrogramme
+    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
+    print(p)
     dev.off()
   }
 }
@@ -111,7 +110,7 @@ print(paste( condition, "-----> Conception des heatmap"))
 ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
-MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab2,infodata, condition =  condition)
+MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition)
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, infodata)

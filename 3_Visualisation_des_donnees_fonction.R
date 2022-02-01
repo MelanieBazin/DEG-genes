@@ -583,6 +583,62 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, color = 
   
 }
 
+
+MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
+  data_log = log(data_tab+1)
+  
+  rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
+  if (is.element("_ctrl",rnai)){
+    rnai = sub("_","",rnai)
+  }else{
+    str_sub(rnai,-1) = ""
+  }
+  
+  c_split = c()
+  for (a in rnai){
+    x = grep(a, colnames(data_log))
+    c_split = c(c_split,rep(a,length(x)))
+  }
+  
+  # Ajout des annotation au tableau
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
+  data_log = merge(data_log, annotation, by = 0)
+  rownames(data_log) = data_log$Row.names
+  data_log= data_log[,-1]
+  
+  # Ordonner les lignes par valeur de log du plus grand au plus petit
+  data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
+  colnames(data_log)[1] = "MAX"
+  data_log = data_log[order(data_log$MAX, decreasing = T),]
+  
+  # Ordonner les lignes par profils d'expression
+  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
+  
+  # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
+  data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
+  data_log_mat = as.matrix(data_log_mat)
+  
+  
+  
+  
+  
+  heatmap.2(data_log_mat,
+            Rowv=NULL,
+            Colv=NULL,
+            rowsep = data_log$EXPRESSION_PROFIL,
+            colsep = c_split,
+            scale="row",
+            labRow="",
+            # col=hmcol,
+            trace="none",
+            dendrogram = c("none"),
+            main=paste("Test"))
+}
+
+
+
+
+
 # plotGenes fait par Gaëlle
 plotGenes <- function(expData, title = "", yMax = NULL, meanProfile = TRUE){
   

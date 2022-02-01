@@ -12,12 +12,8 @@ feed = c()
 
 rnai_list = list(
   tout = tout,
-  seq2014vs2020 = tout[which(is.element(tout,c("EZL1bis","ICL7bis","EZL1", "ICL7" )))],
-  Sandra2014 = tout[which(is.element(tout,c("EZL1", "ICL7" )))],
-  Sandra2020 = tout[which(is.element(tout,c("EZL1bis","ICL7bis")))],
-  sequencage_2014 = tout[which(is.element(tout,c("KU80c","ND7_K","PGM", "ICL7" )))],
-  XRCC4seul = tout[which(is.element(tout, c("XRCC4","ND7_X")))],
-  CTIPseulctrl2020 = tout[which(is.element(tout, c("CTIP","ND7_C", "ND7_X")))]
+  HiSeqvsNextSeq = tout[which(is.element(tout,c("EZL1bis","ICL7bis","EZL1", "ICL7" )))],
+  analyseDE = tout[which(!is.element(tout,c("EZL1bis","EZL1" )))]
 )
 rm(tout)
 
@@ -28,7 +24,7 @@ cluster = list(
   EZL1 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   EZL1bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
   
-  ND7_K = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
+  ND7_K = c(rep("VEG",1),rep("EARLY",2),rep("INTER",1),rep("LATE",3)),
   PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
   KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   
@@ -85,7 +81,6 @@ Batch_color <- function(data_tab, infodata, batch_color){
   }
   return(clus)
 }
-rm(clus, pos, c)
 
 #### Definition de l'ordre des colonnes #####
 tabs = list.files("./DATA/EXPRESSION")

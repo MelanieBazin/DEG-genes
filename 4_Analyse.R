@@ -41,6 +41,7 @@ rownames(annotation)=annotation$ID
 
 #### Vecteur de couleur pour les heatmap ####
 hmcol = colorRampPalette(brewer.pal(10,"RdBu"))(255)
+hmcol = colorRampPalette(brewer.pal(9,"YlOrRd"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
 
@@ -52,7 +53,7 @@ condition = names(rnai_list)[1]
   dir.create(path,recursive=T,showWarnings=F)
   dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
   
-  ##### Analyse DESeq2 ####
+  #### Visualisation des donnée avant correction de l'effet Batch ####
   # Ouverture des fichiers countdata sans correction de l'effet Batch
   countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
   
@@ -60,9 +61,11 @@ condition = names(rnai_list)[1]
   print(paste(condition , "-----> Creation BoxPlot non-normalise"))
   # pdf(paste0(path,condition ,"_row.pdf"))
   png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_row.png"))
-    CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
+  CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
+  ##### Analyse DESeq2 ####
+    
   # Ouverture des fichiers countdata avec correction de l'effet Batch sur les groupe
   countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
   
@@ -129,11 +132,23 @@ condition = names(rnai_list)[1]
     source("3_Analyse_DESeq2.R")
     
     print(paste(condition, ": Analyse des donnee fini pour ----->",  RNAi))
+    
+    data_tab = assay(vst(deseq, blind = T))
+    data_tab = as.matrix(data_tab)
+    keep = c(grep("ICL7",colnames(data_tab)),grep("ND7",colnames(data_tab)),grep(RNAi,colnames(data_tab)))
+    data_tab = data_tab[,keep]
+    
+    path_img = paste0(path_dir,condition ,"/Visualisation/")
+
+    
+  
+    
   }
   
   #### Lancer les visulalisation des données ####
   # data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
-  data_tab = counts(deseq,normalized=T)
+  # data_tab = counts(deseq,normalized=T)
+  data_tab = assay(vst(deseq, blind = T))
   data_tab = as.matrix(data_tab)
   path = paste0(path_dir,condition ,"/Visualisation/")
   

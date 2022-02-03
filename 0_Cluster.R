@@ -6,12 +6,7 @@ rownames(annotation)=annotation$ID
 #### Définition des ARNi à analyser ensembles ####
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
 
-# Ordonner avec les controles en premiers
-ctl = c()
-feed = c()
-
 rnai_list = list(
-  tout = tout,
   HiSeqvsNextSeq = tout[which(is.element(tout,c("EZL1bis","ICL7bis","EZL1", "ICL7" )))],
   analyseDE = tout[which(!is.element(tout,c("EZL1bis","EZL1" )))]
 )
@@ -24,7 +19,7 @@ cluster = list(
   EZL1 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   EZL1bis = c(rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
   
-  ND7_K = c(rep("VEG",1),rep("EARLY",2),rep("INTER",1),rep("LATE",3)),
+  ND7_K = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
   KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   

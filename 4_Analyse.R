@@ -66,8 +66,8 @@ condition = names(rnai_list)[1]
   
   ##### Analyse DESeq2 ####
     
-  # Ouverture des fichiers countdata avec correction de l'effet Batch sur les groupe
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
+  # Ouverture des fichiers countdata avec correction de l'effet Batch sans les groupe
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
   
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)

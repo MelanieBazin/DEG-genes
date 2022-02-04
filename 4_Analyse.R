@@ -19,7 +19,7 @@ source("3_Functions_AnalyeDESeq2.R")
 # data_tab = read.table("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab", row.names = 1, sep="\t", header = T)
 
 
-analyseName = paste0("Analyse_DESeq2_tout_CombatON")
+analyseName = paste0("Analyse_DESeq2_CombatON")
 
 #### Definiton des variables DESeq2 ####
 FC = 1.5 #Mini 1.5 -> XRCC4 = 2
@@ -45,8 +45,7 @@ hmcol = colorRampPalette(brewer.pal(9,"YlOrRd"))(255)
 #hmcol = colorRampPalette(brewer.pal(9,"GnBu"))(100)
 hmcol = rev(hmcol)
 
-condition = names(rnai_list)[1]
-# for (condition in names(rnai_list)){
+for (condition in names(rnai_list)){
   print(paste("On analyse le jeu de donnee :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
   
   path = paste0(path_dir,condition ,"/")
@@ -82,41 +81,37 @@ condition = names(rnai_list)[1]
   deseq = collapseReplicates(deseq, 
                              groupby = deseq$Samples, 
                              run     = deseq$Names)
-
-  write.table(as.data.frame(colData(deseq)),paste0(path,condition ,"_infodata_collapse.tab"), sep="\t",row.names=T,quote=F)
+  
+  infodata_collapse = as.data.frame(colData(deseq))
+  write.table(infodata_collapse,paste0(path,condition ,"_infodata_collapse.tab"), sep="\t",row.names=T,quote=F)
   
   # Analyse DESeq2
   print(paste(condition , "-----> Analyse DESeq2"))
   deseq = DESeq(deseq)
-  
 
-  
-  
   # Graphique du paramètre de dispersion
   # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
   png(paste0(path_dir,condition ,"/Visualisation/Dipression_DESeq2.png"))
   plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
 
-  
   # Récupération des données de comptage normalisées
   data_tab = counts(deseq,normalized=T)
   
   write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
   write.table(infodata,paste0(path,condition ,"_infodataDESeq2.tab"), sep="\t",row.names=T,quote=F)
-  
 
-  
-  
-  
   #### Lancer l'analyse de gènes dérégulés ####
 
   # Definir les condition à analyser
-  RNAi_list = unique(rnai_list[[condition ]][-grep("ND7",rnai_list[[condition ]])])
+  RNAi_list = unique(rnai_list[[condition ]])
   if (is.element("ICL7", RNAi_list)){
     RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
   }
-  RNAi = RNAi_list[1]
+  if (is.element("ND7", RNAi_list)){
+    RNAi_list = RNAi_list[-grep("ND7",RNAi_list)]
+  }
+  
   # Regarder la derégulation dnas chaque condition
   for (RNAi in RNAi_list){
     print(paste(condition, ": Analyse des donnees pour  ----->", RNAi ))
@@ -139,10 +134,7 @@ condition = names(rnai_list)[1]
     data_tab = data_tab[,keep]
     
     path_img = paste0(path_dir,condition ,"/Visualisation/")
-
-    
-  
-    
+   
   }
   
   #### Lancer les visulalisation des données ####
@@ -156,5 +148,7 @@ condition = names(rnai_list)[1]
   source("3_Visualisation_des_donnees_new.R")
 
   
+  
   print(paste("Visualisation des donnee fini pour", condition ))
-# }
+}
+

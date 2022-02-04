@@ -38,9 +38,9 @@ dev.off()
 
 print("Boxplot fini")
 
-##### Dessiner les profils d'une selection de gènes ####
-ExpressionProfils(type = "DESeq2", 
-                  condition = "tout", 
+# ##### Dessiner les profils d'une selection de gènes ####
+ExpressionProfils(type = "DESeq2",
+                  condition = condition,
                   file = path_dir,
                   select_ID = select_ID)
 
@@ -48,7 +48,7 @@ ExpressionProfils(type = "DESeq2",
 ##### Analyse multi-variée des données pour clustering  #####
 data_tab = OrderColumn(data_tab, infodata)
 # Créaction du vecteur de couleur par anné de séquancage
-color = Batch_color(data_tab, infodata, batch_color)
+color = Batch_color(data_tab, infodata_collapse, batch_color)
 
 # Analyse en composante principale
 print(paste( condition, "-----> Analyse ACP couleur par année"))
@@ -75,20 +75,19 @@ PCA_plot_generator(data_tab,
 print(paste( condition, "-----> Clustering en cours"))
 dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)
 for (distance in c("Pearson", "Spearman")){
-  png(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){
     matDist = as.matrix(cor(data_tab))
     p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
-    print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
     
   }else if (distance == "Spearman"){
     matDist = as.matrix(cor(data_tab,method="spearman"))
     p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
-    print(p)
     matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
   }
+  png(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+  print(p)
   dev.off()
   
   
@@ -110,7 +109,7 @@ print(paste( condition, "-----> Conception des heatmap"))
 ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
 
-MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition)
+# MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition)
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, infodata)
@@ -120,6 +119,6 @@ write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normalis
 # ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 # ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
 
-MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition)
+# MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition)
 
 

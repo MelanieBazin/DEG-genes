@@ -586,10 +586,10 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, color = 
 }
 
 ### test zone variable ####
-path = "./Analyse/2022-01-14_Clustering_groupe/analyseDE/"
-data_tab = read.table(paste0(path, "analyseDE_expression_table_vst.tab"), header = T, sep = "\t")
-
-
+# path = "./Analyse/2022-01-14_Clustering_groupe/analyseDE/"
+# data_tab = read.table(paste0(path, "analyseDE_expression_table_vst.tab"), header = T, sep = "\t")
+# 
+# 
 
 ####
 

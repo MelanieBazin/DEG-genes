@@ -29,10 +29,10 @@ for (corr in c("Corrected", "Uncorrected")){
   
   if (corr == "Uncorrected"){
     # Ouverture des fichiers sans correction de l'effet Batch
-    countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
+    countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
   }else if (corr == "Corrected"){
     # Ouverture des fichiers avec correction de l'effet Batch sans la condition de groupe
-    countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
+    countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_corrected.tab"), sep="\t",row.names=1,header =  T)
   }
   
   ##### Analyse DESeq2 ####
@@ -50,21 +50,6 @@ for (corr in c("Corrected", "Uncorrected")){
                              groupby = deseq$Samples,
                              run     = deseq$Names)
   
-  color = c()
-  for (r in colnames(deseq)){
-    clust = infodata[r, "Cluster"]
-    if (clust == "VEG"){
-      color = c(color, clust_color["veg"])
-    } else if(clust == "EARLY" ){
-      color = c(color, clust_color["early"])
-    } else if(clust == "INTER" ){
-      color = c(color, clust_color["inter"])
-    } else if(clust == "LATE" ){
-      color = c(color, clust_color["late"])
-    }
-  }
-  
-  
   # Analyse DESeq2
   deseq = DESeq(deseq)
   
@@ -73,10 +58,12 @@ for (corr in c("Corrected", "Uncorrected")){
   vsd = assay(vst(deseq, blind = T))
   write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
   
+  color = Culster_color(condition)
+  
   PCA_plot_generator(vsd,
                      colors = color,
-                     save_path = paste0(path,"Visualisation/ACP/"),
-                     main = paste0("ACP ", condition," (vst)"),
+                     save_path = paste0(path,"Visualisation/PCA/"),
+                     main = paste0("PCA ", condition," (vst)"),
                      sortie = "png")
   
   matDist = as.dist(1-cor(log2(vsd+1), method="pearson"))

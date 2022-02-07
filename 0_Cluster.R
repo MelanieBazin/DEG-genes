@@ -31,7 +31,7 @@ cluster = list(
 
 
 #### Définition des couleur à attribuer pour les différents RNAi ###"
-cluster_color = list(
+Cluster_color = list(
    veg = "darkorange1",
    early = "deepskyblue",
    inter = "chartreuse3",
@@ -39,42 +39,52 @@ cluster_color = list(
    very_late = "deeppink2"
  )
 
-Culster_color <- function(data_tab, infodata, clust_color){
-  clus = c()
-  for (c in colnames(data_tab)){
-    pos = which(infodata$Names == c)
-    clus = c(clus, infodata$Cluster[pos])
+Culster_color <- function(condition, list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
+  color = c()
+  for (r in list[[condition]]){
+    for (clust in cluster_list[[r]]){
+      if (clust == "VEG"){
+        color = c(color, cluster_color[["veg"]])
+      } else if(clust == "EARLY" ){
+        color = c(color, cluster_color[["early"]])
+      } else if(clust == "INTER" ){
+        color = c(color, cluster_color[["inter"]])
+      } else if(clust == "LATE" ){
+        color = c(color, cluster_color[["late"]])
+      }
+    }
   }
-  
-  for (c in names(clust_color)){
-    pos = grep(c, clus, ignore.case = T)
-    clus[pos] = clust_color[[c]]
-  }
-  return(clus)
+  return(color)
 }
 
-batch_color = list(
-  Hiseq = "chartreuse4",
-  Nextseq = "blue4",
+Method_color = list(
+  HiSeq = "chartreuse4",
+  NextSeq = "blue4",
   both = "mediumturquoise")
 
 
-Batch_color <- function(data_tab, infodata, batch_color){
-  clus = c()
-  for (c in colnames(data_tab)){
-    pos = which(infodata$Names == c)
-    if(grepl(",",infodata$runsCollapsed[pos])){
-      clus = c(clus, "both")
+Batch_color <- function(condition, collapse = "NO" , list= rnai_list, color_list = Method_color){
+  seq_color = c()
+  for (j in list[[condition]]){
+    if (collapse == "NO"){
+      if (is.element(j,c("ICL7bis", "EZL1bis", "XRCC4", "CTIP", "ND7_C", "ND7_X"))){
+        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster[[j]])))
+      }else if (is.element(j, c("ICL7", "EZL1", "ND7_K", "KU80c", "PGM"))){
+        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster[[j]])))
+      }
     }else{
-      clus = c(clus, infodata$Seq_method[pos])
+      if (is.element(j,c("ICL7_bis", "EZL1_bis","ICL7", "EZL1"))){
+        seq_color=c(seq_color,rep(color_list[["both"]],length(cluster[[j]])))
+      }else if (is.element(j,c("XRCC4", "CTIP", "ND7_C", "ND7_X"))){
+        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster[[j]])))
+      }else if (is.element(j, c("ND7_K", "KU80c", "PGM"))){
+        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster[[j]])))
+      }
     }
+    
   }
   
-  for (c in names(batch_color)){
-    pos = grep(c, clus, ignore.case = T)
-    clus[pos] = batch_color[[c]]
-  }
-  return(clus)
+  return(seq_color)
 }
 
 #### Definition de l'ordre des colonnes #####

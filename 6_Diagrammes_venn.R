@@ -238,4 +238,15 @@ ggvenn(selection,
        set_name_color = c(up, ctip))
 dev.off()
 
-
+#### Digramme de Venn avec Motif
+selection = list(UP_PKX_inter, Genes_codant, unique(motif$sequence_name))
+names(selection)=c("UP_PKX_inter", "Genes_codant", "Motif")
+png(paste0(path_venn,"Venn_UP_inter_motif.png"))
+ggvenn(selection,
+       fill_color = c(up, ctip, early),
+       stroke_size = 0.5,
+       set_name_size = 7,
+       show_percentage = F,
+       text_size = 7,
+       set_name_color = c(up, ctip, early))
+dev.off()

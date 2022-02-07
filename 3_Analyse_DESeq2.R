@@ -1,13 +1,11 @@
+# Tourne sous R3
 
-###############################################
-# Reprise des variables et analyses d'Olivier #
-###############################################
 notAllZero = (rowSums(counts(deseq)) > 0 )
 labels=colnames(countdata)
 
 # countsTableNorm=as.data.frame(counts(deseq,normalized=TRUE))
 countsTableNorm = as.data.frame(assay(vst(deseq, blind = F)))
-  
+
 #### Comparaison point par point des différents timing ####
 time_points = infodata$Condition
 comparisons = list(
@@ -15,7 +13,6 @@ comparisons = list(
   "EARLY" = unique(time_points[grep("EARLY",time_points)]),
   "INTER" = unique(time_points[grep("INTER",time_points)]),
   "LATE" = setdiff(unique(time_points[grep("LATE",time_points)]),unique(time_points[grep("VERY_LATE",time_points)]))
-  # "V_LATE" = unique(time_points[grep("VERY_LATE",time_points)])
 )
 
 regulation=c("Up-regulated","Down-regulated")
@@ -59,278 +56,215 @@ for(i in names(comparisons)) {
          main = paste(condition,i,"p-value density"),
          xlab = "-log(padj)")
     dev.off()
-    ######
+    
+    #### Resulta contrast ####
     
     resContrast_sig = resContrast[ !is.na(resContrast$padj) & resContrast$padj < pvalue , ]
     resContrast_sig = resContrast_sig[ resContrast_sig$log2FoldChange >= log2(FC) | resContrast_sig$log2FoldChange <= log2(1/FC), ]
     
     
     resContrast_sig = as.data.frame(resContrast_sig)
-  
+    
     # Initialisation du 1er set de data : sans filtre => aucun gènes supprimés
     datasets=list("NoFilter"=resContrast_sig)
+    dname = names(datasets)
     
-    # Créaction d'une liste contenant les donné de compatge pour tous les filtres
+    #### Créaction des dossiers d'enregistrement ####
+    img_dir=paste0(base_img_dir,"/")
+    dir.create(img_dir,recursive=T,showWarnings=F)
     
-    for(fname in names(Filtering)) {
-      datasets[[fname]]=resContrast_sig[setdiff(rownames(resContrast_sig),Filtering[[fname]]),]
-      #print(paste(i,fname,nrow(resContrast_sig),length(Filtering[[fname]]),dim(datasets[[fname]])[1]))
-    }
+    res_dir=paste0(base_res_dir,"/")
+    dir.create(res_dir, showWarnings = FALSE,recursive=T)
     
-    # Pour chacun des jeux de données filtrés ou non
-    for(dname in names(datasets)) {
+    
+    #### Création du tableau contennat les gènes significativement identifier comme déréguler ####
+    res=as.data.frame(datasets[[dname]])
+    
+    
+    res=res[,c("baseMean","log2FoldChange","padj")]
+    res$REGULATION=ifelse(res$log2FoldChange>0,"Up-regulated","Down-regulated")
+    res.annot= merge(res,annotation,by.x="row.names",by.y="ID")
+    res.annot=res.annot[order(res.annot$padj), ]
+    colnames(res.annot)[1]="ID"
+    
+    write.table(res.annot,paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,".tab"),sep="\t",quote=F,row.names=F)
+    
+    #### Etude des significatif ####
+    
+    
+    significant_up[[dname]]=c(significant_up[[dname]],rownames(res[res$REGULATION=="Up-regulated",]))
+    significant_down[[dname]]=c(significant_down[[dname]],rownames(res[res$REGULATION=="Down-regulated",]))    
+    
+    
+    if(dim(res)[1] !=0) {
+      res_vp=as.data.frame(resContrast)
+      res_vp$SIGNIFICANT=FALSE
+      res_vp[which(is.element(rownames(res_vp),rownames(res))),]$SIGNIFICANT=TRUE
       
-      #### Créaction des dossiers d'enregistrement ####
-      img_dir=paste0(base_img_dir,"/",dname,"/")
-      dir.create(img_dir,recursive=T,showWarnings=F)
+      #### Création des volcanoplot pour cette comparaison ####
+      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,".png"), width = 6, height = 6, units = 'in', res = 300)
+      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      dev.off()
       
-      res_dir=paste0(base_res_dir,"/",dname,"/")
-      dir.create(res_dir, showWarnings = FALSE,recursive=T)
-      #####
-      
-      #### Création du tableau contennat les gènes significativement identifier comme déréguler ####
-      res=as.data.frame(datasets[[dname]])
-      #print(paste(i,dname,dim(res)[1]))
-      
-      res=res[,c("baseMean","log2FoldChange","padj")]
-      res$REGULATION=ifelse(res$log2FoldChange>0,"Up-regulated","Down-regulated")
-      res.annot= merge(res,annotation,by.x="row.names",by.y="ID")
-      res.annot=res.annot[order(res.annot$padj), ]
-      colnames(res.annot)[1]="ID"
-      
-      write.table(res.annot,paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,".tab"),sep="\t",quote=F,row.names=F)
-      
-
-      
-      #####
-      
-      
-      significant_up[[dname]]=c(significant_up[[dname]],rownames(res[res$REGULATION=="Up-regulated",]))
-      significant_down[[dname]]=c(significant_down[[dname]],rownames(res[res$REGULATION=="Down-regulated",]))    
-      
-      
-      if(dim(res)[1] !=0) {
-        res_vp=as.data.frame(resContrast)
-        res_vp$SIGNIFICANT=FALSE
-        res_vp[which(is.element(rownames(res_vp),rownames(res))),]$SIGNIFICANT=TRUE
-        
-        ##### Création des volcanoplot pour cette comparaison ####
-        png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,".png"), width = 6, height = 6, units = 'in', res = 300)
-        plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-        dev.off()
-        
-        # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
-        png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300)
-        plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-        for(s in annotation_synonyms$ID) {
-          if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
-            points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
-            text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$NAME[grep(s,annotation_synonyms$ID)])
-          }
+      # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
+      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300)
+      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      for(s in annotation_synonyms$ID) {
+        if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
+          points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
+          text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$NAME[grep(s,annotation_synonyms$ID)])
         }
-        dev.off()
-        
-        ##### Volcanoplot avec nom choisis #####
-        png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
-          plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-          for(id in select_ID) {
-            #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
-            points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
-            text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),annotation_synonyms$NAME[grep(id,annotation_synonyms$ID)])
-            #}
-          }
-        dev.off()
-        #####
-        
-        
-        ###### Création des heatmap pour cette comparaison ####
-        for (r in regulation){
-          if(nrow(res[res$REGULATION==r,]) >2) {
-            data=countsTableNorm[rownames(res[res$REGULATION==r,]),]
-            hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-            
-            png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-            par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-            heatmap.2(as.matrix(log2(data+1)),
-                      Rowv=as.dendrogram(hcGenes), Colv=NULL, 
-                      scale="row", labRow="",trace="none", col = hmcol,
-                      dendrogram = c("none"),main=paste(i," ",r,"N=",dim(data)[1]))
-            dev.off()
-          }
-        }
-        
       }
-    }  
-  }
+      dev.off()
+      
+      #### Volcanoplot avec nom choisis #####
+      png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
+      plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
+      for(id in select_ID) {
+        #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
+        points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
+        text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),annotation_synonyms$NAME[grep(id,annotation_synonyms$ID)])
+        #}
+      }
+      dev.off()
+      
+      
+      
+      ### Création des heatmap pour cette comparaison ####
+      for (r in regulation){
+        if(nrow(res[res$REGULATION==r,]) >2) {
+          data=countsTableNorm[rownames(res[res$REGULATION==r,]),]
+          hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
+          
+          png(paste(img_dir,"heatmap_",condition,"_",i,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+          par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+          heatmap.2(as.matrix(log2(data+1)),
+                    Rowv=as.dendrogram(hcGenes), Colv=NULL, 
+                    scale="row", labRow="",trace="none", col = hmcol,
+                    dendrogram = c("none"),main=paste(i," ",r,"N=",dim(data)[1]))
+          dev.off()
+        }
+      }
+      
+    }
+  }  
 }
 
+
+significant_up[[dname]]=c(significant_up[[dname]],rownames(res[res$REGULATION=="Up-regulated",]))
+significant_down[[dname]]=c(significant_down[[dname]],rownames(res[res$REGULATION=="Down-regulated",]))    
 
 print(paste("Comparaison des dereguler en ", RNAi, "a d'autre donnees" ))
 
-#### Boucle sur tous les filtres utilisés ####
-for(dname in unique(c(names(significant_up),names(significant_down)))) {
-  
-  ##### Créaction des dossiers d'enregistrement ####
-  # Crée les dossier s'ils n'ont pas été créer par la boucle précédente
-  img_dir=paste0(base_img_dir,"/",dname,"/")
-  dir.create(img_dir,recursive=T,showWarnings=F)
-  
-  res_dir=paste0(base_res_dir,"/",dname,"/")
-  dir.create(res_dir,recursive=T,showWarnings=F)
-  #####
-  
-  # Récupère les ID des gènes dérégulés identififé avec le filtre "dname"
-  significant_up_ids=unique(significant_up[[dname]])
-  significant_down_ids=unique(significant_down[[dname]])
-  
-  # png(paste(img_dir,"venn_",condition,"_",dname,"_Up_Down_both-regulated.png",sep=""))
-  # ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
-  # dev.off()
-  
-  ##### Création du tableau contenant les gènes dérégulés ####
-  DEgenes=data.frame(ID=significant_up_ids,REGULATION="Up-regulated")
-  DEgenes=rbind(DEgenes,data.frame(ID=setdiff(significant_down_ids,significant_up_ids),REGULATION="Down-regulated"))
-  rownames(DEgenes)=DEgenes$ID
-  if(length(intersect(significant_up_ids,significant_down_ids))!=0) {
-    DEgenes[intersect(significant_up_ids,significant_down_ids),]$REGULATION="Both"
-  }
-  #table(DEgenes$REGULATION)
-  write.table(merge(DEgenes,annotation,by="ID"),
-              paste0(res_dir,"DEgenes_",condition,"_",dname,".tab"),sep="\t",quote=F,row.names=F,col.names=T)
-  #####
-  
-  # Récuprération des ID des gènes UP et DOWN (exclu les "both") 
-  significant_up_ids=DEgenes[DEgenes$REGULATION=="Up-regulated",]$ID
-  significant_down_ids=DEgenes[DEgenes$REGULATION=="Down-regulated",]$ID
-  
-  #### Représentation des gènes up et down reguler par digramme de Venn, boxplot et heat map ####
-  # png(paste(img_dir,"venn_",condition,"_",dname,"_Up_and_Down-regulated.png",sep=""))
-  # ggvenn(list("Up-regulated"=significant_up_ids,"Down-regulated"=significant_down_ids), stroke_size = 0.5, set_name_size = 4)
-  # dev.off()
-  
-  for (r in regulation){
-    data=countsTableNorm[significant_up_ids,]
-    hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
-    
-    png(paste(img_dir,"heatmap_",condition,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
-    par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-    heatmap.2(as.matrix(log2(data+1)),
-              Rowv=as.dendrogram(hcGenes), Colv=NULL,
-              scale="row", labRow="",trace="none", col = hmcol,
-              dendrogram = c("none"),main=paste(r,"N=",dim(data)[1]))
-    dev.off()
-    
-    png(paste(img_dir,"boxplot_",condition,"_",dname,"_",r,".png",sep=""))
-    par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
-    boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
-    dev.off()
-  }
-  
-  #####
-  
-  significant_ids=unique(c(significant_up_ids,significant_down_ids))
-  
-  if(dname == "NoFilter" & !is.null(names(Filtering))) {
-    
-    # for(fname in names(Filtering)) {
-    #   png(paste(img_dir,"venn_",condition,"_",dname,"_And_",fname,".png",sep=""))
-    #   ggvenn(list("Significant"=significant_ids,"Filtered"=Filtering[[fname]]), stroke_size = 0.5, set_name_size = 4)
-    #   dev.off()
-    # }
-    
-    dv=list("Significant"=significant_ids)
-    
-    for(fname in names(Filtering)) {
-      dv[[fname]]=Filtering[[fname]]
-    }
-    dv[["ExcisionComplexFiltering"]]=NULL
-    # png(paste(img_dir,"venn_",condition,"_",dname,"_And_",paste(names(Filtering),collapse="_"),".png",sep=""))
-    # ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
-    # dev.off()
-    
-    dv=list("Significant"=significant_ids,"PGM_Filtering"=pgm_degenes$ID,"Controls"=ctl_rnai_degenes$ID)
-    # png(paste(img_dir,"venn_",condition,"_",dname,"_And_PGM_Filtering_Controls.png",sep=""))
-    # ggvenn(dv,simplify=T,  stroke_size = 0.5, set_name_size = 4)
-    # dev.off()
-    
-  }
-  
-  ##################
-  # AUTOGAMY GENES #
-  ##################
-  
-  profiles=c("Early peak","Intermediate peak","Late peak" ,"Late induction", "Early repression","Late repression" ,"none")
-  profiles=c("Early repression","Late repression" ,"Early peak","Late peak" ,"Late induction","Intermediate peak","none")
-  
-  autog_enrichment=data.frame()
-  autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(rownames(wt_autogamy)))
-  autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_ids))
-  autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_up_ids))
-  autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_down_ids))
-  autog_enrichment[is.na(autog_enrichment)]=0
-  
-  colnames(autog_enrichment)=c("NB","Autogamy","P Autogamy","Induced","P induced","Repressed","P Repressed",profiles,paste("P",profiles))
-  rownames(autog_enrichment)=c("ALL","SIG","UP","DOWN")
-  #t(autog_enrichment)
-  
-  write.table(t(autog_enrichment),paste0(res_dir,"autog_enrichment.tab"),sep="\t",quote=F,row.names=T)
-  
-  # apply(autog_enrichment[2:4,c("Autogamy","NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c("Autogamy","NB")]))
-  # apply(autog_enrichment[2:4,c("Induced","Autogamy")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c("Induced","Autogamy")]))
-  # apply(autog_enrichment[2:4,c("Repressed","Autogamy")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c("Repressed","Autogamy")]))
-  
+#### Récupère les ID des gènes dérégulés identififé avec le filtre "dname" ####
+significant_up_ids=unique(significant_up[[dname]])
+significant_down_ids=unique(significant_down[[dname]])
+significant_ids=unique(c(significant_up_ids,significant_down_ids))
 
-  for(p in profiles) {
-    #print(p)
-    apply(autog_enrichment[2:4,c(p,"NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c(p,"NB")]))
-  }
+#### Création du tableau contenant les gènes dérégulés ####
+DEgenes=data.frame(ID=significant_up_ids,REGULATION="Up-regulated")
+DEgenes=rbind(DEgenes,data.frame(ID=setdiff(significant_down_ids,significant_up_ids),REGULATION="Down-regulated"))
+rownames(DEgenes)=DEgenes$ID
+if(length(intersect(significant_up_ids,significant_down_ids))!=0) {
+  DEgenes[intersect(significant_up_ids,significant_down_ids),]$REGULATION="Both"
+}
+
+write.table(merge(DEgenes,annotation,by="ID"),
+            paste0(res_dir,"DEgenes_",condition,"_",dname,".tab"),sep="\t",quote=F,row.names=F,col.names=T)
 
 
-  par(xpd=FALSE,mfrow=c(1,1))
-  png(paste0(img_dir,"barplot_autogamy_proportion.png"),family="ArialMT")
-  barplot(c(autog_enrichment["ALL","P Autogamy"],autog_enrichment["SIG","P Autogamy"]),
-          names.arg = c("ALL", "SIG"),
-          col=c("gray","indianred"), border="white",ylim=c(0,100),cex=1.3,cex.axis=1.3,cex.lab=1.3,
-          ylab="Developmental gene proportion (%)")
+#### Récuprération des ID des gènes UP et DOWN (exclu les "both") ####
+significant_up_ids=DEgenes[DEgenes$REGULATION=="Up-regulated",]$ID
+significant_down_ids=DEgenes[DEgenes$REGULATION=="Down-regulated",]$ID
+
+for (r in regulation){
+  data=countsTableNorm[significant_up_ids,]
+  hcGenes=hclust(as.dist(1-cor(t(log2(data+1)), method="pearson")), method="complete")
+  
+  png(paste(img_dir,"heatmap_",condition,"_",dname,"_",r,".png",sep=""), width = 8, height = 8, units = 'in', res = 300)
+  par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+  heatmap.2(as.matrix(log2(data+1)),
+            Rowv=as.dendrogram(hcGenes), Colv=NULL,
+            scale="row", labRow="",trace="none", col = hmcol,
+            dendrogram = c("none"),main=paste(r,"N=",dim(data)[1]))
   dev.off()
   
-  significant=merge(countsTableNorm[significant_ids,],wt_autogamy[,c("ID","EXPRESSION_PROFIL")],all.x=T,by="row.names")
-  
-  prop=data.frame()
-  prop=rbind(prop,(table(wt_autogamy$EXPRESSION_PROFIL)/dim(wt_autogamy)[1])[profiles])
-  prop=rbind(prop,(table(significant$EXPRESSION_PROFIL)/dim(significant)[1])[profiles])
-  prop=rbind(prop,(table(significant[which(is.element(significant_ids,significant_up_ids)),]$EXPRESSION_PROFIL)/dim(significant[which(is.element(significant_ids,significant_up_ids)),])[1])[profiles])
-  prop=rbind(prop,(table(significant[which(is.element(significant_ids,significant_down_ids)),]$EXPRESSION_PROFIL)/dim(significant[which(is.element(significant_ids,significant_down_ids)),])[1])[profiles])
-  colnames(prop)=profiles
-  rownames(prop)=c("ALL","SIG","UP","DOWN")
-  prop[is.na(prop)]=0
-  
-  colors=brewer.pal(length(profiles)-1,"Set1")
-  colors=rev(colors)
-  colors[1]="pink"
-  colors[length(profiles)]="white"
-  par(mfrow=c(1,1))
-  
-  png(paste0(img_dir,"barplot_autogamy_cluster_proportion.png"))
-  barplot(t(prop),col=colors,border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Gene proportion")
-  legend("topleft",legend=rev(profiles[-length(profiles)]),col=rev(colors[-length(profiles)]),bty="n",pch=15,cex=1.3)
-  dev.off()
-  
-  #############
-  #    IES    #
-  #############
-  
-  gene_with_IES_ids=annotation[annotation$NB_IES!=0,]$ID
-  prop=c(
-    length(gene_with_IES_ids)/dim(annotation)[1],
-    length(intersect(significant_ids,gene_with_IES_ids))/length(significant_ids),
-    length(intersect(significant_up_ids,gene_with_IES_ids))/length(significant_up_ids),
-    length(intersect(significant_down_ids,gene_with_IES_ids))/length(significant_down_ids)
-  )
-  names(prop)=c("ALL","SIG","UP","DOWN")
-  
-  png(paste0(img_dir,"barplot_proportion_genes_with_IES.png"))
-  barplot(prop,col=c("gray","indianred","darkgreen","dodgerblue"),border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Proportion of genes with IES")
+  png(paste(img_dir,"boxplot_",condition,"_",dname,"_",r,".png",sep=""))
+  par(mar=c(8.1, 4.1, 4.1, 4.1), xpd=TRUE)
+  boxplot(log2(data+1),outline=F,las=2,ylab="Expression level (log2)",lwd=2,cex=1.3,cex.lab=1.3,cex.axis=1.3)
   dev.off()
 }
+
+
+#### AUTOGAMY GENES ####
+
+profiles=c("Early peak","Intermediate peak","Late peak" ,"Late induction", "Early repression","Late repression" ,"none")
+profiles=c("Early repression","Late repression" ,"Early peak","Late peak" ,"Late induction","Intermediate peak","none")
+
+autog_enrichment=data.frame()
+autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(rownames(wt_autogamy)))
+autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_ids))
+autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_up_ids))
+autog_enrichment=rbind(autog_enrichment,get_autogamy_enrichment(significant_down_ids))
+autog_enrichment[is.na(autog_enrichment)]=0
+
+colnames(autog_enrichment)=c("NB","Autogamy","P Autogamy","Induced","P induced","Repressed","P Repressed",profiles,paste("P",profiles))
+rownames(autog_enrichment)=c("ALL","SIG","UP","DOWN")
+
+write.table(t(autog_enrichment),paste0(res_dir,"autog_enrichment.tab"),sep="\t",quote=F,row.names=T)
+
+
+
+for(p in profiles) {
+  
+  apply(autog_enrichment[2:4,c(p,"NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c(p,"NB")]))
+}
+
+
+par(xpd=FALSE,mfrow=c(1,1))
+png(paste0(img_dir,"barplot_autogamy_proportion.png"),family="ArialMT")
+barplot(c(autog_enrichment["ALL","P Autogamy"],autog_enrichment["SIG","P Autogamy"]),
+        names.arg = c("ALL", "SIG"),
+        col=c("gray","indianred"), border="white",ylim=c(0,100),cex=1.3,cex.axis=1.3,cex.lab=1.3,
+        ylab="Developmental gene proportion (%)")
+dev.off()
+
+significant=merge(countsTableNorm[significant_ids,],wt_autogamy[,c("ID","EXPRESSION_PROFIL")],all.x=T,by="row.names")
+
+prop=data.frame()
+prop=rbind(prop,(table(wt_autogamy$EXPRESSION_PROFIL)/dim(wt_autogamy)[1])[profiles])
+prop=rbind(prop,(table(significant$EXPRESSION_PROFIL)/dim(significant)[1])[profiles])
+prop=rbind(prop,(table(significant[which(is.element(significant_ids,significant_up_ids)),]$EXPRESSION_PROFIL)/dim(significant[which(is.element(significant_ids,significant_up_ids)),])[1])[profiles])
+prop=rbind(prop,(table(significant[which(is.element(significant_ids,significant_down_ids)),]$EXPRESSION_PROFIL)/dim(significant[which(is.element(significant_ids,significant_down_ids)),])[1])[profiles])
+colnames(prop)=profiles
+rownames(prop)=c("ALL","SIG","UP","DOWN")
+prop[is.na(prop)]=0
+
+colors=brewer.pal(length(profiles)-1,"Set1")
+colors=rev(colors)
+colors[1]="pink"
+colors[length(profiles)]="white"
+par(mfrow=c(1,1))
+
+png(paste0(img_dir,"barplot_autogamy_cluster_proportion.png"))
+barplot(t(prop),col=colors,border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Gene proportion")
+legend("topleft",legend=rev(profiles[-length(profiles)]),col=rev(colors[-length(profiles)]),bty="n",pch=15,cex=1.3)
+dev.off()
+
+
+#### IES ####
+
+gene_with_IES_ids=annotation[annotation$NB_IES!=0,]$ID
+prop=c(
+  length(gene_with_IES_ids)/dim(annotation)[1],
+  length(intersect(significant_ids,gene_with_IES_ids))/length(significant_ids),
+  length(intersect(significant_up_ids,gene_with_IES_ids))/length(significant_up_ids),
+  length(intersect(significant_down_ids,gene_with_IES_ids))/length(significant_down_ids)
+)
+names(prop)=c("ALL","SIG","UP","DOWN")
+
+png(paste0(img_dir,"barplot_proportion_genes_with_IES.png"))
+barplot(prop,col=c("gray","indianred","darkgreen","dodgerblue"),border="white",cex=1.3,cex.axis=1.3,cex.lab=1.3,ylab="Proportion of genes with IES")
+dev.off()
+
 

@@ -15,10 +15,10 @@ source("3_Visualisation_des_donnees_fonction.R")
 
 condition = names(rnai_list)[2]
 
-analyseName = paste0("Clustering_groupe")
+analyseName = paste0("Clustering_")
 analyseName = paste0(Sys.Date(),"_", analyseName)
 
-path_dir = paste0("./Analyse/",analyseName,"/")
+path_dir = paste0("./Analyse/noCorrection/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 
 path = paste0(path_dir,condition ,"/")
@@ -26,9 +26,12 @@ dir.create(path,recursive=T,showWarnings=F)
 dir.create(paste0(path_dir,condition ,"/Visualisation/Cluster/"),recursive=T,showWarnings=F)
 
 
-#### Sans condition de groupe ####
 # Ouverture des fichiers avec correction de l'effet Batch sans la condition de groupe
-countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v2.tab"), sep="\t",row.names=1,header =  T)
+# countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
+
+# Ouverture des fichiers sans correction de l'effet Batch
+countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_pour_DESeq_ROW.tab"), sep="\t",row.names=1,header =  T)
+
 
 ##### Analyse DESeq2 ####
 # Création du tableau avec les info des colonnes
@@ -41,9 +44,9 @@ deseq = DESeqDataSetFromMatrix(countData = countdata,
                                design   = ~ Condition)
 
 # Definition des réplicats techniques
-# deseq = collapseReplicates(deseq,
-#                            groupby = deseq$Samples,
-#                            run     = deseq$Names)
+deseq = collapseReplicates(deseq,
+                           groupby = deseq$Samples,
+                           run     = deseq$Names)
 
 color = c()
 for (r in colnames(deseq)){

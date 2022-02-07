@@ -122,73 +122,10 @@ OrderColumn <- function(data_tab, infodata){
 
 
 ##### Création tabeau info avec les métadonnées #####
-CreatInfoData1 <- function(countdata, conditions, rnai_list, cluster){
-  infodata = matrix(NA,nrow = ncol(countdata), ncol = 5)
-  row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Noms", "Feeding", "Timing","Cluster", "Conditions")
-  
-  infodata[,"Noms"] = colnames(countdata)
-  
-  rnai = names(timing_list)
-  timing = c()
-  clust = c()
-  feeding = colnames(countdata)
-  for(r in rnai){
-    timing = c(timing,timing_list[[r]])
-    clust = c(clust, cluster[[r]])
-    
-    for (g in timing_list[r]){
-      feeding = str_replace_all(feeding, timing_list[r], "")
-    }
-  }
-  
-  infodata[,"Feeding"] = str_sub(feeding, end= -2)
-  infodata[,"Timing"] = timing
-  infodata[,"Cluster"] = clust
-  
-  # Colonne condition
-  cond = c()
-  for (c in 1:nrow(infodata)){
-    cond = c(cond, paste(infodata[c,"Feeding"],infodata[c,"Cluster"], sep = "_"))
-  }
-  
-  infodata[,"Conditions"] = cond
-  
-  infodata = as.data.frame(infodata)
-}
-
-CreatInfoData2 <- function(conditions=NULL){
-  countdata= ConcatTab("EXPRESSION")
-  if (colnames(countdata)[1]=="ID"){
-    countdata=countdata[,-1]
-  }
-  infodata=matrix(NA,nrow = ncol(countdata), ncol=3)
-  row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Name","RNAi","Timing")
-  infodata[,"Name"] = row.names(infodata)
-  
-  infodata[,"Timing"] = unlist(timing_list, use.names = F)
-  
-  condi = names(timing_list)
-  rnai = c()
-  for (i in 1:length(timing_list)){
-    rnai = c(rnai, rep(condi[i],length(timing_list[[i]])))
-  }
-  infodata[,"RNAi"] = rnai
-  infodata = as.data.frame(infodata)
-  
-  
-  
-  if (!is.null(conditions)){
-    infodata =  infodata[which(is.element(infodata$RNAi, conditions)),]
-  }
-  return(infodata)
-}
-
-CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
+CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Names","Samples", "Feeding", "Timing", "Cluster", "Condition","Batch","Labo")
+  colnames(infodata) = c("Names","Samples", "Feeding", "Timing", "Cluster", "Condition","Seq_method","Labo")
   
   infodata[,"Names"] = colnames(countdata)
   
@@ -217,9 +154,9 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
     
     
     if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7" | r == "EZL1"){
-      batch = c(batch,rep("seq_2014", length(cluster[[r]])))
+      batch = c(batch,rep("HiSeq", length(cluster[[r]])))
     }else{
-      batch = c(batch,rep("seq_2020",length(cluster[[r]])))
+      batch = c(batch,rep("NextSeq",length(cluster[[r]])))
     }
     
     if ( r == "ICL7" | r == "ICL7bis" | r == "EZL1" | r == "EZL1bis"){
@@ -241,7 +178,7 @@ CreatInfoData3 <- function(countdata, conditions, rnai_list, cluster, Timing = N
   infodata[,"Feeding"] = feeding
   infodata[,"Timing"] = timing
   infodata[,"Cluster"] = clust
-  infodata[,"Batch"] = batch
+  infodata[,"Seq_method"] = batch
   infodata[,"Condition"]= condition
   infodata[,"Labo"]= labo
   infodata[,"Samples"] = str_remove_all(infodata[,"Names"],"bis")

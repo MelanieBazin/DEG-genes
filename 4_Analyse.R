@@ -69,7 +69,7 @@ for (condition in names(rnai_list)){
   countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
   
   # Création du tableau avec les info des colonnes
-  infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
+  infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
 
   # Créataion de l'objet DESeq2
   countdata = as.matrix(countdata)

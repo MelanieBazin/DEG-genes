@@ -31,7 +31,7 @@ cluster = list(
 
 
 #### Définition des couleur à attribuer pour les différents RNAi ###"
- clust_color = list(
+cluster_color = list(
    veg = "darkorange1",
    early = "deepskyblue",
    inter = "chartreuse3",
@@ -54,8 +54,8 @@ Culster_color <- function(data_tab, infodata, clust_color){
 }
 
 batch_color = list(
-  seq_2014 = "chartreuse4",
-  seq_2020 = "blue4",
+  Hiseq = "chartreuse4",
+  Nextseq = "blue4",
   both = "mediumturquoise")
 
 
@@ -66,7 +66,7 @@ Batch_color <- function(data_tab, infodata, batch_color){
     if(grepl(",",infodata$runsCollapsed[pos])){
       clus = c(clus, "both")
     }else{
-      clus = c(clus, infodata$Batch[pos])
+      clus = c(clus, infodata$Seq_method[pos])
     }
   }
   

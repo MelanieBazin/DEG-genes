@@ -16,14 +16,14 @@ for (i in names(rnai_list)){
   countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
 
   # Enregistrement des tableau qui seront utiliser pour DESeq
-  infodata = CreatInfoData3(countdata, conditions = i , rnai_list, cluster)
+  infodata = CreatInfoData(countdata, conditions = i , rnai_list, cluster)
   countdata = as.matrix(countdata)
   
   # Avant correction 
   write.table(countdata,paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",i,"_expression_table_ROW.tab"), sep="\t",row.names=T,quote=F)
   
   # Après correction
-  batch = paste(infodata$Batch,infodata$Labo, sep = "_")
+  batch = paste(infodata$Seq_method,infodata$Labo, sep = "_")
   countdata = ComBat_seq(countdata, batch = batch)
  
   write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=T,quote=F)

@@ -37,7 +37,7 @@ for (corr in c("Corrected", "Uncorrected")){
   
   ##### Analyse DESeq2 ####
   # Création du tableau avec les info des colonnes
-  infodata = CreatInfoData3(countdata, conditions = condition , rnai_list, cluster)
+  infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
   
   # Créataion de l'objet DESeq2
   countdata = as.matrix(countdata)

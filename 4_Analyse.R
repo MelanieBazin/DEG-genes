@@ -54,19 +54,19 @@ for (condition in names(rnai_list)){
   
   #### Visualisation des donnée avant correction de l'effet Batch ####
   # Ouverture des fichiers countdata sans correction de l'effet Batch
-  countdata = read.table(paste0("./DATA/Pour_DESeq_SansCorrectionBatch/",condition ,"_expression_table_ROW.tab"), sep="\t",row.names=1,header =  T)
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
   
   # Boxplot des comptages avant normalisation #
   print(paste(condition , "-----> Creation BoxPlot non-normalise"))
   # pdf(paste0(path,condition ,"_row.pdf"))
-  png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_row.png"))
+  png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_uncorrected.png"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
   ##### Analyse DESeq2 ####
     
   # Ouverture des fichiers countdata avec correction de l'effet Batch sans les groupe
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)
+  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_corrected.tab"), sep="\t",row.names=1,header =  T)
   
   # Création du tableau avec les info des colonnes
   infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
@@ -138,8 +138,6 @@ for (condition in names(rnai_list)){
   }
   
   #### Lancer les visulalisation des données ####
-  # data_tab = read.table(paste0("./Analyse/Data_DESeq2_toutBatch/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t", header = T, row.names = 1)
-  # data_tab = counts(deseq,normalized=T)
   data_tab = assay(vst(deseq, blind = T))
   data_tab = as.matrix(data_tab)
   path = paste0(path_dir,condition ,"/Visualisation/")

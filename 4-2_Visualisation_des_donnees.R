@@ -73,7 +73,7 @@ PCA_plot_generator(data_tab,
 
 ##### Clustering hierarchique  #####
 print(paste( condition, "-----> Clustering en cours"))
-dir.create(paste0(path,"4Cluster/"),recursive=T,showWarnings=F)
+dir.create(paste0(path,"Cluster/"),recursive=T,showWarnings=F)
 for (distance in c("Pearson", "Spearman")){
   # Choisir le mode de calcule des distances
   if (distance == "Pearson"){

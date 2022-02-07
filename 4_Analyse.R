@@ -124,7 +124,7 @@ for (condition in names(rnai_list)){
     dir.create(base_res_dir, recursive=T,showWarnings=F)
     
     
-    source("3_Analyse_DESeq2.R")
+    source("4-1_Analyse_DESeq2.R")
     
     print(paste(condition, ": Analyse des donnee fini pour ----->",  RNAi))
     
@@ -145,7 +145,7 @@ for (condition in names(rnai_list)){
   path = paste0(path_dir,condition ,"/Visualisation/")
   
   
-  source("3_Visualisation_des_donnees_new.R")
+  source("4-2_Visualisation_des_donnees.R")
 
   
   

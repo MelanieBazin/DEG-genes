@@ -375,15 +375,18 @@ Clustering <- function(matDist, nb_cluster, method, titre, colors = NULL){
                     main = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
                     xlab = "Principal Component 1",
                     ylab = "Principal Component 2")
-    print(p)
+   
     
   }else if(method  == "HCL"){
     res = hclust(matDist)
     #Fait un dendrogramme
+    res = as.dendrogram(res)
+    labels_colors(res)= as.character(colors)[order.dendrogram(res)]
     p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
-    print(p)
+   
   }
   
+  print(p)
   
 }
 

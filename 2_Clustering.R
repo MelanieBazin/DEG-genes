@@ -11,7 +11,7 @@ set.seed(10111)
 source("0_Cluster.R")
 
 # Récupérer les fonction necessaire au représentaion graphique et la mise en forme des données
-source("3_Visualisation_des_donnees_fonction.R")
+source("0_Visualisation_fonction.R")
 
 condition = names(rnai_list)[2]
 

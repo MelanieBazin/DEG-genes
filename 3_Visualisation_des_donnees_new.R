@@ -54,7 +54,7 @@ color = Batch_color(data_tab, infodata_collapse, batch_color)
 print(paste( condition, "-----> Analyse ACP couleur par année"))
 PCA_plot_generator(data_tab,
                    colors = color,
-                   save_path = paste0(path,"Visualisation/ACP/color2/"),
+                   save_path = paste0(path,"ACP/color2/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -66,7 +66,7 @@ color = Culster_color(data_tab, infodata, clust_color)
 print(paste( condition, "-----> Analyse ACP couleur par cluster"))
 PCA_plot_generator(data_tab,
                    colors = color,
-                   save_path = paste0(path,"Visualisation/ACP/color4/"),
+                   save_path = paste0(path,"ACP/color4/"),
                    main = paste0("ACP ", condition," (DESeq2)"),
                    sortie = "png")
 
@@ -86,17 +86,18 @@ for (distance in c("Pearson", "Spearman")){
     p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
     matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
   }
-  png(paste0(path,"4Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
+  png(paste0(path,"Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
   print(p)
   dev.off()
   
   
   for (method in c("kmeans", "HCL")){
     print(paste(distance, method))
-    png(paste0(path,"Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
     res = hclust(matDist)
     #Fait un dendrogramme
     p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
+    
+    png(paste0(path,"Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
     print(p)
     dev.off()
   }
@@ -106,10 +107,10 @@ for (distance in c("Pearson", "Spearman")){
 print(paste( condition, "-----> Conception des heatmap"))
 
 # Avant moyenne par cluster
-ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), data_tab, condition =  condition)
+ProfilsPNG(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
+ProfilsPDF(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
 
-# MyHeatmaps(path = paste0(path,"Visualisation/Heatmap/"),data_tab,infodata, condition =  condition)
+# MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab,infodata, condition =  condition)
 
 # Avec calcul des moyennes sur les clusters
 mean_data_tab = MeanTabCalculation(data_tab, infodata)

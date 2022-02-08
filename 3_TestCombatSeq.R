@@ -75,7 +75,6 @@ for (correction in c("corrected","uncorrected")){
     cluster2 = cluster
   }
   
-  # color_type = "methods"
   for (color_type in c("methods","replicates")){
     # Choix de la couleur utilisé
     print(paste( condition, "-----> Setting",color_type,"colors"))
@@ -145,5 +144,3 @@ if (condition == names(rnai_list["HiSeqvsNextSeq"])){
   dev.off()
   
 } 
-
-

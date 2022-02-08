@@ -24,6 +24,7 @@ png(paste0(path, "Comptage_bolxplot_DESeq.png"))
 CountBoxplot(data_tab, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
 dev.off()
 
+dir.create("./DATA/DESeq2-seize/", recursive=T,showWarnings=F)
 if (is.element(paste0( condition,"_DESeq2-seize.tab"),list.files(paste0("./DATA/DESeq2-seize/")))){
   data_tab_seize = read.table(paste0("./DATA/DESeq2-seize/", condition,"_DESeq2-seize.tab"), header = T, sep = "\t")
 }else {
@@ -38,88 +39,64 @@ dev.off()
 
 print("Boxplot fini")
 
-# ##### Dessiner les profils d'une selection de gènes ####
-ExpressionProfils(type = "DESeq2",
+##### Dessiner les profils d'une selection de gènes ####
+ExpressionProfils(type = "vst",
                   condition = condition,
                   file = path_dir,
                   select_ID = select_ID)
 
 
-##### Analyse multi-variée des données pour clustering  #####
-data_tab = OrderColumn(data_tab, infodata)
-# Créaction du vecteur de couleur par anné de séquancage
-color = Batch_color(data_tab, infodata_collapse, batch_color)
-
-# Analyse en composante principale
-print(paste( condition, "-----> Analyse ACP couleur par année"))
-PCA_plot_generator(data_tab,
-                   colors = color,
-                   save_path = paste0(path,"ACP/color2/"),
-                   main = paste0("ACP ", condition," (DESeq2)"),
-                   sortie = "png")
-
-
-# Créaction du vecteur de couleur par cluster
-color = Culster_color(data_tab, infodata, clust_color)
-
-# Analyse en composante principale
-print(paste( condition, "-----> Analyse ACP couleur par cluster"))
-PCA_plot_generator(data_tab,
-                   colors = color,
-                   save_path = paste0(path,"ACP/color4/"),
-                   main = paste0("ACP ", condition," (DESeq2)"),
-                   sortie = "png")
-
-
-##### Clustering hierarchique  #####
-print(paste( condition, "-----> Clustering en cours"))
-dir.create(paste0(path,"Cluster/"),recursive=T,showWarnings=F)
-for (distance in c("Pearson", "Spearman")){
-  # Choisir le mode de calcule des distances
-  if (distance == "Pearson"){
-    matDist = as.matrix(cor(data_tab))
-    p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition))
-    matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
-    
-  }else if (distance == "Spearman"){
-    matDist = as.matrix(cor(data_tab,method="spearman"))
-    p= pheatmap(matDist, main = paste("Pheatmap Spearman DESeq2",  condition))
-    matDist = as.dist(1-cor(log2(data_tab+1), method="spearman"))
+for (color_type in c("methods","replicates")){
+  # Choix de la couleur utilisé
+  print(paste( condition, "-----> Setting",color_type,"colors"))
+  if (color_type == "methods"){
+    # Créaction du vecteur de couleur par méthode de séquencage
+    color = Batch_color(condition, cluster_list = cluster)
+  }else if (color_type == "replicates"){
+    # Créaction du vecteur de couleur par groupe de pseudo_réplicat
+    color = Culster_color(condition, cluster_list = cluster)
   }
-  png(paste0(path,"Cluster/", condition,"_Matrice_",distance,".png"),  width = 600, height = 600)
-  print(p)
+  names(color) = colnames(data_tab)
+  
+  #### Analyse multi-variée des données pour clustering  ####
+  print(paste( condition, "-----> PCA analysis :", color_type))
+  PCA_plot_generator(data_tab,
+                     colors = color,
+                     save_path = paste0(path,"PCA_",color_type,"/"),
+                     main = paste0("PCA ", condition," (DESeq2)"),
+                     sortie = "png")
+  
+  
+  #### Matrice de distance et clusterng hiérarchique  ####
+  print(paste( condition, "-----> Hierarchical clustering :", color_type))
+  
+  matDist = as.matrix(cor(data_tab))
+
+  png(paste0(path, condition,"_Matrice_pearson.png"),  width = 600, height = 600)
+  pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
   dev.off()
   
+  matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
+  res = hclust(matDist)
+  res = as.dendrogram(res)
+  labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
-  for (method in c("kmeans", "HCL")){
-    print(paste(distance, method))
-    res = hclust(matDist)
-    #Fait un dendrogramme
-    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
-    
-    png(paste0(path,"Cluster/", condition,"_Cluster_",method,"_",distance,".png"),  width = 800, height = 600)
-    print(p)
-    dev.off()
-  }
+  png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 600)
+  plot(res, main = "pearson_vst")
+  dev.off()
 }
 
 ##### Heatmap et profils  ####
-print(paste( condition, "-----> Conception des heatmap"))
-
-# Avant moyenne par cluster
-ProfilsPNG(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
-ProfilsPDF(save_path = paste0(path,"profils/"), data_tab, condition =  condition)
-
+# print(paste( condition, "-----> Conception des heatmap"))
+# 
+# # Avant moyenne par cluster
 # MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab,infodata, condition =  condition)
-
-# Avec calcul des moyennes sur les clusters
-mean_data_tab = MeanTabCalculation(data_tab, infodata)
-mean_data_tab = OrderColumn(mean_data_tab, infodata)
-write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
-
-# ProfilsPNG(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
-# ProfilsPDF(save_path = paste0(path,"Visualisation/profils/"), mean_data_tab, moyenne = T, condition =  condition)
-
+# 
+# # Avec calcul des moyennes sur les clusters
+# mean_data_tab = MeanTabCalculation(data_tab, infodata)
+# mean_data_tab = OrderColumn(mean_data_tab, infodata)
+# write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_vst.tab"), sep="\t",row.names=T,quote=F)
+# 
 # MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition)
 
 

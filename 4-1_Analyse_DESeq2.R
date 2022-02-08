@@ -109,10 +109,10 @@ for(i in names(comparisons)) {
       # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300)
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
-      for(s in annotation_synonyms$ID) {
+      for(s in select_annotation$ID) {
         if(is.element(s, rownames(res_vp)) & res_vp[s,]$SIGNIFICANT) {
           points(res_vp[s,]$log2FoldChange,-log(res_vp[s,]$padj),col="green")
-          text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),annotation_synonyms$NAME[grep(s,annotation_synonyms$ID)])
+          text(res_vp[s,]$log2FoldChange+1,-log(res_vp[s,]$padj),select_annotation$NAME[grep(s,select_annotation$ID)])
         }
       }
       dev.off()
@@ -123,7 +123,7 @@ for(i in names(comparisons)) {
       for(id in select_ID) {
         #if(res_vp[synonyms[s,]$ID,]$SIGNIFICANT) {
         points(res_vp[id,]$log2FoldChange,-log(res_vp[id,]$padj),col="black")
-        text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),annotation_synonyms$NAME[grep(id,annotation_synonyms$ID)])
+        text(res_vp[id,]$log2FoldChange+1,-log(res_vp[id,]$padj),select_annotation$NAME[grep(id,select_annotation$ID)])
         #}
       }
       dev.off()
@@ -154,7 +154,7 @@ for(i in names(comparisons)) {
 significant_up[[dname]]=c(significant_up[[dname]],rownames(res[res$REGULATION=="Up-regulated",]))
 significant_down[[dname]]=c(significant_down[[dname]],rownames(res[res$REGULATION=="Down-regulated",]))    
 
-print(paste("Comparaison des dereguler en ", RNAi, "a d'autre donnees" ))
+print(paste(RNAi, "dataset formating" ))
 
 #### Récupère les ID des gènes dérégulés identififé avec le filtre "dname" ####
 significant_up_ids=unique(significant_up[[dname]])
@@ -197,6 +197,7 @@ for (r in regulation){
 
 
 #### AUTOGAMY GENES ####
+print(paste("Looking for autogamy genes distribution in ",RNAi, "dataset" ))
 
 profiles=c("Early peak","Intermediate peak","Late peak" ,"Late induction", "Early repression","Late repression" ,"none")
 profiles=c("Early repression","Late repression" ,"Early peak","Late peak" ,"Late induction","Intermediate peak","none")
@@ -253,6 +254,7 @@ dev.off()
 
 
 #### IES ####
+print(paste("Looking for IES distribution in ",RNAi, "dataset" ))
 
 gene_with_IES_ids=annotation[annotation$NB_IES!=0,]$ID
 prop=c(

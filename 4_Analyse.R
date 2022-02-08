@@ -19,7 +19,7 @@ source("0_Functions_AnalyeDESeq2.R")
 # data_tab = read.table("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab", row.names = 1, sep="\t", header = T)
 
 
-analyseName = paste0("Analyse_DESeq2_CombatON")
+analyseName = paste0("Analyse_DESeq2")
 
 #### Definiton des variables DESeq2 ####
 FC = 1.5 #Mini 1.5 -> XRCC4 = 2
@@ -31,12 +31,10 @@ path_dir = paste0("./Analyse/",analyseName,"/")
 dir.create(path_dir,recursive=T,showWarnings=F)
 
 #### Limiter le fichier annotation aux gènes avec synonyme ####
-annotation_basic = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
-my_annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation = merge(annotation_basic[,c(1,4:7)], my_annotation[,c(1,2,3:7)], by = "ID")[,c(1,7,8,2:6,9:11)]
-rm(annotation_basic,my_annotation)
-annotation_synonyms = annotation[-grep("PTET",annotation$NAME),]
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation = annotation[,c(1,3:5,13,6:11,2)]
 rownames(annotation)=annotation$ID
+select_annotation = annotation[select_ID,]
 
 
 #### Vecteur de couleur pour les heatmap ####
@@ -49,7 +47,6 @@ for (condition in names(rnai_list)){
   print(paste("On analyse le jeu de donnee :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
   
   path = paste0(path_dir,condition ,"/")
-  dir.create(path,recursive=T,showWarnings=F)
   dir.create(paste0(path_dir,condition ,"/Visualisation/"),recursive=T,showWarnings=F)
   
   #### Visualisation des donnée avant correction de l'effet Batch ####
@@ -90,21 +87,23 @@ for (condition in names(rnai_list)){
   deseq = DESeq(deseq)
 
   # Graphique du paramètre de dispersion
-  # pdf(paste0(path,condition ,"_dipression_DESeq2.pdf"))
-  png(paste0(path_dir,condition ,"/Visualisation/Dipression_DESeq2.png"))
+  # pdf(paste0(path,condition ,"_disperssion_DESeq2.pdf"))
+  png(paste0(path_dir,condition ,"/Visualisation/Disperssion_DESeq2.png"))
   plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
 
   # Récupération des données de comptage normalisées
-  data_tab = counts(deseq,normalized=T)
+  # data_tab = counts(deseq,normalized=T)
+  data_tab = assay(vst(deseq, blind = T))
   
-  write.table(data_tab,paste0(path,condition ,"_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=T,quote=F)
-  write.table(infodata,paste0(path,condition ,"_infodataDESeq2.tab"), sep="\t",row.names=T,quote=F)
+  write.table(data_tab,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
+  write.table(infodata,paste0(path,condition ,"_infodata.tab"), sep="\t",row.names=T,quote=F)
 
   #### Lancer l'analyse de gènes dérégulés ####
 
   # Definir les condition à analyser
   RNAi_list = unique(rnai_list[[condition ]])
+  RNAi_list = RNAi_list[-grep("bis", RNAi_list)]
   if (is.element("ICL7", RNAi_list)){
     RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
   }
@@ -128,25 +127,15 @@ for (condition in names(rnai_list)){
     
     print(paste(condition, ": Analyse des donnee fini pour ----->",  RNAi))
     
-    data_tab = assay(vst(deseq, blind = T))
-    data_tab = as.matrix(data_tab)
-    keep = c(grep("ICL7",colnames(data_tab)),grep("ND7",colnames(data_tab)),grep(RNAi,colnames(data_tab)))
-    data_tab = data_tab[,keep]
-    
-    path_img = paste0(path_dir,condition ,"/Visualisation/")
-   
   }
   
   #### Lancer les visulalisation des données ####
-  data_tab = assay(vst(deseq, blind = T))
+  data_tab = read.table(paste0(path,condition ,"_expression_table_vst.tab"), sep = "\t", header = T)
   data_tab = as.matrix(data_tab)
   path = paste0(path_dir,condition ,"/Visualisation/")
   
-  
   source("4-2_Visualisation_des_donnees.R")
 
-  
-  
   print(paste("Visualisation des donnee fini pour", condition ))
 }
 

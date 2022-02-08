@@ -71,9 +71,9 @@ for (color_type in c("methods","replicates")){
   print(paste( condition, "-----> Hierarchical clustering :", color_type))
   
   matDist = as.matrix(cor(data_tab))
-
+  p =pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
   png(paste0(path, condition,"_Matrice_pearson.png"),  width = 600, height = 600)
-  pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
+  print(p)
   dev.off()
   
   matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
@@ -81,8 +81,9 @@ for (color_type in c("methods","replicates")){
   res = as.dendrogram(res)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
+  p= plot(res, main = "pearson_vst")
   png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 600)
-  plot(res, main = "pearson_vst")
+  print(p)
   dev.off()
 }
 

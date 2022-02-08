@@ -108,7 +108,6 @@ for( i in 1:length(selection)){
   name = c(name,annotation$NAME[grep(selection[i],annotation$NAME, ignore.case = T)]) 
 }
 names(select_ID)=name
-# select_annotation = annotation[select_ID,]
 rm(selection,i,name)
 
 

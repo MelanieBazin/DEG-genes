@@ -51,7 +51,7 @@ for (color_type in c("methods","replicates")){
   print(paste( condition, "-----> Setting",color_type,"colors"))
   if (color_type == "methods"){
     # Créaction du vecteur de couleur par méthode de séquencage
-    color = Batch_color(condition, cluster_list = cluster)
+    color = Batch_color(condition, cluster_list = cluster, collapse = T)
   }else if (color_type == "replicates"){
     # Créaction du vecteur de couleur par groupe de pseudo_réplicat
     color = Culster_color(condition, cluster_list = cluster)

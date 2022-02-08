@@ -1,7 +1,7 @@
 options(stringsAsFactors = FALSE)
 library("stringr") 
 
-###### Création/Modification tableau de comptage ####
+###### Modification de tableau ####
 
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
@@ -361,34 +361,6 @@ EvaluPrediction <- function(type, data_tab, infodata , i, path){
   
 }
 
-
-##### Clustering #####
-
-Clustering <- function(matDist, nb_cluster, method, titre, colors = NULL){
-  ## Créaction d'un vecteur contenant le clusering calculé a partir de la matrice de distance
-  # Choisir le type d'algorithme utilisé pour faire les clusters
-  if (method  == "kmeans"){
-    res = kmeans(matDist, nb_cluster)
-    #Représentataion graphique
-    p= fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
-                    show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
-                    main = paste(method, "avec", nb_cluster, "cluster - distance :", distance,"\n", titre), 
-                    xlab = "Principal Component 1",
-                    ylab = "Principal Component 2")
-   
-    
-  }else if(method  == "HCL"){
-    res = hclust(matDist)
-    #Fait un dendrogramme
-    res = as.dendrogram(res)
-    labels_colors(res)= as.character(colors)[order.dendrogram(res)]
-    p= plot(res, main = paste(method, "dendrogramme - distance :", distance,"\n", titre))
-   
-  }
-  
-  print(p)
-  
-}
 
 ###### Création graphique ####
 

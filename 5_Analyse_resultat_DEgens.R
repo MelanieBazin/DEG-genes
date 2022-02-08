@@ -4,7 +4,9 @@ library(ggvenn)
 
 source("0_Cluster.R")
 
-file_name = "2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05"
+date = "02-08"
+
+file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
 
 annotation_basic = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
 my_annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
@@ -15,12 +17,13 @@ TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",heade
 TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
 
 ID_tab = annotation
-condition =  names(rnai_list)[1]
+condition =  names(rnai_list)[2]
 
 # for (condition in names(rnai_list)){
   RNAi_list = unique(rnai_list[[condition ]][-grep("ND7",rnai_list[[condition ]])])
-  RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
   RNAi_list = RNAi_list[-grep("bis",RNAi_list)]
+  RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
+  
 
   
   # RNAi = RNAi_list[1]
@@ -32,7 +35,7 @@ condition =  names(rnai_list)[1]
       timing = "LATE"
     }
     for (t in timing){
-    tab = read.table(paste0("Analyse/",file_name,"/",condition,"/DESeq/",RNAi,"/NoFilter/DEgenes_",condition,"_",t,"_NoFilter.tab"), header = T, sep = "\t")
+    tab = read.table(paste0("./Analyse/",file_name,"/",condition,"/DESeq/",RNAi,"/DEgenes_",condition,"_",t,"_NoFilter.tab"), header = T, sep = "\t")
     colnames(tab)[3:5]= paste(RNAi,t,colnames(tab)[3:5], sep = "_")
     ID_tab = merge(ID_tab, tab[,c(1,3:5)], by = "ID", all = T)
     colnames(ID_tab) = str_remove_all(str_remove_all(colnames(ID_tab), ".x"),".y")

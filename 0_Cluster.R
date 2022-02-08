@@ -44,13 +44,13 @@ Culster_color <- function(condition, list = rnai_list, cluster_list = cluster, c
   for (r in list[[condition]]){
     for (clust in cluster_list[[r]]){
       if (clust == "VEG"){
-        color = c(color, cluster_color[["veg"]])
+        color = c(color, color_list[["veg"]])
       } else if(clust == "EARLY" ){
-        color = c(color, cluster_color[["early"]])
+        color = c(color, color_list[["early"]])
       } else if(clust == "INTER" ){
-        color = c(color, cluster_color[["inter"]])
+        color = c(color, color_list[["inter"]])
       } else if(clust == "LATE" ){
-        color = c(color, cluster_color[["late"]])
+        color = c(color, color_list[["late"]])
       }
     }
   }
@@ -63,22 +63,22 @@ Method_color = list(
   both = "mediumturquoise")
 
 
-Batch_color <- function(condition, collapse = "NO" , list= rnai_list, color_list = Method_color){
+Batch_color <- function(condition, collapse = "NO" , list= rnai_list, cluster_list = cluster, color_list = Method_color){
   seq_color = c()
   for (j in list[[condition]]){
     if (collapse == "NO"){
       if (is.element(j,c("ICL7bis", "EZL1bis", "XRCC4", "CTIP", "ND7_C", "ND7_X"))){
-        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster[[j]])))
+        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ICL7", "EZL1", "ND7_K", "KU80c", "PGM"))){
-        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster[[j]])))
+        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))
       }
     }else{
       if (is.element(j,c("ICL7_bis", "EZL1_bis","ICL7", "EZL1"))){
-        seq_color=c(seq_color,rep(color_list[["both"]],length(cluster[[j]])))
+        seq_color=c(seq_color,rep(color_list[["both"]],length(cluster_list[[j]])))
       }else if (is.element(j,c("XRCC4", "CTIP", "ND7_C", "ND7_X"))){
-        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster[[j]])))
+        seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ND7_K", "KU80c", "PGM"))){
-        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster[[j]])))
+        seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))
       }
     }
     

@@ -8,10 +8,9 @@ date = "02-08"
 
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
 
-annotation_basic = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
-my_annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation = merge(annotation_basic[,c(1,4:7)], my_annotation[,c(1,2,3:7)], by = "ID")[,c(1,7,8,2:6,9:11)]
-rm(annotation_basic,my_annotation)
+annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation = annotation[,c(1,3:5,13,6:11,2)]
+rownames(annotation)=annotation$ID
 
 TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")
 TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')

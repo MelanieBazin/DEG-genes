@@ -1,4 +1,5 @@
 # Tourne sous R3
+options(stringsAsFactors = FALSE)
 
 notAllZero = (rowSums(counts(deseq)) > 0 )
 labels=colnames(countdata)

@@ -139,4 +139,5 @@ for (condition in names(rnai_list)){
   print(paste("Visualisation des donnee fini pour", condition ))
 }
 
+# comparaison avec les donnée publiées pour EZL1
 source("4-3_Comparaison_Frapporti.R")

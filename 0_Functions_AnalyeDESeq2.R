@@ -75,7 +75,7 @@ my_chi2<-function(x,ctl) {
       }
     }
   }
-  print(paste(x[1],x[2],paste0(round(x[1]/x[2]*100,1),"%"),ctl[1],ctl[2],format(pv,digits=3),format(t$statistic,digits=1),signif,sep=" "))
+  return(paste(x[1],x[2],paste0(round(x[1]/x[2]*100,1),"%"),ctl[1],ctl[2],format(pv,digits=3),format(t$statistic,digits=1),signif,sep=" "))
 }
 
 

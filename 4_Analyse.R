@@ -139,3 +139,4 @@ for (condition in names(rnai_list)){
   print(paste("Visualisation des donnee fini pour", condition ))
 }
 
+source("4-3_Comparaison_Frapporti.R")

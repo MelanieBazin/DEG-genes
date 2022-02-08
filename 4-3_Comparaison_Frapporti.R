@@ -2,14 +2,12 @@ options(stringsAsFactors = FALSE)
 library(ggvenn)
 
 
-date = "02-08"
-
-
-file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
+# date = "02-08"
+# analyseName = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
 FC = 2
 pvalue = 0.05
 
-path = paste0("./Analyse/",file_name, "/HiSeqvsNextSeq/DESeq/EZL1/")
+path = paste0("./Analyse/",analyseName, "/HiSeqvsNextSeq/DESeq/EZL1/")
 
 
 save_path = paste0(path,"Compared_Frapporti/")
@@ -59,8 +57,5 @@ for (deg in c("UP", "DOWN")){
     
     write.table(CrossData, paste0(save_path, "Common_",deg,"_genes_", timing,".tab"), sep = "\t")
   }
-  
-  
-  
   
 }

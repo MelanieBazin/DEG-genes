@@ -18,24 +18,18 @@ analyseName = paste0("Test_Combatseq")
 
 analyseName = paste0(Sys.Date(),"_", analyseName)
 path_dir = paste0("./Analyse/",analyseName,"/")
-dir.create(path_dir,recursive=T,showWarnings=F)
 dir.create("./DATA/DESeq2/",recursive=T,showWarnings=F)
 
 condition = names(rnai_list["HiSeqvsNextSeq"])
 
 print(paste("Analysis of dataset :", condition , "-->", paste(rnai_list[[condition]], collapse = ", ") ))
 
-path = paste0(path_dir,condition ,"/")
-dir.create(path,recursive=T,showWarnings=F)
-
-
-correction = "corrected"
 for (correction in c("corrected","uncorrected")){
   print(paste("Test of conditions",correction, "by ComBatSeq"))
   
-  path = paste0(path,"/",correction,"/")
+  path = paste0(path_dir,condition ,"/",correction,"/")
   dir.create(path,recursive=T,showWarnings=F)
-  
+
   #### Analyse DESeq2 ####
   # Ouerture du tableau de donnée
   countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)

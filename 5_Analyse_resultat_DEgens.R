@@ -294,13 +294,18 @@ for(up in names(UP_PKX)){
   tab = tab[,-1]
   colnames(tab) = c("ALL",up)
   
-  tab_prct = tab/length(annotation$ID)*100
+  tab_prct = tab
+  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+  for (n in rownames(tab)){
+    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+  }
+  
   
   png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
   barplot(t(as.matrix(tab_prct)),
           beside = T,
           main = "Profil repartition of UP deregulated genes",
-          ylab = "% of total genes",
+          ylab = "% of genes",
           ylim = c(0,60),
           col = c("grey", "indianred2"),
           names.arg = sub(" "," \n ",rownames(tab)))
@@ -368,13 +373,17 @@ for(up in names(stdCTIP)){
   tab = tab[,-1]
   colnames(tab) = c("ALL",up)
   
-  tab_prct = tab/length(annotation$ID)*100
+  tab_prct = tab
+  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+  for (n in rownames(tab)){
+    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+  }
   
   png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
   barplot(t(as.matrix(tab_prct)),
           beside = T,
           main = "Profil repartition of UP deregulated genes",
-          ylab = "% of total genes",
+          ylab = "% of genes",
           ylim = c(0,60),
           col = c("grey", "indianred2"),
           names.arg = sub(" "," \n ",rownames(tab)))
@@ -385,6 +394,8 @@ for(up in names(stdCTIP)){
          bty = "n")
   dev.off()
 }
+
+#### Test de significativité Chi2 ####
 
 ### Histogrammes IES in genes ####
 ###### Sur UP PGM KU80c & XRCC4 ####

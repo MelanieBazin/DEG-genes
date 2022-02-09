@@ -107,6 +107,12 @@ for(i in names(comparisons)) {
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col=ifelse(res_vp$SIGNIFICANT,"indianred","gray"),xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       dev.off()
       
+      ## Tableau correspondant aux donné du volcanoplot ##
+      all = length(annotation$ID)
+      volca_tab = table(res$REGULATION)
+      volca_tab = rbind(volca_tab,volca_tab/all*100)
+      write.table(volca_tab, paste0(res_dir,"DEgenes_",condition,"_",i,"_",dname,"_volcanoplot.tab"),sep="\t",quote=F,row.names=F)
+      
       # Volcanoplot avec les synonyme des gènes considérer comme significativement dérégulé
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_synonyms.png"), width = 6, height = 6, units = 'in', res = 300)
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
@@ -118,7 +124,7 @@ for(i in names(comparisons)) {
       }
       dev.off()
       
-      #### Volcanoplot avec nom choisis #####
+      #Volcanoplot avec nom choisis
       png(paste0(img_dir,"volcano_plot_",condition,"_",i,"_",dname,"_annot_genes.png"), width = 6, height = 6, units = 'in', res = 300,family="ArialMT")
       plot(res_vp$log2FoldChange,-log(res_vp$padj),log="y",col="gray",xlab=paste0("log2(",c1,"/",c2,")"),ylab="-log(p-value)",pch=20,main=i,cex=1.3,cex.axis=1.3,cex.lab=1.3)
       for(id in select_ID) {
@@ -129,9 +135,7 @@ for(i in names(comparisons)) {
       }
       dev.off()
       
-      
-      
-      ### Création des heatmap pour cette comparaison ####
+      #### Création des heatmap pour cette comparaison ####
       for (r in regulation){
         if(nrow(res[res$REGULATION==r,]) >2) {
           data=countsTableNorm[rownames(res[res$REGULATION==r,]),]

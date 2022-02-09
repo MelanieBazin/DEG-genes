@@ -1,71 +1,55 @@
+all_genes = annotation$ID
+inter_genes = annotation$ID[annotation$EXPRESSION_PROFIL == "Intermediate peak"]
+early_genes = annotation$ID[annotation$EXPRESSION_PROFIL == "Early peak"]
+auto_genes = annotation$ID[annotation$EXPRESSION_PROFIL != "none"]
 
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+# Les gènes UP dérégulés en PGM, KU80c et/OU XRCC4
+UP_PKX = list()
+for (R in RNAi[-1]){
+  tab = TAB[[R]]
+  tab = tab[tab$REGULATION == "Up-regulated", "ID"]
+  UP_PKX = c(UP_PKX, list(tab))
+}
+names(UP_PKX) = paste("UP", RNAi[-1], sep = "_")
 
-# Liste des gènes d'interets
-ALL = read.table(paste0("Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/Resumer_DEgenes.tab"), sep = "\t", h=T )
-ALL = ALL[-41534,]
+# Les gènes NOT UP dérégulés en PGM, KU80c et/OU XRCC4
+not_UP_PKX = list()
+for (l in names(UP_PKX)){
+  up_genes = UP_PKX[[l]]
+  not_UP_PKX = c(not_UP_PKX, list(setdiff(all_genes, up_genes)))
+}
+names(not_UP_PKX) = paste("not",names(UP_PKX), sep = "_")
 
-PGM_UP = na.omit(ALL$ID[ALL$PGM_LATE_REGULATION == "Up-regulated"])
-KU80c_UP = na.omit(ALL$ID[ALL$KU80c_LATE_REGULATION == "Up-regulated"])
-XRCC4_UP = na.omit(ALL$ID[ALL$XRCC4_LATE_REGULATION == "Up-regulated"])
-EZL1_UP = na.omit(ALL$ID[ALL$EZL1_LATE_REGULATION == "Up-regulated"])
+# Les gènes DOWN dérégulés en PGM, KU80c et/OU XRCC4
+DOWN_PKX = list()
+for (R in RNAi[-1]){
+  tab = TAB[[R]]
+  tab = tab[tab$REGULATION == "Down-regulated", "ID"]
+  DOWN_PKX = c(DOWN_PKX, list(tab))
+}
+names(DOWN_PKX) = paste("DOWN", RNAi[-1], sep = "_")
 
-UP = Reduce(intersect, list(PGM_UP,KU80c_UP, XRCC4_UP, EZL1_UP))
+# Les gènes NOT dérégulés en PGM, KU80c et/OU XRCC4
+not_DE_PKX = list()
+for (l in names(UP_PKX)){
+  up_genes = UP_PKX[[l]]
+  down_genes = DOWN_PKX[[l]]
+  not_DE_PKX = c(not_DE_PKX, list(setdiff(all_genes, unique(down_genes,up_genes))))
+}
+names(not_DE_PKX) = paste("not_DE",RNAi[-1], sep = "_")
 
-PGM_DOWN = na.omit(ALL$ID[ALL$PGM_LATE_REGULATION == "Down-regulated"])
-KU80c_DOWN = na.omit(ALL$ID[ALL$KU80c_LATE_REGULATION == "Down-regulated"])
-XRCC4_DOWN = na.omit(ALL$ID[ALL$XRCC4_LATE_REGULATION == "Down-regulated"])
-EZL1_DOWN = na.omit(ALL$ID[ALL$EZL1_LATE_REGULATION == "Down-regulated"])
+# Les gènes DOWN dérégulés en CTIP early ou inter
+CTIP = rbind(TAB[["CTIP_early"]],TAB[["CTIP_inter"]])
 
-DOWN = Reduce(intersect, list(PGM_DOWN,KU80c_DOWN, XRCC4_DOWN, EZL1_DOWN))
+DOWN_C = unique(CTIP[CTIP$REGULATION == "Down-regulated", "ID"])
 
-CTIP_e_DOWN = na.omit(ALL$ID[ALL$CTIP_EARLY_REGULATION == "Down-regulated"])
-CTIP_i_DOWN = na.omit(ALL$ID[ALL$CTIP_INTER_REGULATION == "Down-regulated"])
+# Les gènes UP dérégulés en CTIP
+UP_C = unique(CTIP[CTIP$REGULATION == "Up-regulated", "ID"])
 
-CTIP_DOWN = intersect(CTIP_e_DOWN, CTIP_i_DOWN)
+# Les gènes NOT DE dérégulés en CTIP
+not_DE_C = setdiff(all_genes, unique(DOWN_C,UP_C))
 
-CTIP_e_UP = na.omit(ALL$ID[ALL$CTIP_EARLY_REGULATION == "Down-regulated"])
-CTIP_i_UP = na.omit(ALL$ID[ALL$CTIP_INTER_REGULATION == "Down-regulated"])
 
-CTIP_UP = intersect(CTIP_e_UP, CTIP_i_UP)
-
-FILTRE_ARNi = list(
-  PGM_UP = PGM_UP,
-  KU80c_UP = KU80c_UP,
-  XRCC4_UP = XRCC4_UP,
-  EZL1_UP = EZL1_UP,
-  UP = UP,
-  CTIP_DOWN = CTIP_DOWN,
-  UP_DOWN = intersect(UP, CTIP_DOWN),
-  PGM_DOWN = PGM_DOWN,
-  KU80c_DOWN = KU80c_DOWN,
-  XRCC4_DOWN = XRCC4_DOWN,
-  EZL1_DOWN = EZL1_DOWN,
-  DOWN = DOWN,
-  CTIP_UP = CTIP_UP,
-  DOWN_UP = intersect(DOWN, CTIP_UP)
-)
-
-MOTIF = read.table("Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/MOTIF/Motif_dans_prom/Motif_intermed/Parmis_tous_les_genes/FIMO2/FIMO2_IN_MAC_CDS.tsv",sep = "\t", h=T)
-MOTIF$start =  MOTIF$start-150
-MOTIF$stop = MOTIF$stop-150
-
-ALL2 = ALL
-colnames(ALL2)[1] = "sequence_name"
-FILTRE_MOTIF = list(
-  MOTIF = MOTIF,
-  MOTIF_pos= MOTIF[MOTIF$start < -50 & MOTIF$start > -80,],
-  MOTIF_plus = MOTIF[MOTIF$strand == "+",],
-  MOTIF_moins = MOTIF[MOTIF$strand == "-",],
-  MOTIF_pos_plus = MOTIF[MOTIF$strand == "+" & MOTIF$start < -50 & MOTIF$start > -80,],
-  MOTIF_pos_moins = MOTIF[MOTIF$strand == "-" & MOTIF$start < -50 & MOTIF$start > -80,]
-  
-)
-
-rm(ALL2,PGM_UP, KU80c_UP, XRCC4_UP, EZL1_UP, UP, 
-   CTIP_DOWN, PGM_DOWN, KU80c_DOWN, XRCC4_DOWN, EZL1_DOWN, DOWN, 
-   CTIP_UP, CTIP_e_DOWN, CTIP_e_UP, CTIP_i_DOWN, CTIP_i_UP,
-   MOTIF)
 
 #### Fonctions pour analyse enrichissement ####
 pVal_hypergeometric <- function(data_base, genes_list){

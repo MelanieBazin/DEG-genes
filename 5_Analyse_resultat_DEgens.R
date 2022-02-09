@@ -60,12 +60,14 @@ summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
 write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary_",condition,".tab"), sep = "\t", row.names = F) 
 
 ### Venn Diagrame ####
+path = paste0(save_path,"VennDiagrame/")
+dir.create(path ,recursive=T,showWarnings=F)
 ###### Croisement des tubo ####
 LIST = list(
   TurboPGM = TurboPGM$PROTEIN_NAME,
   TurboPGML4 = TurboPGML4$PROTEIN_NAME
 )
-png(paste0(save_path,"Venn_Turbo.png"))
+png(paste0(path,"Venn_Turbo.png"))
 ggvenn(LIST,
        stroke_size = 0.5,
        set_name_size = 6,
@@ -79,7 +81,7 @@ turbo = intersect(turboPGM, turboPGML4)
 
 ###### Croisement des UP PGM KU80c XRCC4 ####
 LIST = UP_PKX
-png(paste0(save_path,"Venn_UP_PKX.png"))
+png(paste0(path,"Venn_UP_PKX.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -93,7 +95,7 @@ up_pkx = intersect(UP_PKX[["UP_XRCC4"]], intersect(UP_PKX[["UP_PGM"]],UP_PKX[["U
 
 # Avec intermediate peak
 LIST = c(UP_PKX, Intermediate_peak = list(inter_genes))
-png(paste0(save_path,"Venn_UP_PKX_INTER.png"))
+png(paste0(path,"Venn_UP_PKX_INTER.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -108,7 +110,7 @@ LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
             Intermediate_peak = inter_genes)
-png(paste0(save_path,"Venn_PKX_INTER_TURBO.png"))
+png(paste0(path,"Venn_PKX_INTER_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -120,7 +122,7 @@ dev.off()
 
 # Avec early peak
 LIST = c(UP_PKX, Early_peak = list(early_genes))
-png(paste0(save_path,"Venn_UP_PKX_EARLY.png"))
+png(paste0(path,"Venn_UP_PKX_EARLY.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -135,7 +137,7 @@ LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
             Early_peak = early_genes)
-png(paste0(save_path,"Venn_PKX_EARLY_TURBO.png"))
+png(paste0(path,"Venn_PKX_EARLY_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -150,7 +152,7 @@ dev.off()
 LIST = list(DOWN_CTIP = DOWN_C,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4)
-png(paste0(save_path,"Venn_CTIP_TURBO.png"))
+png(paste0(path,"Venn_CTIP_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -162,7 +164,7 @@ dev.off()
 
 # Avec les UP dérégulés en PGM, KU80c, XRCC4
 LIST = c(UP_PKX, DOWN_CTIP = list(DOWN_C))
-png(paste0(save_path,"Venn_CTIP_PKX.png"))
+png(paste0(path,"Venn_CTIP_PKX.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -176,7 +178,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = DOWN_C,
             Intermediate_peak = inter_genes)
-png(paste0(save_path,"Venn_CTIP_PKX_INTER.png"))
+png(paste0(path,"Venn_CTIP_PKX_INTER.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -191,7 +193,7 @@ LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = DOWN_C,
             TurboPGM_PGML4 = turbo,
             Intermediate_peak = inter_genes)
-png(paste0(save_path,"Venn_CTIP_PKX_INTER_TURBO.png"))
+png(paste0(path,"Venn_CTIP_PKX_INTER_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -205,7 +207,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = DOWN_C,
             Intermediate_peak = inter_genes)
-png(paste0(save_path,"Venn_CTIP_PKX_EARLY.png"))
+png(paste0(path,"Venn_CTIP_PKX_EARLY.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -220,7 +222,7 @@ LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = DOWN_C,
             TurboPGM_PGML4 = turbo,
             Intermediate_peak = inter_genes)
-png(paste0(save_path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
+png(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -232,29 +234,32 @@ dev.off()
 
 
 ### Barplot classes des gènes ####
+path = paste0(save_path,"Barplot/")
+dir.create(path ,recursive=T,showWarnings=F)
+
 row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
 colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
 
 ###### Sur UP PGM KU80c & XRCC4 ####
+UP_PKX = c(UP_PKX, UP_ALL = list(up_pkx))
+
 profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
 for (n in names(UP_PKX)){
   tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, UP_PKX[[n]]))]))
   profil = merge(profil, tab, by = "Var1", all = T)
   
 }
-tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, up_pkx))]))
-profil = merge(profil, tab, by = "Var1", all = T)
 
 rownames(profil) = profil$Var1
 profil = profil[,-1]
-colnames(profil) = c("ALL", names(UP_PKX), "UP_ALL")
+colnames(profil) = c("ALL", names(UP_PKX))
 
 # Réordonner les lignes
 profil = profil[row_order,]
 
 
 ### Histogramme empilés
-png(paste0(save_path,"Profils_barplot_UP.png"),width = 550, height = 500)
+png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
 barplot(as.matrix(profil),
         col = colors,
         main = "Profil repartition of UP deregulated genes",
@@ -272,7 +277,7 @@ for (n in 1:ncol(profil)){
   profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
 }
 
-png(paste0(save_path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
+png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
 barplot(as.matrix(profil_prct),
         col = colors,
         main = "Profil repartition of UP deregulated genes",
@@ -281,11 +286,105 @@ barplot(as.matrix(profil_prct),
 dev.off()
 
 ### Histogramme enrichissement
+profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+for(up in names(UP_PKX)){
+  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, UP_PKX[[up]]))]))
+  tab = merge(profil, tab, by = "Var1")
+  rownames(tab) = tab[,"Var1"]
+  tab = tab[,-1]
+  colnames(tab) = c("ALL",up)
+  
+  tab_prct = tab/length(annotation$ID)*100
+  
+  png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
+  barplot(t(as.matrix(tab_prct)),
+          beside = T,
+          main = "Profil repartition of UP deregulated genes",
+          ylab = "% of total genes",
+          ylim = c(0,60),
+          col = c("grey", "indianred2"),
+          names.arg = sub(" "," \n ",rownames(tab)))
+  
+  legend("topleft",
+         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+         fill = c("grey", "indianred2"),
+         bty = "n")
+  dev.off()
+}
 
 ###### Sur DOWN CTIP + UP PKX ####
-# Histogramme empilés
+stdCTIP = list(DOWN_CTIP = DOWN_C,
+            UP_ALL = up_pkx,
+            DOWN_UP = intersect(DOWN_C, up_pkx))
 
-# Histogramme enrichissement
+profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+for (n in names(stdCTIP)){
+  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, stdCTIP[[n]]))]))
+  profil = merge(profil, tab, by = "Var1", all = T)
+  
+}
+
+rownames(profil) = profil$Var1
+profil = profil[,-1]
+colnames(profil) = c("ALL", names(stdCTIP))
+
+# Réordonner les lignes
+profil = profil[row_order,]
+
+
+### Histogramme empilés
+png(paste0(path,"Profils_barplot_CTIP.png"),width = 450, height = 500)
+barplot(as.matrix(profil),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "gene nb")
+
+legend("topright",
+       legend = rownames(profil),
+       fill = colors,
+       bty = "n")
+dev.off()
+
+# Création d'un tableau avec ses pourcentages
+profil_prct = profil
+for (n in 1:ncol(profil)){
+  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+}
+
+png(paste0(path,"Profils_barplot_CTIP_prct.png"),width = 450, height = 500)
+barplot(as.matrix(profil_prct),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "% of genes",
+        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+dev.off()
+
+### Histogramme enrichissement
+profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+for(up in names(stdCTIP)){
+  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, stdCTIP[[up]]))]))
+  tab = merge(profil, tab, by = "Var1")
+  rownames(tab) = tab[,"Var1"]
+  tab = tab[,-1]
+  colnames(tab) = c("ALL",up)
+  
+  tab_prct = tab/length(annotation$ID)*100
+  
+  png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
+  barplot(t(as.matrix(tab_prct)),
+          beside = T,
+          main = "Profil repartition of UP deregulated genes",
+          ylab = "% of total genes",
+          ylim = c(0,60),
+          col = c("grey", "indianred2"),
+          names.arg = sub(" "," \n ",rownames(tab)))
+  
+  legend("topleft",
+         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+         fill = c("grey", "indianred2"),
+         bty = "n")
+  dev.off()
+}
 
 ### Histogrammes IES in genes ####
 ###### Sur UP PGM KU80c & XRCC4 ####

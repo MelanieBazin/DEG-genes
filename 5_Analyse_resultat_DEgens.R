@@ -1,6 +1,7 @@
 options(stringsAsFactors = FALSE)
 library("stringr") 
 library(ggvenn)
+library(ggplot2)
 library("RColorBrewer")
 
 source("0_Cluster.R")
@@ -230,11 +231,56 @@ ggvenn(LIST,
 dev.off()
 
 
-### Histogrammes classes des gènes ####
-###### Sur UP PGM KU80c & XRCC4 ####
-# Histogramme empilés
+### Barplot classes des gènes ####
+row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
+colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
 
-# Histogramme enrichissement
+###### Sur UP PGM KU80c & XRCC4 ####
+profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+for (n in names(UP_PKX)){
+  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, UP_PKX[[n]]))]))
+  profil = merge(profil, tab, by = "Var1", all = T)
+  
+}
+tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, up_pkx))]))
+profil = merge(profil, tab, by = "Var1", all = T)
+
+rownames(profil) = profil$Var1
+profil = profil[,-1]
+colnames(profil) = c("ALL", names(UP_PKX), "UP_ALL")
+
+# Réordonner les lignes
+profil = profil[row_order,]
+
+
+### Histogramme empilés
+png(paste0(save_path,"Profils_barplot_UP.png"),width = 550, height = 500)
+barplot(as.matrix(profil),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "gene nb")
+
+legend("topright",
+       legend = rownames(profil),
+       fill = colors,
+       bty = "n")
+dev.off()
+
+# Création d'un tableau avec ses pourcentages
+profil_prct = profil
+for (n in 1:ncol(profil)){
+  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+}
+
+png(paste0(save_path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
+barplot(as.matrix(profil_prct),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "% of genes",
+        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+dev.off()
+
+### Histogramme enrichissement
 
 ###### Sur DOWN CTIP + UP PKX ####
 # Histogramme empilés

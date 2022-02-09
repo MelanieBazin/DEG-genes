@@ -107,7 +107,7 @@ for (condition in names(rnai_list)){
   if (is.element("ICL7", RNAi_list)){
     RNAi_list = RNAi_list[-grep("ICL7",RNAi_list)]
   }
-  if (is.element("ND7", RNAi_list)){
+  if (!is.null(grep("ND7", RNAi_list))){
     RNAi_list = RNAi_list[-grep("ND7",RNAi_list)]
   }
   

@@ -143,5 +143,5 @@ for (condition in names(rnai_list)){
 source("4-3_Comparaison_Frapporti.R")
 
 sink(paste0("./Analyse/",analyseName,"/sessionInfo.txt"))
-sessionInfo()
+print(sessionInfo())
 sink()

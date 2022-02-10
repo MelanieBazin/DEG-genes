@@ -1,7 +1,7 @@
 # install.packages("RColorBrewer")
 # install.packages("pheatmap")
 # install.packages("seqinr")
-# install.packages("latticeExtra") # Erreur d'installation sur R4.0.4
+# install.packages("latticeExtra")
 # install.packages("FactoMineR")
 # install.packages("factoextra")
 # install.packages("gplots")
@@ -11,19 +11,22 @@
 # install.packages("caret")
 # install.packages("magick")
 # install.packages("devtools")
-# 
-# if (!requireNamespace("BiocManager", quietly = TRUE))
-# install.packages("BiocManager")
+# install.packages("ggseqlogo")
+# install.packages("stringr")
+#
+# if (!require("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# BiocManager::install("BiocVersion")
 # BiocManager::install("vsn")
-# BiocManager::install("DESeq")
 # BiocManager::install("DESeq2")
 # BiocManager::install("topGO")
-# BiocManager::install("latticeExtra") # Erreur d'installation sur R4.0.4
+# BiocManager::install("latticeExtra") 
 # BiocManager::install("lifecycle")
-# BiocManager::install("heatmaps") # Erreur d'installation sur R4.0.4
+# BiocManager::install("heatmaps") 
 # BiocManager::install("sva")
 # BiocManager::install("klaR")
 # BiocManager::install("ComplexHeatmap")
+# BiocManager::install("memes")
 # 
 # if (!require(devtools)) install.packages("devtools")
 # devtools::install_github("yanlinlin82/ggvenn")
@@ -31,7 +34,7 @@
 
 
 options(stringsAsFactors = FALSE)
-library("stringr") 
+library(stringr) 
 
 annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
 annotation$NAME[grep("PTET.51.1.G0110267",annotation$ID)]="PGML1"

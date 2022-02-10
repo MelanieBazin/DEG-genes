@@ -4,6 +4,7 @@ early_genes = annotation$ID[annotation$EXPRESSION_PROFIL == "Early peak"]
 auto_genes = annotation$ID[annotation$EXPRESSION_PROFIL != "none"]
 
 #### Ouverture tableau de données des gènes DEG ####
+path = paste0("./Analyse/",file_name, "/", condition,"/")
 TAB = list()
 for (R in RNAi){
   if (R == "CTIP"){

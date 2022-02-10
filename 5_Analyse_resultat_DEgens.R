@@ -234,7 +234,7 @@ dev.off()
 
 
 ### Barplot classes des gènes ####
-path = paste0(save_path,"Barplot/")
+path = paste0(save_path,"Barplot_profil/")
 dir.create(path ,recursive=T,showWarnings=F)
 
 row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
@@ -395,19 +395,162 @@ for(up in names(stdCTIP)){
   dev.off()
 }
 
-#### Test de significativité Chi2 ####
-
 ### Histogrammes IES in genes ####
-###### Sur UP PGM KU80c & XRCC4 ####
-# Histogramme empilés
+path = paste0(save_path,"Barplot_IES/")
+dir.create(path ,recursive=T,showWarnings=F)
 
-# Histogramme enrichissement
+colors = c("darkblue","snow3")
+
+###### Sur UP PGM KU80c & XRCC4 ####
+profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                         sum(annotation$NB_IES == 0)), 
+                       row.names = c("IES+", "IES-"))
+for (n in names(UP_PKX)){
+  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[n]]))] != 0),
+          sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[n]]))] == 0))
+  profil = cbind(profil, tab)
+  
+}
+
+colnames(profil) = c("ALL", names(UP_PKX))
+
+
+### Histogramme empilés
+png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
+barplot(as.matrix(profil),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "gene nb")
+
+legend("topright",
+       legend = rownames(profil),
+       fill = colors,
+       bty = "n")
+dev.off()
+
+# Création d'un tableau avec ses pourcentages
+profil_prct = profil
+for (n in 1:ncol(profil)){
+  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+}
+
+png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
+barplot(as.matrix(profil_prct),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "% of genes",
+        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+dev.off()
+
+### Histogramme enrichissement
+profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                         sum(annotation$NB_IES == 0)), 
+                       row.names = c("IES+", "IES-"))
+for(up in names(UP_PKX)){
+  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[up]]))] != 0),
+          sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[up]]))] == 0))
+  tab = cbind(profil, tab)
+  colnames(tab) = c("ALL",up)
+  
+  tab_prct = tab
+  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+  for (n in rownames(tab)){
+    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+  }
+  
+  
+  png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
+  barplot(t(as.matrix(tab_prct)),
+          beside = T,
+          main = "Profil repartition of UP deregulated genes",
+          ylab = "% of genes",
+          ylim = c(0,60),
+          col = c("grey", "indianred2"),
+          names.arg = sub(" "," \n ",rownames(tab)))
+  
+  legend("topleft",
+         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+         fill = c("grey", "indianred2"),
+         bty = "n")
+  dev.off()
+}
 
 ###### Sur DOWN CTIP + UP PKX ####
-# Histogramme empilés
+profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                         sum(annotation$NB_IES == 0)), 
+                       row.names = c("IES+", "IES-"))
+for (n in names(stdCTIP)){
+  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[n]]))] != 0),
+          sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[n]]))] == 0))
+  profil = cbind(profil, tab)
+  
+}
 
-# Histogramme enrichissement
+colnames(profil) = c("ALL", names(stdCTIP))
 
 
+### Histogramme empilés
+png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
+barplot(as.matrix(profil),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "gene nb")
+
+legend("topright",
+       legend = rownames(profil),
+       fill = colors,
+       bty = "n")
+dev.off()
+
+# Création d'un tableau avec ses pourcentages
+profil_prct = profil
+for (n in 1:ncol(profil)){
+  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+}
+
+png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
+barplot(as.matrix(profil_prct),
+        col = colors,
+        main = "Profil repartition of UP deregulated genes",
+        ylab = "% of genes",
+        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+dev.off()
+
+### Histogramme enrichissement
+profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                         sum(annotation$NB_IES == 0)), 
+                       row.names = c("IES+", "IES-"))
+for(up in names(stdCTIP)){
+  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[up]]))] != 0),
+          sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[up]]))] == 0))
+  tab = cbind(profil, tab)
+  colnames(tab) = c("ALL",up)
+  
+  tab_prct = tab
+  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+  for (n in rownames(tab)){
+    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+  }
+  
+  
+  png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
+  barplot(t(as.matrix(tab_prct)),
+          beside = T,
+          main = "Profil repartition of UP deregulated genes",
+          ylab = "% of genes",
+          ylim = c(0,60),
+          col = c("grey", "indianred2"),
+          names.arg = sub(" "," \n ",rownames(tab)))
+  
+  legend("topleft",
+         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+         fill = c("grey", "indianred2"),
+         bty = "n")
+  dev.off()
+}
+
+sink(paste0(save_path,"/sessionInfo.txt"))
+print(sessionInfo())
+sink()
 
 

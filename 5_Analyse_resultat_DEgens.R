@@ -24,25 +24,12 @@ annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation = annotation[,c(1,3:5,13,6:11,2)]
 rownames(annotation)=annotation$ID
 
-# Donnée DESeq2
+# Definir les sous-liste de genes
 RNAi = rnai_list[[condition]]
 RNAi = RNAi[-grep("bis", RNAi)]
 RNAi = RNAi[-grep("ICL7", RNAi)]
 RNAi = RNAi[-grep("ND7", RNAi)]
 
-#### Ouverture tableau de données des gènes DEG ####
-TAB = list()
-for (R in RNAi){
-  if (R == "CTIP"){
-    TAB = c(TAB, CTIP_early = list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_EARLY_NoFilter.tab"), header=T,sep="\t",quote='')))
-    TAB = c(TAB, CTIP_inter = list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_INTER_NoFilter.tab"), header=T,sep="\t",quote='')))
-  }else {
-    TAB = c(TAB, list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_LATE_NoFilter.tab"), header=T,sep="\t",quote='')))
-  }
-}
-names(TAB)[3:length(names(TAB))]= RNAi[-1]
-
-# Definir les sous-liste de genes
 source("5-1_Filtres.R")
 
 #### Summary table ####
@@ -90,8 +77,6 @@ ggvenn(LIST,
        text_size = 7,
        set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
 dev.off()
-
-up_pkx = intersect(UP_PKX[["UP_XRCC4"]], intersect(UP_PKX[["UP_PGM"]],UP_PKX[["UP_KU80c"]]))
 
 # Avec intermediate peak
 LIST = c(UP_PKX, Intermediate_peak = list(inter_genes))

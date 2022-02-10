@@ -220,12 +220,13 @@ rownames(autog_enrichment)=c("ALL","SIG","UP","DOWN")
 write.table(t(autog_enrichment),paste0(res_dir,"autog_enrichment.tab"),sep="\t",quote=F,row.names=T)
 
 
+sink(paste0(res_dir,"autog_enrichment_chi2.tab"))
 
 for(p in profiles) {
-  
+  print(paste0(p, " : DE -> SIG, UP, DOWN \n","DE /t", "NB_DE /t", "%DE /t", "ALL /t NB_ALL /t pvalue /t CHI2value /t signif"))
   apply(autog_enrichment[2:4,c(p,"NB")],1,my_chi2,ctl=as.vector(autog_enrichment[1,c(p,"NB")]))
 }
-
+sink()
 
 par(xpd=FALSE,mfrow=c(1,1))
 png(paste0(img_dir,"barplot_autogamy_proportion.png"),family="ArialMT")

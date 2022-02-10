@@ -50,7 +50,10 @@ for (i in 1:5){
 path = paste0(save_path, "STREME/")
 dir.create(save_path,recursive=T,showWarnings=F)
 
-runSt
+runStreme(input = paste0(save_path, "Promotors/PromUP_inter.fa"),
+          control = paste0(save_path, "Promotors/PromRand_",i,".fa"),
+          outdir = path,
+          meme_path)
 
 
 

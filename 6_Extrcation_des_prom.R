@@ -1,23 +1,41 @@
 options(stringsAsFactors = FALSE)
-
 library(seqinr)
+library(memes)
+source("0_Cluster.R")
+
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATTRIBUTES")
 
+# Definition des fichier promoteur à ouvrir
 IES = NULL
 debut = "TSS"
-promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC_", IES, "upstream_150nt_",debut,".fa"))
+promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_",debut,".fa"))
 
-path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/MOTIF/Motif_dans_prom/"
-UP = read.table(paste0(path,"Resumer_DEgenes_selection_UP.tab"), header = T)
+# Definitir les fichiers d'analyse à ouvrir
+date = "02-08"
+condition =  names(rnai_list)[2]
 
-prom_UP = promoteur[which(is.element(names(promoteur),UP$ID))]
+# Localiser les donner
+file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/")
+
+
+# Ouvrir les filtres sur les dérégulation
+RNAi = rnai_list[[condition]]
+RNAi = RNAi[-grep("bis", RNAi)]
+RNAi = RNAi[-grep("ICL7", RNAi)]
+RNAi = RNAi[-grep("ND7", RNAi)]
+source("5-1_Filtres.R")
+
+##### Partie 1 - définir les promoteur pour analyse STREME ####
+path = paste0(save_path, "Promotors/")
+dir.create(path,recursive=T,showWarnings=F)
+
+prom_UP = promoteur[which(is.element(names(promoteur),up_pkx))]
 # write.fasta(sequences = prom_UP, names = names(prom_UP), file.out = paste0(path, "PromUP.fa") )
 
-Inter = annotation[which(annotation$EXPRESSION_PROFIL == "Intermediate peak"),]
-
-prom_UP_int = prom_UP[which(is.element(names(prom_UP),Inter$ID))]
-# write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
+prom_UP_int = prom_UP[which(is.element(names(prom_UP),inter_genes))]
+write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
 
 for (i in 1:5){
   prom_rand = sample(names(promoteur),length(names(prom_UP_int)), replace = F)
@@ -27,28 +45,37 @@ for (i in 1:5){
   
 }
 
+##### Partie 2 - Déintion logo par STREME ####
+# Definition lieu sauvegarde
+path = paste0(save_path, "STREME/")
+dir.create(save_path,recursive=T,showWarnings=F)
 
-# prom_UP_rand500 =   sample(names(prom_UP_int),500, replace = F)
-# prom_UP_rand500 = promoteur[which(is.element(names(prom_UP_int),prom_UP_rand500))]
-# write.fasta(sequences = prom_UP_rand500, names = names(prom_UP_rand500), file.out = paste0(path, "PromUP500.fa") )
+runSt
 
-path = "./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/MOTIF/Autre_motif/"
-# Extraire les promteurs ne portant pas le motif
-# prom_with_motif = read.table(paste0(path,"IN_MAC_Motif_upstream_150nt_TSS.fuzznuc.gff3"), header=F, sep="\t")
-prom_with_motif = read.table(paste0(path,"fimo.gff"), header=F, sep="\t")
-colnames(prom_with_motif)=colnamesgff3
 
-prom_motif = unique(prom_with_motif$ID) #161/241 gènes porte le motif
-prom_UP2 = prom_UP_int[!is.element(names(prom_UP_int), prom_motif)]
-length(prom_motif)+length(names(prom_UP2))==length(names(prom_UP_int))
-write.fasta(sequences = prom_UP2, names = names(prom_UP2), file.out = paste0(path, "PromUP2.fa") )
 
-for (i in 1:5){
-  prom_rand = sample(names(promoteur),length(names(prom_UP2)), replace = F)
-  prom_rand = promoteur[which(is.element(names(promoteur),prom_rand))]
-  
-  write.fasta(sequences = prom_rand, names = names(prom_rand), file.out = paste0(path, "PromRand2_",i,".fa") )
-  
-}
+
+print("Faire les recherche de motif avec STREME avant de lancer 6-1_MeanMotif.R /n 
+      Parametres : /n 
+      Minimum width = 5 ; Minimum width = 20 /n 
+      p-value threshold = 0.05 /n 
+      Markov order -> default /n 
+      Align sequences on their Right Ends")
+
+# Définition d'un motif moyen
+# source("6-1_MeanMotif.R")
+
+##### Partie 4 - définition des prom avec motif par FIMO ####
+path2 = paste0(save_path,"FIMO/")
+dir.create(path2,recursive=T,showWarnings=F)
+
+print("Faire les recherche de motif avec STREME avant de lancer 6-1_MeanMotif.R /n 
+      Parametres : /n 
+      Minimum width = 5 ; Minimum width = 20 /n 
+      p-value threshold = 0.05 /n 
+      Markov order -> default /n 
+      Align sequences on their Right Ends")
+
+
 
 

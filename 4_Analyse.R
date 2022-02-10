@@ -141,3 +141,7 @@ for (condition in names(rnai_list)){
 
 # comparaison avec les donnée publiées pour EZL1
 source("4-3_Comparaison_Frapporti.R")
+
+sink(paste0("./Analyse/",analyseName,"/sessionInfo.txt"))
+sessionInfo()
+sink()

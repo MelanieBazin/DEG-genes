@@ -122,7 +122,7 @@ print("5- Search for motif in promotors on FIMO")
 print("Parametres :")
 print(paste("  Uploade the input motif :", path, "MeanMotif.meme"))  
 print(paste0("  Uploade the input sequence : ./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_",debut,".fa"))
-print("  Match p-value < 1E-4"  )
+print("  Match p-value < 1E-6"  )
 print(paste0("6- Save the identified motif GFF table in : ", path2))
 
 

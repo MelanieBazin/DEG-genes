@@ -54,9 +54,9 @@ MeanTabCalculation <- function(data_tab, infodata){
     c_name = colnames(data_tab)[c]
     colnames(data_tab)[c] =  infodata$Condition[which(infodata$Names==c_name)]
   }
-   mean_data_tab = NULL
+  mean_data_tab = NULL
   mean_data_tab$ID = rownames(data_tab)
-   c = unique(infodata$Condition)[1]
+  c = unique(infodata$Condition)[1]
   for (c in unique(infodata$Condition)){
     temp = data_tab[,grep(c, colnames(data_tab))]
     if (!is.null(dim(temp))){
@@ -75,7 +75,7 @@ MeanTabCalculation <- function(data_tab, infodata){
   mean_data_tab = mean_data_tab[,-grep("Row.names", colnames(mean_data_tab))]
   
   rm(data_tab, ctrl_pos)
-
+  
   mean_data_tab = as.matrix(mean_data_tab)
   return(mean_data_tab)
   
@@ -115,7 +115,7 @@ OrderColumn <- function(data_tab, infodata){
   
   colum_order = c(colum_order_ctrl, colum_order_rnai)
   ordered_tab = data_tab[,colum_order]
-
+  
   return(ordered_tab)
   
 }
@@ -481,13 +481,13 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, color = 
               
               use_raster = raster #reduce the original image seize
   )
-
+  
   
   if (sortie == "png"){
     png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".png"),width = 800, height = 800)
     draw(h)
     dev.off()
-
+    
     
   }else if (sortie == "pdf"){
     pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".pdf"),width = 800, height = 800)
@@ -655,4 +655,181 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL){
     
   }
   dev.off()
+}
+
+###### Hitogramme enrichissement ######
+Profile_Barplot <- function(filtre_list, nom, path){
+  row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
+  colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
+  
+  profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+  for (n in names(filtre_list)){
+    tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, filtre_list[[n]]))]))
+    profil = merge(profil, tab, by = "Var1", all = T)
+    
+  }
+  
+  rownames(profil) = profil$Var1
+  profil = profil[,-1]
+  colnames(profil) = c("ALL", names(filtre_list))
+  
+  # Réordonner les lignes
+  profil = profil[row_order,]
+  
+  
+  ### Histogramme empilés
+  png(paste0(path,"Profils_barplot_",nom,".png"),width = 550, height = 500)
+  barplot(as.matrix(profil),
+          col = colors,
+          main = "Profil repartition",
+          ylab = "gene nb")
+  
+  legend("topright",
+         legend = rownames(profil),
+         fill = colors,
+         bty = "n")
+  dev.off()
+  
+  # Création d'un tableau avec ses pourcentages
+  profil_prct = profil
+  for (n in 1:ncol(profil)){
+    profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+  }
+  
+  png(paste0(path,"Profils_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  barplot(as.matrix(profil_prct),
+          col = colors,
+          main = "Profil repartition",
+          ylab = "% of genes",
+          names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+  dev.off()
+}
+
+Profile_EnrichmentBarplot <- function (filtre_list, path){
+  colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
+  
+  profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+  for(up in names(filtre_list)){
+    tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, filtre_list[[up]]))]))
+    tab = merge(profil, tab, by = "Var1")
+    rownames(tab) = tab[,"Var1"]
+    tab = tab[,-1]
+    colnames(tab) = c("ALL",up)
+    
+    tab_prct = tab
+    tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+    for (n in rownames(tab)){
+      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+    }
+    
+    
+    png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
+    barplot(t(as.matrix(tab_prct)),
+            beside = T,
+            main = paste("Profil repartition of",up ),
+            ylab = "% of genes",
+            ylim = c(0,60),
+            col = c("grey", "indianred2"),
+            names.arg = sub(" "," \n ",rownames(tab)))
+    
+    legend("topleft",
+           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+           fill = c("grey", "indianred2"),
+           bty = "n")
+    dev.off()
+  }
+}
+
+IES_Barplot <- function(filtre_list, path, nom){
+  profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                           sum(annotation$NB_IES == 0)), 
+                         row.names = c("IES+", "IES-"))
+  for (n in names(filtre_list)){
+    tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[n]]))] != 0),
+            sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[n]]))] == 0))
+    profil = cbind(profil, tab)
+    
+  }
+  
+  colnames(profil) = c("ALL", names(filtre_list))
+  
+  
+  ### Histogramme empilés
+  png(paste0(path,"Profils_barplot",nom,".png"),width = 550, height = 500)
+  barplot(as.matrix(profil),
+          col = colors,
+          main = "Profil repartition",
+          ylab = "gene nb")
+  
+  legend("topright",
+         legend = rownames(profil),
+         fill = colors,
+         bty = "n")
+  dev.off()
+  
+  # Création d'un tableau avec ses pourcentages
+  profil_prct = profil
+  for (n in 1:ncol(profil)){
+    profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
+  }
+  
+  png(paste0(path,"Profils_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  barplot(as.matrix(profil_prct),
+          col = colors,
+          main = "Profil repartition",
+          ylab = "% of genes",
+          names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
+  dev.off()
+}
+
+IES_EnrichmentBarplot <- function (filtre_list, path){
+  profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
+                           sum(annotation$NB_IES == 0)), 
+                         row.names = c("IES+", "IES-"))
+  for(up in names(filtre_list)){
+    tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[up]]))] != 0),
+            sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[up]]))] == 0))
+    tab = cbind(profil, tab)
+    colnames(tab) = c("ALL",up)
+    
+    tab_prct = tab
+    tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
+    for (n in rownames(tab)){
+      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+    }
+    
+    
+    png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
+    barplot(t(as.matrix(tab_prct)),
+            beside = T,
+            main = "Profil repartition of UP deregulated genes",
+            ylab = "% of genes",
+            ylim = c(0,60),
+            col = c("grey", "indianred2"),
+            names.arg = sub(" "," \n ",rownames(tab)))
+    
+    legend("topleft",
+           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+           fill = c("grey", "indianred2"),
+           bty = "n")
+    dev.off()
+  }
+}
+
+
+PositionHistogram <- function (filtre_list){
+  for (n in names(filtre_list)){
+    filtre = filtre_list[[n]]
+    if (length(filtre) != 0){
+      png(paste0(path, "MotifSTARTposition_", n,".png"))
+      position = prom_motif$START[is.element(prom_motif$ID, filtre)]
+      hist(position, breaks = 75, xlim = c(-150,0), axes = F,
+           xlab = paste("Distance from", debut),
+           ylab = "Nb of motif",
+           main = n)
+      axis(2)
+      axis(1, at = seq(-150,0,10))
+      dev.off()
+    }
+  }
 }

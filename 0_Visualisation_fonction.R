@@ -657,7 +657,7 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL){
   dev.off()
 }
 
-###### Hitogramme enrichissement ######
+###### Pour études des gènes DEG ######
 Profile_Barplot <- function(filtre_list, nom, path){
   row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
   colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
@@ -705,7 +705,7 @@ Profile_Barplot <- function(filtre_list, nom, path){
   dev.off()
 }
 
-Profile_EnrichmentBarplot <- function (filtre_list, path){
+Profile_EnrichmentBarplot <- function (filtre_list, path, names){
   colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
   
   profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
@@ -723,7 +723,7 @@ Profile_EnrichmentBarplot <- function (filtre_list, path){
     }
     
     
-    png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
+    png(paste0(path,"Enrichment_barplot_",names,".png"),width = 800, height = 500)
     barplot(t(as.matrix(tab_prct)),
             beside = T,
             main = paste("Profil repartition of",up ),
@@ -816,7 +816,7 @@ IES_EnrichmentBarplot <- function (filtre_list, path){
   }
 }
 
-
+###### Pour études des motifs ######
 PositionHistogram <- function (filtre_list){
   for (n in names(filtre_list)){
     filtre = filtre_list[[n]]
@@ -831,5 +831,80 @@ PositionHistogram <- function (filtre_list){
       axis(1, at = seq(-150,0,10))
       dev.off()
     }
+  }
+}
+
+
+
+PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
+
+  tab_stand = as.data.frame(table(strand_tab[,2]))
+  for (n in names(filtre_list)){
+    tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[n]])),2]))
+    tab_stand = merge(tab_stand, tab, by = "Var1", all = T)
+    
+  }
+  
+  rownames(tab_stand) = tab_stand$Var1
+  tab_stand = tab_stand[,-1]
+  colnames(tab_stand) = c("ALL", names(filtre_list))
+  tab_stand = tab_stand[row_order,]
+  
+  ### Histogramme empilés
+  png(paste0(path,"Pil_barplot_",nom,".png"),width = 550, height = 500)
+  barplot(as.matrix(tab_stand),
+          col = colors)
+  legend("topright",
+         legend = rev(rownames(tab_stand)),
+         fill = rev(colors),
+         bty = "n")
+  dev.off()
+  
+  # Création d'un tableau avec ses pourcentages
+  profil_prct = tab_stand
+  for (n in 1:ncol(tab_stand)){
+    profil_prct[,n] = profil_prct[,n]/sum(tab_stand[,n])*100
+  }
+  
+  png(paste0(path,"Pil_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  barplot(as.matrix(profil_prct),
+          col = colors,
+          main = "Profil repartition",
+          ylab = "% of genes",
+          names.arg = paste(colnames(profil_prct), apply(tab_stand, 2, sum), sep = "\n"))
+  dev.off()
+}
+
+EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
+ 
+  tab_stand = as.data.frame(table(strand_tab[,2]))
+  for(up in names(filtre_list)){
+    tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[up]])),2]))
+    tab = merge(tab_stand, tab, by = "Var1")
+    rownames(tab) = tab[,"Var1"]
+    tab = tab[,-1]
+    colnames(tab) = c("ALL",up)
+    
+    tab_prct = tab
+    tab_prct[,"ALL"] = tab[,"ALL"]/length(strand_tab$ID)*100
+    for (n in rownames(tab)){
+      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
+    }
+    
+    
+    png(paste0(path,"Enrichment_barplot_",names,"_",up,".png"),width = 800, height = 500)
+    barplot(t(as.matrix(tab_prct)),
+            beside = T,
+            main = paste("Profil repartition of", up ),
+            ylab = "% of genes",
+            ylim = c(0,60),
+            col = c("grey", "indianred2"),
+            names.arg = sub(" "," \n ",rownames(tab)))
+    
+    legend("topleft",
+           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
+           fill = c("grey", "indianred2"),
+           bty = "n")
+    dev.off()
   }
 }

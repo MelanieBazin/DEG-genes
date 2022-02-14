@@ -1,10 +1,11 @@
 options(stringsAsFactors = FALSE)
-library("stringr") 
+library(stringr) 
 library(ggvenn)
 library(ggplot2)
-library("RColorBrewer")
+library(RColorBrewer)
 
 source("0_Cluster.R")
+source("0_Visualisation_fonction.R")
 
 # Definitir les fichiers à ouvrir
 date = "02-08"
@@ -16,14 +17,6 @@ path = paste0("./Analyse/",file_name, "/", condition, "/")
 save_path = paste0(path, "Analyse/")
 dir.create(save_path,recursive=T,showWarnings=F)
 
-# Donnée externe
-TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")
-TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
-
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation = annotation[,c(1,3:5,13,6:11,2)]
-rownames(annotation)=annotation$ID
-
 # Definir les sous-liste de genes
 RNAi = rnai_list[[condition]]
 RNAi = RNAi[-grep("bis", RNAi)]
@@ -33,6 +26,7 @@ RNAi = RNAi[-grep("ND7", RNAi)]
 source("5-1_Filtres.R")
 
 #### Summary table ####
+print("Summary table creation")
 summary_tab = annotation
 for (cond in names(TAB)){
   tab = TAB[[cond]]
@@ -41,12 +35,14 @@ for (cond in names(TAB)){
   summary_tab = merge(summary_tab, mini_tab, by = "ID", all = T)
 }
 colnames(TurboPGM) = c("PROTEIN_NAME", paste0("TurboPGM_", c("log2FC", "-log10pval")))
-colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
 summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
+colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
+summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
 
 write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary_",condition,".tab"), sep = "\t", row.names = F) 
 
 ### Venn Diagrame ####
+print("Venn Digramm in progress")
 path = paste0(save_path,"VennDiagrame/")
 dir.create(path ,recursive=T,showWarnings=F)
 ###### Croisement des tubo ####
@@ -134,7 +130,7 @@ dev.off()
 
 ###### Croisement des DOWN CTIP ####
 # Avec les données TurboID
-LIST = list(DOWN_CTIP = DOWN_C,
+LIST = list(DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4)
 png(paste0(path,"Venn_CTIP_TURBO.png"))
@@ -148,7 +144,7 @@ ggvenn(LIST,
 dev.off()
 
 # Avec les UP dérégulés en PGM, KU80c, XRCC4
-LIST = c(UP_PKX, DOWN_CTIP = list(DOWN_C))
+LIST = c(UP_PKX, DOWN_CTIP = list(stdCTIP[["DOWN_CTIP"]]))
 png(paste0(path,"Venn_CTIP_PKX.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -161,7 +157,7 @@ dev.off()
 
 # Avec les UP dérégulés + intermediate peak
 LIST = list(UP_PKX = up_pkx,
-            DOWN_CTIP = DOWN_C,
+            DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             Intermediate_peak = inter_genes)
 png(paste0(path,"Venn_CTIP_PKX_INTER.png"))
 ggvenn(LIST,
@@ -175,7 +171,7 @@ dev.off()
 
 # Avec les UP dérégulés + intermediate peak + turbo
 LIST = list(UP_PKX = up_pkx,
-            DOWN_CTIP = DOWN_C,
+            DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
             Intermediate_peak = inter_genes)
 png(paste0(path,"Venn_CTIP_PKX_INTER_TURBO.png"))
@@ -190,7 +186,7 @@ dev.off()
 
 # Avec les UP dérégulés + early peak
 LIST = list(UP_PKX = up_pkx,
-            DOWN_CTIP = DOWN_C,
+            DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             Intermediate_peak = inter_genes)
 png(paste0(path,"Venn_CTIP_PKX_EARLY.png"))
 ggvenn(LIST,
@@ -204,7 +200,7 @@ dev.off()
 
 # Avec les UP dérégulés + early peak + Turbo
 LIST = list(UP_PKX = up_pkx,
-            DOWN_CTIP = DOWN_C,
+            DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
             Intermediate_peak = inter_genes)
 png(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
@@ -218,321 +214,35 @@ ggvenn(LIST,
 dev.off()
 
 
-### Barplot classes des gènes ####
+### Répartition des profils selon les filtres ####
+print("Profiles repartition barplot")
 path = paste0(save_path,"Barplot_profil/")
 dir.create(path ,recursive=T,showWarnings=F)
 
-row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
-colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
-
-###### Sur UP PGM KU80c & XRCC4 ####
+# Sur UP PGM KU80c & XRCC4 
 UP_PKX = c(UP_PKX, UP_ALL = list(up_pkx))
 
-profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
-for (n in names(UP_PKX)){
-  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, UP_PKX[[n]]))]))
-  profil = merge(profil, tab, by = "Var1", all = T)
-  
-}
+Profile_Barplot(UP_PKX, "UP", path)
+Profile_EnrichmentBarplot(UP_PKX, path)
 
-rownames(profil) = profil$Var1
-profil = profil[,-1]
-colnames(profil) = c("ALL", names(UP_PKX))
+# Sur DOWN CTIP + UP PKX 
 
-# Réordonner les lignes
-profil = profil[row_order,]
+Profile_Barplot(stdCTIP, "CTIP", path)
+Profile_EnrichmentBarplot(stdCTIP, path)
 
-
-### Histogramme empilés
-png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
-barplot(as.matrix(profil),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "gene nb")
-
-legend("topright",
-       legend = rownames(profil),
-       fill = colors,
-       bty = "n")
-dev.off()
-
-# Création d'un tableau avec ses pourcentages
-profil_prct = profil
-for (n in 1:ncol(profil)){
-  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-}
-
-png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
-barplot(as.matrix(profil_prct),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "% of genes",
-        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
-dev.off()
-
-### Histogramme enrichissement
-profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
-for(up in names(UP_PKX)){
-  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, UP_PKX[[up]]))]))
-  tab = merge(profil, tab, by = "Var1")
-  rownames(tab) = tab[,"Var1"]
-  tab = tab[,-1]
-  colnames(tab) = c("ALL",up)
-  
-  tab_prct = tab
-  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-  for (n in rownames(tab)){
-    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-  }
-  
-  
-  png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
-  barplot(t(as.matrix(tab_prct)),
-          beside = T,
-          main = "Profil repartition of UP deregulated genes",
-          ylab = "% of genes",
-          ylim = c(0,60),
-          col = c("grey", "indianred2"),
-          names.arg = sub(" "," \n ",rownames(tab)))
-  
-  legend("topleft",
-         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-         fill = c("grey", "indianred2"),
-         bty = "n")
-  dev.off()
-}
-
-###### Sur DOWN CTIP + UP PKX ####
-stdCTIP = list(DOWN_CTIP = DOWN_C,
-            UP_ALL = up_pkx,
-            DOWN_UP = intersect(DOWN_C, up_pkx))
-
-profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
-for (n in names(stdCTIP)){
-  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, stdCTIP[[n]]))]))
-  profil = merge(profil, tab, by = "Var1", all = T)
-  
-}
-
-rownames(profil) = profil$Var1
-profil = profil[,-1]
-colnames(profil) = c("ALL", names(stdCTIP))
-
-# Réordonner les lignes
-profil = profil[row_order,]
-
-
-### Histogramme empilés
-png(paste0(path,"Profils_barplot_CTIP.png"),width = 450, height = 500)
-barplot(as.matrix(profil),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "gene nb")
-
-legend("topright",
-       legend = rownames(profil),
-       fill = colors,
-       bty = "n")
-dev.off()
-
-# Création d'un tableau avec ses pourcentages
-profil_prct = profil
-for (n in 1:ncol(profil)){
-  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-}
-
-png(paste0(path,"Profils_barplot_CTIP_prct.png"),width = 450, height = 500)
-barplot(as.matrix(profil_prct),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "% of genes",
-        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
-dev.off()
-
-### Histogramme enrichissement
-profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
-for(up in names(stdCTIP)){
-  tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, stdCTIP[[up]]))]))
-  tab = merge(profil, tab, by = "Var1")
-  rownames(tab) = tab[,"Var1"]
-  tab = tab[,-1]
-  colnames(tab) = c("ALL",up)
-  
-  tab_prct = tab
-  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-  for (n in rownames(tab)){
-    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-  }
-  
-  png(paste0(path,"Profils_barplot_",up,".png"),width = 800, height = 500)
-  barplot(t(as.matrix(tab_prct)),
-          beside = T,
-          main = "Profil repartition of UP deregulated genes",
-          ylab = "% of genes",
-          ylim = c(0,60),
-          col = c("grey", "indianred2"),
-          names.arg = sub(" "," \n ",rownames(tab)))
-  
-  legend("topleft",
-         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-         fill = c("grey", "indianred2"),
-         bty = "n")
-  dev.off()
-}
-
-### Histogrammes IES in genes ####
+###### Répartition des gènes avec IES selon les filtres ####
+print("Gene with IES repartition barplot")
 path = paste0(save_path,"Barplot_IES/")
 dir.create(path ,recursive=T,showWarnings=F)
 
-colors = c("darkblue","snow3")
-
-###### Sur UP PGM KU80c & XRCC4 ####
-profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
-                         sum(annotation$NB_IES == 0)), 
-                       row.names = c("IES+", "IES-"))
-for (n in names(UP_PKX)){
-  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[n]]))] != 0),
-          sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[n]]))] == 0))
-  profil = cbind(profil, tab)
-  
-}
-
-colnames(profil) = c("ALL", names(UP_PKX))
+# Sur UP PGM KU80c & XRCC4
+IES_Barplot(UP_PKX, "UP", path)
+IES_EnrichmentBarplot(UP_PKX, path)
 
 
-### Histogramme empilés
-png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
-barplot(as.matrix(profil),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "gene nb")
-
-legend("topright",
-       legend = rownames(profil),
-       fill = colors,
-       bty = "n")
-dev.off()
-
-# Création d'un tableau avec ses pourcentages
-profil_prct = profil
-for (n in 1:ncol(profil)){
-  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-}
-
-png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
-barplot(as.matrix(profil_prct),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "% of genes",
-        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
-dev.off()
-
-### Histogramme enrichissement
-profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
-                         sum(annotation$NB_IES == 0)), 
-                       row.names = c("IES+", "IES-"))
-for(up in names(UP_PKX)){
-  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[up]]))] != 0),
-          sum(annotation$NB_IES[which(is.element(annotation$ID, UP_PKX[[up]]))] == 0))
-  tab = cbind(profil, tab)
-  colnames(tab) = c("ALL",up)
-  
-  tab_prct = tab
-  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-  for (n in rownames(tab)){
-    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-  }
-  
-  
-  png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
-  barplot(t(as.matrix(tab_prct)),
-          beside = T,
-          main = "Profil repartition of UP deregulated genes",
-          ylab = "% of genes",
-          ylim = c(0,60),
-          col = c("grey", "indianred2"),
-          names.arg = sub(" "," \n ",rownames(tab)))
-  
-  legend("topleft",
-         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-         fill = c("grey", "indianred2"),
-         bty = "n")
-  dev.off()
-}
-
-###### Sur DOWN CTIP + UP PKX ####
-profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
-                         sum(annotation$NB_IES == 0)), 
-                       row.names = c("IES+", "IES-"))
-for (n in names(stdCTIP)){
-  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[n]]))] != 0),
-          sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[n]]))] == 0))
-  profil = cbind(profil, tab)
-  
-}
-
-colnames(profil) = c("ALL", names(stdCTIP))
-
-
-### Histogramme empilés
-png(paste0(path,"Profils_barplot_UP.png"),width = 550, height = 500)
-barplot(as.matrix(profil),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "gene nb")
-
-legend("topright",
-       legend = rownames(profil),
-       fill = colors,
-       bty = "n")
-dev.off()
-
-# Création d'un tableau avec ses pourcentages
-profil_prct = profil
-for (n in 1:ncol(profil)){
-  profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-}
-
-png(paste0(path,"Profils_barplot_UP_prct.png"),width = 550, height = 500)
-barplot(as.matrix(profil_prct),
-        col = colors,
-        main = "Profil repartition of UP deregulated genes",
-        ylab = "% of genes",
-        names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
-dev.off()
-
-### Histogramme enrichissement
-profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
-                         sum(annotation$NB_IES == 0)), 
-                       row.names = c("IES+", "IES-"))
-for(up in names(stdCTIP)){
-  tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[up]]))] != 0),
-          sum(annotation$NB_IES[which(is.element(annotation$ID, stdCTIP[[up]]))] == 0))
-  tab = cbind(profil, tab)
-  colnames(tab) = c("ALL",up)
-  
-  tab_prct = tab
-  tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-  for (n in rownames(tab)){
-    tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-  }
-  
-  
-  png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
-  barplot(t(as.matrix(tab_prct)),
-          beside = T,
-          main = "Profil repartition of UP deregulated genes",
-          ylab = "% of genes",
-          ylim = c(0,60),
-          col = c("grey", "indianred2"),
-          names.arg = sub(" "," \n ",rownames(tab)))
-  
-  legend("topleft",
-         legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-         fill = c("grey", "indianred2"),
-         bty = "n")
-  dev.off()
-}
+# Sur DOWN CTIP + UP PKX
+IES_Barplot(stdCTIP, "CTIP", path)
+IES_EnrichmentBarplot(stdCTIP, path)
 
 sink(paste0(save_path,"/sessionInfo.txt"))
 print(sessionInfo())

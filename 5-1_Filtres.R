@@ -39,29 +39,32 @@ for (R in RNAi[-1]){
 }
 names(UP_PKX) = paste("UP", RNAi[-1], sep = "_")
 
-up_pkx = intersect(UP_PKX[["UP_XRCC4"]], intersect(UP_PKX[["UP_PGM"]],UP_PKX[["UP_KU80c"]]))
+up_pkx = intersect(UP_PKX$UP_XRCC4, intersect(UP_PKX$UP_PGM,UP_PKX$UP_KU80c))
 
 # Les gènes NOT UP dérégulés en PGM, KU80c et/OU XRCC4
 not_UP_PKX = list()
 for (l in names(UP_PKX)){
   up_genes = UP_PKX[[l]]
-  not_UP_PKX = c(not_UP_PKX, list(all_genes[!is.element(all_genes, up_genes)]))
+  not_UP_PKX = c(not_UP_PKX, list(AUTOGAMY$all_genes[!is.element(AUTOGAMY$all_genes, up_genes)]))
 }
 names(not_UP_PKX) = paste("not",names(UP_PKX), sep = "_")
 
 
 
 # Les gènes DOWN dérégulés en CTIP early ou inter
-CTIP = rbind(TAB[["CTIP_early"]],TAB[["CTIP_inter"]])
+CTIP = rbind(TAB$CTIP_early,TAB$CTIP_inter)
 
 stdCTIP = list(DOWN_CTIP = unique(CTIP[CTIP$REGULATION == "Down-regulated", "ID"]),
                UP_ALL = up_pkx,
-               DOWN_UP = intersect(DOWN_C, up_pkx))
+               DOWN_UP = intersect(unique(CTIP[CTIP$REGULATION == "Down-regulated", "ID"]), up_pkx))
 
 
-not_stdCTIP = list(not_DOWN_CTIP = not_DOWN_C,
-                   not_UP_ALL = not_UP_PKX,
-                   not_DOWN_UP = intersect(not_DOWN_C, not_UP_PKX))
+not_stdCTIP = list()
+for (l in names(stdCTIP)){
+  up_genes = stdCTIP[[l]]
+  not_stdCTIP = c(not_stdCTIP, list(AUTOGAMY$all_genes[!is.element(AUTOGAMY$all_genes, up_genes)]))
+}
+names(not_stdCTIP) = paste("not",names(stdCTIP), sep = "_")
 
 Crossinglist <- function (list1, list2){
   LIST = list()

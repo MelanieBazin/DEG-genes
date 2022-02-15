@@ -50,15 +50,21 @@ for (corr in c("Corrected", "Uncorrected")){
                              groupby = deseq$Samples,
                              run     = deseq$Names)
   
+  infodata_collapse = as.data.frame(colData(deseq))
+  write.table(infodata_collapse,paste0(path,condition ,"_infodata_collapse.tab"), sep="\t",row.names=T,quote=F)
+  
   # Analyse DESeq2
   deseq = DESeq(deseq)
   
   ### Recupération des donnée normalisée ####
   # Variance stabilizing transformation
   vsd = assay(vst(deseq, blind = T))
+  vsd = OrderColumn(vsd, infodata_collapse)
+  
   write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
   
-  color = Culster_color(condition)
+  color = Culster_color(vsd, collapse = T)
+  names(color) = colnames(vsd)
   
   PCA_plot_generator(vsd,
                      colors = color,

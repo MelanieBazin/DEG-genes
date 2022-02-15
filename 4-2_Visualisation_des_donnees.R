@@ -7,17 +7,6 @@
 #  condition correspond aux names(rnai_list) et donc aux groupe de RNA-seq analysés ensembles
 
 
-
-##### Pour ouvrir sur les dernère données générées ####
-# source("0_Cluster.R")
-# source("3_Visualisation_des_donnees_fonction.R")
-# condition =  names(rnai_list)[1]
-# path = "./Analyse/2021-07-09_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/test/"
-# data_tab = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab"), sep="\t",row.names=1,header =  T)
-# infodata = read.table(paste0("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_infodata_collapse.tab"), sep="\t",row.names=1,header =  T)
-# colnames(infodata)[1:2] = c("Names", "Samples")
-# 
-
 ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
 print(paste( condition, "-----> Creation BoxPlot normalise"))
 png(paste0(path, "Comptage_bolxplot_DESeq.png"))
@@ -51,10 +40,10 @@ for (color_type in c("methods","replicates")){
   print(paste( condition, "-----> Setting",color_type,"colors"))
   if (color_type == "methods"){
     # Créaction du vecteur de couleur par méthode de séquencage
-    color = Batch_color(condition, cluster_list = cluster, collapse = T)
+    color = Batch_color(data_tab, cluster_list = cluster, collapse = T)
   }else if (color_type == "replicates"){
     # Créaction du vecteur de couleur par groupe de pseudo_réplicat
-    color = Culster_color(condition, cluster_list = cluster)
+    color = Culster_color(data_tab, cluster_list = cluster)
   }
   names(color) = colnames(data_tab)
   

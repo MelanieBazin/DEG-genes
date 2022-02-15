@@ -80,11 +80,12 @@ for (correction in c("corrected","uncorrected")){
     print(paste( condition, "-----> Setting",color_type,"colors"))
     if (color_type == "methods"){
       # Créaction du vecteur de couleur par méthode de séquencage
-      color = Batch_color(condition, cluster_list = cluster2)
+      color = Batch_color(data_tab, cluster_list = cluster2)
     }else if (color_type == "replicates"){
       # Créaction du vecteur de couleur par groupe de pseudo_réplicat
-      color = Culster_color(condition, cluster_list = cluster2)
+      color = Culster_color(data_tab, cluster_list = cluster2)
     }
+    
     names(color) = colnames(data_tab)
     
     #### Analyse multi-variée des données pour clustering  ####

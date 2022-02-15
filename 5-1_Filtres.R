@@ -1,4 +1,4 @@
-#♪ Récupéartion des données annotation
+# Récupéartion des données annotation
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
 annotation = annotation[,c(1,3:5,13,6:11,2)]
 rownames(annotation)=annotation$ID

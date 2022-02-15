@@ -85,32 +85,21 @@ OrderColumn <- function(data_tab, infodata){
   colum_order_ctrl = c()
   colum_order_rnai = c()
   
-  rnai = sub("Veg","",colnames(data_tab)[grep("Veg", colnames(data_tab), ignore.case = T)], ignore.case = T)
+  infodata$RNAi = str_remove_all(str_split_fixed(infodata$Names, "_T", n=2)[,1], "_Veg")
   
-  for (r in rnai){
-    if (is.element("_ctrl",rnai)){
-      cluster_timing = sub(paste0("_",r),"",(colnames(data_tab)[grep(r, colnames(data_tab),ignore.case = T)]))
-      control = r =="ctrl"
-      r = sub("_","",r)
-    }else{
-      cluster_timing = infodata$Timing[grep(r, infodata$Names)]
-      control = infodata$Feeding[grep(r, infodata$Names)][1] == "ctrl"
-      str_sub(r,-1) = ""
-    }
+  for (r in unique(infodata$RNAi)){
+    rnai_position = str_which(colnames(data_tab),r)
+    Timing = infodata$Timing[grep(r, infodata$Names)]
+    Timing = sub("Veg","-1", Timing)
+  
+    cluster_position = rnai_position[order(as.numeric(Timing))]
     
-    veg_pos = grep("Veg", cluster_timing, ignore.case = T)
-    cluster_timing = cluster_timing[-veg_pos]
-    timing_pos = mixedorder(cluster_timing)
     
-    cluster_position = str_which(colnames(data_tab), r)
-    cluster_position = cluster_position[c(veg_pos, timing_pos)]
-    
-    if (control == T){
+    if(infodata$Feeding[rnai_position[1]] == "ctrl"){
       colum_order_ctrl = c(colum_order_ctrl, cluster_position)
     }else{
       colum_order_rnai = c(colum_order_rnai, cluster_position)
     }
-    
   }
   
   colum_order = c(colum_order_ctrl, colum_order_rnai)
@@ -176,7 +165,7 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
   
   
   infodata[,"Feeding"] = feeding
-  infodata[,"Timing"] = timing
+  infodata[,"Timing"] = str_remove_all(timing, "T")
   infodata[,"Cluster"] = clust
   infodata[,"Seq_method"] = batch
   infodata[,"Condition"]= condition
@@ -219,146 +208,12 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
   
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
-    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", col.hab = colors, title = main,
+    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind",  col.hab = colors, title = main,
                  ggoptions = list(size=3))
     ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
   return(resExp)
-}
-
-library(ggplot2)
-library(ggrepel)
-
-LDA_plot_generator <- function(type = "LDA",lda_data_tab,infodata, lda_model, path, condition, color, sortie = "png"){
-  path = paste0(path,"/",type,"/")
-  dir.create(path,recursive=T,showWarnings=F)
-  
-  if (sortie == "png") {png(paste0(path,condition,"_",type,"_hist.png"),width = 480, height = 1000)
-  }else if (sortie =="pdf"){
-    pdf(paste0(path,condition,"_",type,"_hist.pdf"),width = 480, height = 1000)
-  }
-  plot(lda_model, dimen = 1, type = "b")
-  dev.off()
-  # plot(lda_model, col = color, dimen = 2)
-  
-  prediction = predict(lda_model)$x
-  
-  label_color = c(
-    "VEG" = veg_color,
-    "EARLY" = early_color,
-    "INTER" = inter_color,
-    "LATE" = late_color
-  )
-  
-  gg_data_tab = cbind(as.data.frame(lda_data_tab), prediction)
-  gp = ggplot(gg_data_tab, aes(LD1, LD2))+
-    geom_point(size = 2, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = label_color)
-  ggsave(paste0(path,condition,"_",type,"1.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
-  
-  gp = ggplot(gg_data_tab, aes(LD1, LD3))+
-    geom_point(size = 2, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"2.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
-  
-  gp = ggplot(gg_data_tab, aes(LD3, LD2))+
-    geom_point(size = 2, aes(color = infodata$Cluster)) +
-    geom_text_repel(size = 4, max.overlaps = 30 , aes(label = row.names(lda_data_tab), colour = infodata$Cluster))+
-    labs(color = "Groupe")+
-    theme_light()+
-    scale_color_manual(values = unique(color))
-  ggsave(paste0(path,condition,"_",type,"3.",sortie), device = sortie, plot = gp, width = 20, height = 20, units = "cm")
-  
-}
-
-
-EvaluPrediction <- function(type, data_tab, infodata , i, path){
-  if (type == "LDA"){
-    lda_data_tab=scale(t(data_tab))
-    
-    keep = c()
-    for (l in 1:ncol(lda_data_tab)){
-      keep = c(keep, !is.element(T, is.na(lda_data_tab[,l])))
-    }
-    lda_data_tab = lda_data_tab[,keep]
-    
-    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.75, 0.25))
-    train = lda_data_tab[training_sample,-c(1016,1036,5821,6424,9636,12476,16379,16687,17842,22891,24244,28353,32726,36143,37881,38068,39963,41123,41364)]
-    test = lda_data_tab[!training_sample,]
-    
-    lda_model = lda(train, grouping = infodata$Cluster[training_sample])
-    
-  }else if (type == "SVM"){
-    lda_data_tab=t(data_tab)
-    
-    training_sample = sample(c(T,F), nrow(lda_data_tab), replace = T, prob = c(0.6, 0.4))
-    train = lda_data_tab[training_sample,]
-    test = lda_data_tab[!training_sample,]
-    
-    trctrl = trainControl(method = "repeatedcv", number = 10, repeats = 3)
-    lda_model = train(train, y = as.factor(infodata$Cluster[training_sample]), method = "svmLinear",
-                      trControl=trctrl,
-                      preProcess = c("center", "scale"),
-                      tuneLength = 10)
-  }
-  
-  # lda_model$prior
-  # summary(lda_model$scaling)
-  
-  lda_train = predict(lda_model)
-  lda_test = predict(lda_model, test)
-  
-  type = paste0(type,"train")
-  
-  path = paste0(path,"/",type,"/")
-  dir.create(path,recursive=T,showWarnings=F)
-  
-  LDA_plot_generator(type,test,infodata[training_sample,], lda_model, paste0(path,"Train"), i, color)
-  
-  info_train = infodata$Cluster[training_sample]
-  info_test = infodata$Cluster[!training_sample]
-  
-  if(type == "LDAtrain"){
-    lda_train = as.character(lda_train$class)
-    lda_test  = as.character(lda_test$class)
-    
-  } 
-  
-  if (length(lda_train)>length(info_train)){
-    info_train = c(info_train, rep(NA, length(lda_train)-length(info_train)))
-  }else if (length(lda_train)<length(info_train)){
-    lda_train = c(lda_train, rep(NA, length(info_train)-length(lda_train)))
-  }
-  
-  if (length(lda_test)>length(info_test)){
-    info_test = c(info_test, rep(NA, length(lda_test)-length(info_test)))
-  }else if (length(lda_train)<length(info_train)){
-    lda_test = c(lda_test, rep(NA, length(info_test)-length(lda_test)))
-  }
-  
-  lda_train = factor(lda_train, levels = unique(infodata$Cluster))
-  lda_test  = factor(lda_test, levels = unique(infodata$Cluster))
-  info_train = factor(info_train, levels = unique(infodata$Cluster))
-  info_test = factor(info_test, levels = unique(infodata$Cluster))
-  
-  conf_mat_train = confusionMatrix(data = lda_train, reference = info_train)
-  conf_mat_test = confusionMatrix(data = lda_test, reference = info_test)
-  
-  return(print(paste("Précision du modèle : ",signif(conf_mat_test$overall["Accuracy"]*100, digits = 4),"%")))
-  
-  write(conf_mat_train, paste0(path,i,"_confusionMatrice_train.txt"), sep = "\t")
-  write(conf_mat_test, paste0(path,i,"_confusionMatrice_test.txt"), sep = "\t")
-  
-  
-  
-  
 }
 
 
@@ -837,7 +692,7 @@ PositionHistogram <- function (filtre_list){
 
 
 PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
-
+  
   tab_stand = as.data.frame(table(strand_tab[,2]))
   for (n in names(filtre_list)){
     tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[n]])),2]))
@@ -876,7 +731,7 @@ PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
 }
 
 EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
- 
+  
   tab_stand = as.data.frame(table(strand_tab[,2]))
   for(up in names(filtre_list)){
     tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[up]])),2]))

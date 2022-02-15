@@ -39,7 +39,7 @@ Cluster_color = list(
    very_late = "deeppink2"
  )
 
-Culster_color <- function(data_tab,  collapse = "NO", list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
+Culster_color <- function(data_tab, list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
   color = c()
   
   rnai = unique(str_remove_all(str_split_fixed(colnames(data_tab), "_T", n=2)[,1], "_Veg"))
@@ -66,17 +66,22 @@ Method_color = list(
   both = "mediumturquoise")
 
 
-Batch_color <- function(condition, collapse = "NO" , list= rnai_list, cluster_list = cluster, color_list = Method_color){
+Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color_list = Method_color){
+  rnai = unique(str_remove_all(str_split_fixed(colnames(data_tab), "_T", n=2)[,1], "_Veg"))
+  
   seq_color = c()
-  for (j in list[[condition]]){
-    if (collapse == "NO"){
+  
+  if(any(grepl("bis",rnai))){
+    for (j in rnai){
       if (is.element(j,c("ICL7bis", "EZL1bis", "XRCC4", "CTIP", "ND7_C", "ND7_X"))){
         seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ICL7", "EZL1", "ND7_K", "KU80c", "PGM"))){
         seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))
       }
-    }else{
-      if (is.element(j,c("ICL7_bis", "EZL1_bis","ICL7", "EZL1"))){
+    }
+  }else{
+    for (j in rnai){
+      if (is.element(j,c("ICL7", "EZL1"))){
         seq_color=c(seq_color,rep(color_list[["both"]],length(cluster_list[[j]])))
       }else if (is.element(j,c("XRCC4", "CTIP", "ND7_C", "ND7_X"))){
         seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
@@ -84,7 +89,6 @@ Batch_color <- function(condition, collapse = "NO" , list= rnai_list, cluster_li
         seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))
       }
     }
-    
   }
   
   return(seq_color)

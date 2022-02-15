@@ -12,10 +12,11 @@ debut = "TSS"
 # Definitir les fichiers d'analyse à ouvrir
 date = "02-08"
 condition =  names(rnai_list)[2]
+p_valueFIMO = "1E-5"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/")
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/FIMO_",p_valueFIMO)
 
 # Ouvrir les filtres sur les dérégulation
 RNAi = rnai_list[[condition]]
@@ -108,7 +109,7 @@ path = paste0(save_path,"Venn_Diagramm/")
 dir.create(path ,recursive=T,showWarnings=F)
 
 # Croiser Motif avec genes de l'autoagmie
-LIST = list(Autogamy = AUTOGAMY$DEG_autogamy,
+LIST = list(Autogamy = AUTOGAMY$autogamy,
             Motif =  MOTIF_uniq$Motif,
             Motif50.80 =  MOTIF_uniq$motif_50.80)
 png(paste0(path,"Venn_Motif_autogamy.png"))
@@ -137,8 +138,7 @@ dev.off()
 
 LIST = list(UP_PKX = UP_PKX$UP_ALL,
             IntermediatePeak = AUTOGAMY$inter_peak,
-            Motif =  MOTIF_uniq$Motif,
-            Motif50.80 =  MOTIF_uniq$motif_50.80)
+            Motif =  MOTIF_uniq$Motif)
 png(paste0(path,"Venn_Motifs_UP_inter.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -148,9 +148,29 @@ dev.off()
 
 LIST = list(UP_PKX = UP_PKX$UP_ALL,
             EarlyPeak = AUTOGAMY$early_peak,
-            Motif =  MOTIF_uniq$Motif,
-            Motif50.80 =  MOTIF_uniq$motif_50.80)
+            Motif =  MOTIF_uniq$Motif)
 png(paste0(path,"Venn_Motifs_UP_early.png"))
+ggvenn(LIST,
+       fill_color = brewer.pal(n = length(LIST), name = "Set2"),
+       stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
+       set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
+dev.off()
+
+
+LIST = list(UP_PKX = UP_PKX$UP_ALL,
+            IntermediatePeak = AUTOGAMY$inter_peak,
+            Motif50.80 =  MOTIF_uniq$motif_50.80)
+png(paste0(path,"Venn_Motifs50.80_UP_inter.png"))
+ggvenn(LIST,
+       fill_color = brewer.pal(n = length(LIST), name = "Set2"),
+       stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
+       set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
+dev.off()
+
+LIST = list(UP_PKX = UP_PKX$UP_ALL,
+            EarlyPeak = AUTOGAMY$early_peak,
+            Motif50.80 =  MOTIF_uniq$motif_50.80)
+png(paste0(path,"Venn_Motifs50.80_UP_early.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -235,8 +255,6 @@ ggvenn(LIST,
        set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
 dev.off()
 
-
-# Croiser avec les not UP
 
 #### Barplot répartition des motifs +/- ####
 print("Repartition of +/- motifs")

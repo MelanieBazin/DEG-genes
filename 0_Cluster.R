@@ -31,7 +31,7 @@ cluster = list(
 
 
 #### Définition des couleur à attribuer pour les différents RNAi ###"
-Cluster_color = list(
+cluster_color = list(
    veg = "darkorange1",
    early = "deepskyblue",
    inter = "chartreuse3",
@@ -39,7 +39,7 @@ Cluster_color = list(
    very_late = "deeppink2"
  )
 
-Culster_color <- function(data_tab, list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
+Culster_color <- function(data_tab, list = rnai_list, cluster_list = cluster, color_list = cluster_color){
   color = c()
   
   rnai = unique(str_remove_all(str_split_fixed(colnames(data_tab), "_T", n=2)[,1], "_Veg"))
@@ -60,13 +60,13 @@ Culster_color <- function(data_tab, list = rnai_list, cluster_list = cluster, co
   return(color)
 }
 
-Method_color = list(
+method_color = list(
   HiSeq = "chartreuse4",
   NextSeq = "blue4",
   both = "mediumturquoise")
 
 
-Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color_list = Method_color){
+Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color_list = method_color){
   rnai = unique(str_remove_all(str_split_fixed(colnames(data_tab), "_T", n=2)[,1], "_Veg"))
   
   seq_color = c()
@@ -82,7 +82,14 @@ Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color
   }else{
     for (j in rnai){
       if (is.element(j,c("ICL7", "EZL1"))){
-        seq_color=c(seq_color,rep(color_list[["both"]],length(cluster_list[[j]])))
+        if(length(cluster_list[["ICL7"]])==length(cluster_list[["ICL7bis"]])){
+          seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list$ICL7bis)))
+        }else{
+          seq_color=c(seq_color,
+                      method_color$both, method_color$both, method_color$HiSeq,
+                      method_color$both, method_color$HiSeq, method_color$both, method_color$HiSeq)
+        }
+        
       }else if (is.element(j,c("XRCC4", "CTIP", "ND7_C", "ND7_X"))){
         seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ND7_K", "KU80c", "PGM"))){

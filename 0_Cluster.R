@@ -39,9 +39,12 @@ Cluster_color = list(
    very_late = "deeppink2"
  )
 
-Culster_color <- function(condition, list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
+Culster_color <- function(data_tab,  collapse = "NO", list = rnai_list, cluster_list = cluster, color_list = Cluster_color){
   color = c()
-  for (r in list[[condition]]){
+  
+  rnai = unique(str_remove_all(str_split_fixed(colnames(data_tab), "_T", n=2)[,1], "_Veg"))
+
+  for (r in rnai){
     for (clust in cluster_list[[r]]){
       if (clust == "VEG"){
         color = c(color, color_list[["veg"]])

@@ -114,7 +114,7 @@ dev.off()
 
 
 ##### Partie 4 - définition des prom avec motif par FIMO ####
-path2 = paste0(save_path,"FIMO/")
+path2 = paste0(save_path,"FIMO_1E-5/")
 dir.create(path2,recursive=T,showWarnings=F)
 
 
@@ -122,7 +122,7 @@ print("5- Search for motif in promotors on FIMO")
 print("Parametres :")
 print(paste("  Uploade the input motif :", path, "MeanMotif.meme"))  
 print(paste0("  Uploade the input sequence : ./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_",debut,".fa"))
-print("  Match p-value < 1E-6"  )
+print("  Match p-value < 1E-5"  )
 print(paste0("6- Save the identified motif GFF table in : ", path2))
 
 

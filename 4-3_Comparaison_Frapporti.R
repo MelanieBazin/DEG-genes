@@ -1,19 +1,8 @@
 options(stringsAsFactors = FALSE)
 library(ggvenn)
 
-
-# date = "02-08"
-# analyseName = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-FC = 2
-pvalue = 0.05
-
-path = paste0("./Analyse/",analyseName, "/HiSeqvsNextSeq/DESeq/EZL1/")
-
-
 save_path = paste0(path,"Compared_Frapporti/")
 dir.create(save_path,recursive=T,showWarnings=F)
-
-a = Frapporti[paste0("Pvalue",timing)]
 
 for (deg in c("UP", "DOWN")){
   Frapporti = read.table(paste0("./DATA/",deg,"_EZL1-Frapporti_2019.csv"), sep = ";", header = T, quote = "")
@@ -26,12 +15,10 @@ for (deg in c("UP", "DOWN")){
     sign_Frapporti = sign_Frapporti[sign_Frapporti[paste0("LogFC_",timing)] >= log2(FC) | sign_Frapporti[paste0("LogFC_",timing)] <= log2(1/FC),]
     
     # Ouverture de mon fichier de donné correspondant
-    MyData = read.table(paste0(path, "DEgenes_HiSeqvsNextSeq_",timing,"_NoFilter.tab"), sep = "\t", header = T, quote = "")
+    MyData = read.table(paste0(path, "/DESeq/EZL1/DEgenes_HiSeqvsNextSeq_",timing,"_NoFilter.tab"), sep = "\t", header = T, quote = "")
     
     sign_MyData = MyData[ !is.na(MyData$padj) & MyData$padj < pvalue ,]
     sign_MyData = sign_MyData[sign_MyData$log2FoldChange > log2(FC) | sign_MyData$log2FoldChange < log2(1/FC),]
-    
-    
     
     if (deg == "UP"){
       sign_MyData = sign_MyData[sign_MyData$REGULATION == "Up-regulated",]

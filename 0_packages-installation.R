@@ -112,7 +112,7 @@ annotation$NAME[grep("PTET.51.1.G0090176",annotation$ID)]="HMGB18a"
 annotation$NAME[grep("PTET.51.1.G0260144",annotation$ID)]="HMGB18b"
 annotation$NAME[grep("PTET.51.1.G0650159",annotation$ID)]="HMGB18c"
 
-annotation$NAME[grep("PTET.51.1.G0620188",annotation$ID)]="PHD-finger_Emmerich"
+annotation$NAME[grep("PTET.51.1.G0620188",annotation$ID)]="PHD-finger_Swart"
 
 annotation$NAME[grep("PTET.51.1.G0140243",annotation$ID)]="ISWI1a"
 annotation$NAME[grep("PTET.51.1.G0420126",annotation$ID)]="ISWI1b"
@@ -121,7 +121,15 @@ annotation$NAME[grep("PTET.51.1.G0410183",annotation$ID)]="ISWI1d"
 
 annotation$NAME[grep("PTET.51.1.G1470016",annotation$ID)]="ISWI2"
 
-
+#D'après Miro-Pina et al. (BioRXIV) -> Duharcourt
+annotation$NAME[grep("PTET.51.1.G0240079",annotation$ID)]="EED"
+annotation$NAME[grep("PTET.51.1.G0240079",annotation$ID)]="SUZ12.like"
+annotation$NAME[grep("PTET.51.1.G1190062",annotation$ID)]="RF2"
+annotation$NAME[grep("PTET.51.1.G0570234",annotation$ID)]="RF4"
+annotation$NAME[grep("PTET.51.1.G1310069",annotation$ID)]="EAP1"
+annotation$NAME[grep("PTET.51.1.G1170141",annotation$ID)]="RF1a"
+annotation$NAME[grep("PTET.51.1.G0840161",annotation$ID)]="RF1b"
+annotation$NAME[grep("PTET.51.1.G1280028",annotation$ID)]="RF3"
 
 mt = read.table("./DATA/mtF_ID.csv", sep = ";", header = T)
 for (i in mt$ID){

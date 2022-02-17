@@ -49,7 +49,7 @@ for (l in names(UP_PKX)){
 }
 names(not_UP_PKX) = paste("not",names(UP_PKX), sep = "_")
 
-
+not_up_pkx = AUTOGAMY$all_genes[!is.element(AUTOGAMY$all_genes, up_pkx)]
 
 # Les gènes DOWN dérégulés en CTIP early ou inter
 CTIP = rbind(TAB$CTIP_early,TAB$CTIP_inter)

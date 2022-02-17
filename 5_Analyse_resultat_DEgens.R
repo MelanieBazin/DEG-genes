@@ -249,3 +249,23 @@ print(sessionInfo())
 sink()
 
 
+### Analyse statitique ####
+# Enrichissement en gènes intermediate peak parmis les UP et CTIP
+intermed = length(AUTOGAMY$inter_peak)
+up_pgm = length(UP_PKX$UP_PGM)
+up_ku80c = length(UP_PKX$UP_KU80c)
+up_xrcc4 = length(UP_PKX$UP_XRCC4)
+up_all = length(stdCTIP$UP_ALL)
+down_ctip = length(stdCTIP$DOWN_CTIP)
+up_down = length(stdCTIP$DOWN_UP)
+
+
+t_not_up = table(pos)
+tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
+tab[is.na(tab)] = 0
+colnames(tab) = c("start", "not_UP", "UP")
+mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
+
+chi2 = chisq.test(mat)
+
+

@@ -16,7 +16,7 @@ p_valueFIMO = "1E-5"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/FIMO_",p_valueFIMO)
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/FIMO_",p_valueFIMO, "/")
 
 # Ouvrir les filtres sur les dérégulation
 RNAi = rnai_list[[condition]]
@@ -27,8 +27,7 @@ source("5-1_Filtres.R")
 
 # Ouverture du fichier FIMO
 colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATTRIBUTES")
-path = paste0(save_path,"FIMO/")
-prom_motif = read.table(paste0(path,"fimo.gff"), sep = "\t", header = T)
+prom_motif = read.table(paste0(save_path,"fimo.gff"), sep = "\t", header = T)
 colnames(prom_motif) = colnamesgff3
 prom_motif$START = prom_motif$START-150
 prom_motif$END= prom_motif$END-150
@@ -37,6 +36,8 @@ prom_motif$END= prom_motif$END-150
 print("Addition of new filter")
       
 UP_PKX = c(UP_PKX, UP_ALL = list(up_pkx))
+
+not_UP_PKX = c(not_UP_PKX, not_up_PKX = list(not_up_pkx))
 
 MOTIF = list(
   Motif = prom_motif$ID,
@@ -68,7 +69,7 @@ MOTIFxnotCTIP = Crossinglist(MOTIF_uniq, not_stdCTIP)
 MOTIFxnotCTIPxAUTOG = Crossinglist(MOTIFxnotCTIP, AUTOGAMY)
 
 #### Répartition des profils parmis les gènes avec et sans motifs ####
-print("Profiles repartition barplot")
+print("Répartition of expression profiles barplots")
 path = paste0(save_path,"Barplot_profil/")
 dir.create(path ,recursive=T,showWarnings=F)
 
@@ -84,24 +85,81 @@ Profile_EnrichmentBarplot(MOTIFxUP_PKX, path, "Motif")
 Profile_Barplot(MOTIFxCTIP, "Motif_CTIP", path)
 Profile_EnrichmentBarplot(MOTIFxCTIP, path, "Motif")
 
-#### Motif parmis les différents filtres ####
-print("Histogram of motif position")
-path = paste0(save_path,"Hitogramme_positions/")
+####  Répartition des motifs sur les promoteurs ####
+print("Histogram and box plot of motif position")
+path = paste0(save_path,"Positions/")
 dir.create(path ,recursive=T,showWarnings=F)
 
-# Répartition des motifs sur les promoteurs
+# Parmis les gènes d'intéret
 
-PositionHistogram(MOTIF)
-PositionHistogram(MOTIFxUP_PKX)
-PositionHistogram(MOTIFxCTIP)
-PositionHistogram(MOTIFxnotUP_PKX)
-PositionHistogram(MOTIFxnotCTIP)
+PositionHistogram(MOTIF, path, "MOTIF")
+PositionHistogram(MOTIFxUP_PKX, path, "MOTIF_UP")
+PositionHistogram(MOTIFxCTIP, path, "MOTIF_CTIP")
 
-PositionHistogram(MOTIFxAUTOG)
-PositionHistogram(MOTIFxUP_PKXxAUTOG)
-PositionHistogram(MOTIFxCTIPxAUTOG)
-PositionHistogram(MOTIFxnotUP_PKXxAUTOG)
-PositionHistogram(MOTIFxnotCTIPxAUTOG)
+PositionHistogram(MOTIFxAUTOG, path, "MOTIF_AUTOG")
+PositionHistogram(MOTIFxUP_PKXxAUTOG, path, "MOTIF_UP_AUTO")
+PositionHistogram(MOTIFxCTIPxAUTOG, path, "MOTIF_CTIP_AUTO")
+
+# Parmis les autres gènes
+
+PositionHistogram(MOTIFxnotUP_PKX, path, "MOTIF_notUP")
+PositionHistogram(MOTIFxnotCTIP, path, "MOTIF_notCTIP")
+PositionHistogram(MOTIFxnotUP_PKXxAUTOG, path, "MOTIF_notUP_auto")
+PositionHistogram(MOTIFxnotCTIPxAUTOG, path, "MOTIF_not_CTIP_auto")
+
+# Faire une séléaction de gènes et voir les localisation
+pos_up = prom_motif$START[which(is.element(prom_motif$ID,MOTIFxUP_PKX$MotifxUP_ALL))]
+pos_not_up = prom_motif$START[which(is.element(prom_motif$ID,MOTIFxnotUP_PKX$Motifxnot_up_PKX))]
+
+png(paste0(path, "Histogramme_position_UPvs_notUP.png"))
+par(mfrow=c(2,1))
+hist(pos_not_up,breaks = 75, xlim = c(-150,0))
+hist(pos_up,breaks = 75, xlim = c(-150,0))
+dev.off()
+
+t_not_up = table(pos_not_up)
+t_up = table(pos_up)
+tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
+tab[is.na(tab)] = 0
+colnames(tab) = c("start", "not_UP", "UP")
+mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
+
+chi2 = chisq.test(mat)
+print(paste("Compare UP to all not up", i, "---> chi2 pvalue = ", round(chi2$p.value,4), "significatif ?", chi2$p.value < 0.05))
+
+
+png(paste0(save_path, "Histogramme_position_not_UP_rand.png"),width = 1700, height = 900)
+par(mfrow=c(4,5))
+
+rand_pos = list()
+rand_mean = c()
+for (i in 1:20){
+  rand = sample(1:length(pos_not_up),length(pos_up), replace = F)
+  pos = pos_not_up[rand]
+  rand_pos = c(rand_pos, list(pos))
+  rand_mean= c(rand_mean, median(pos))
+  
+  
+  t_not_up = table(pos)
+  tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
+  tab[is.na(tab)] = 0
+  colnames(tab) = c("start", "not_UP", "UP")
+  mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
+  
+  chi2 = chisq.test(mat)
+  # print(paste("Compare UP to Rand", i, "---> chi2 pvalue = ", round(chi2$p.value, 4), "significatif ?", chi2$p.value < 0.05))
+
+  
+  hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
+       main = paste("pvalue :", round(chi2$p.value, 4)))
+  axis(2)
+  axis(1, at = seq(-150,0,10))
+  
+}
+dev.off()
+
+
+
 
 #### Diagramme de Venn ####
 print("Venn Diagramm in progress")
@@ -277,7 +335,7 @@ for (S in names(STRAND)){
 }
 strand_tab =  as.data.frame(strand_tab)
 row_order = c("moins", "both", "plus", "none")
-colors = c("royalblue1", "gold1", "chartreuse3", "grey")
+color = c("royalblue1", "gold1", "chartreuse3", "grey")
 
 PilBarplot(strand_tab,AUTOGAMY, "Motifs", path, color, row_order)
 PilBarplot(strand_tab,UP_PKX, "UP_PKX", path, color, row_order)

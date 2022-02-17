@@ -88,10 +88,7 @@ write_meme(MergeMotif, paste0(path, "MeanMotif.meme"))
 
 motifs = c(motifs, MergeMotif)
 
-# commp_merge = compare_motifs(motifs, compare.to = length(motifs))
-# write.table(comp_logo, paste0(path, "PreasonCorrelation_toMerge.tab"), sep = "\t")
-
-# Création de mogo pour le smotifs
+# Création de logo pour les motifs
 png(paste0(path,"All_Motifs_logo.png"),width = 800, height = 1000, bg = "transparent")
 view_motifs(motifs)
 dev.off()

@@ -672,12 +672,14 @@ IES_EnrichmentBarplot <- function (filtre_list, path){
 }
 
 ###### Pour études des motifs ######
-PositionHistogram <- function (filtre_list){
+PositionHistogram <- function (filtre_list, path, name){
+  pos_list = list()
   for (n in names(filtre_list)){
     filtre = filtre_list[[n]]
     if (length(filtre) != 0){
-      png(paste0(path, "MotifSTARTposition_", n,".png"))
       position = prom_motif$START[is.element(prom_motif$ID, filtre)]
+      pos_list = c(pos_list, list(position) ) 
+      png(paste0(path, "Histogramme_STARTposition_", n,".png"))
       hist(position, breaks = 75, xlim = c(-150,0), axes = F,
            xlab = paste("Distance from", debut),
            ylab = "Nb of motif",
@@ -687,6 +689,10 @@ PositionHistogram <- function (filtre_list){
       dev.off()
     }
   }
+  png(paste0(path, "Histogramme_STARTposition_", name,".png"))
+  names(pos_list) = names(filtre_list)
+  boxplot(pos_list)
+  dev.off()
 }
 
 

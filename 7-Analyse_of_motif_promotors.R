@@ -4,13 +4,15 @@ library(ggplot2)
 library(RColorBrewer)
 source("0_Cluster.R")
 source("0_Visualisation_fonction.R")
+source("0_Stat_function.R")
 
 # Definition des fichier promoteur à ouvrir
 IES = NULL
 debut = "TSS"
 
 # Definitir les fichiers d'analyse à ouvrir
-date = "02-08"
+date = Sys.Date()
+# date = "02-08"
 condition =  names(rnai_list)[2]
 p_valueFIMO = "1E-5"
 
@@ -139,7 +141,6 @@ for (i in 1:20){
   rand_pos = c(rand_pos, list(pos))
   rand_mean= c(rand_mean, median(pos))
   
-  
   t_not_up = table(pos)
   tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
   tab[is.na(tab)] = 0
@@ -147,9 +148,7 @@ for (i in 1:20){
   mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
   
   chi2 = chisq.test(mat)
-  # print(paste("Compare UP to Rand", i, "---> chi2 pvalue = ", round(chi2$p.value, 4), "significatif ?", chi2$p.value < 0.05))
 
-  
   hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
        main = paste("pvalue :", round(chi2$p.value, 4)))
   axis(2)
@@ -158,8 +157,35 @@ for (i in 1:20){
 }
 dev.off()
 
+## Calcul enrichissement
+# fractionner les positions
+pos_fraction = c()
+for(l in 1:nrow(prom_motif)){
+  if(prom_motif$START[l] < 0 & prom_motif$START[l] >=-20){
+    pos_fraction = c(pos_fraction, "0-20")
+  }else if(prom_motif$START[l] < -20 & prom_motif$START[l] >=-50){
+    pos_fraction = c(pos_fraction, "-21-50")
+  }else if(prom_motif$START[l] < -50 & prom_motif$START[l] >=-80){
+    pos_fraction = c(pos_fraction, "-51-80")
+  }else if(prom_motif$START[l] < -80 & prom_motif$START[l] >=-110){
+    pos_fraction = c(pos_fraction, "-81-110")
+  }else if(prom_motif$START[l] < -110 & prom_motif$START[l] >=-150){
+    pos_fraction = c(pos_fraction, "-111-150")
+  }else{
+    print(paste("ERROR line",l))
+  }
+}
 
+table(pos_fraction)
 
+my_data = cbind(prom_motif$ID, pos_fraction)
+LIST = c(UP_PKX, stdCTIP)
+names(LIST)= c(names(UP_PKX), names(stdCTIP))
+
+sink(paste0(save_path,"/Enrichissement_position.txt"))
+Enrichment_padj(AUTOGAMY, my_data)
+Enrichment_padj(LIST, my_data)
+sink()
 
 #### Diagramme de Venn ####
 print("Venn Diagramm in progress")

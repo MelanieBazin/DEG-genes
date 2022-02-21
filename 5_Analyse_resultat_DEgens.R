@@ -76,7 +76,7 @@ ggvenn(LIST,
 dev.off()
 
 # Avec intermediate peak
-LIST = c(UP_PKX, Intermediate_peak = list(inter_genes))
+LIST = c(UP_PKX, Intermediate_peak = list(AUTOGAMY$inter_peak))
 png(paste0(path,"Venn_UP_PKX_INTER.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -91,7 +91,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
-            Intermediate_peak = inter_genes)
+            Intermediate_peak = AUTOGAMY$inter_peak)
 png(paste0(path,"Venn_PKX_INTER_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -103,7 +103,7 @@ ggvenn(LIST,
 dev.off()
 
 # Avec early peak
-LIST = c(UP_PKX, Early_peak = list(early_genes))
+LIST = c(UP_PKX, Early_peak = list(AUTOGAMY$early_peak))
 png(paste0(path,"Venn_UP_PKX_EARLY.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -118,7 +118,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
-            Early_peak = early_genes)
+            Early_peak = AUTOGAMY$early_peak)
 png(paste0(path,"Venn_PKX_EARLY_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -159,7 +159,7 @@ dev.off()
 # Avec les UP dérégulés + intermediate peak
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
-            Intermediate_peak = inter_genes)
+            Intermediate_peak = AUTOGAMY$inter_peak)
 png(paste0(path,"Venn_CTIP_PKX_INTER.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -174,7 +174,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
-            Intermediate_peak = inter_genes)
+            Intermediate_peak = AUTOGAMY$inter_peak)
 png(paste0(path,"Venn_CTIP_PKX_INTER_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -188,7 +188,7 @@ dev.off()
 # Avec les UP dérégulés + early peak
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
-            Intermediate_peak = inter_genes)
+            Intermediate_peak = AUTOGAMY$inter_peak)
 png(paste0(path,"Venn_CTIP_PKX_EARLY.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -203,7 +203,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
-            Intermediate_peak = inter_genes)
+            Intermediate_peak = AUTOGAMY$inter_peak)
 png(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -224,12 +224,12 @@ dir.create(path ,recursive=T,showWarnings=F)
 UP_PKX = c(UP_PKX, UP_ALL = list(up_pkx))
 
 Profile_Barplot(UP_PKX, "UP", path)
-Profile_EnrichmentBarplot(UP_PKX, path)
+Profile_EnrichmentBarplot(UP_PKX, path,"UP" )
 
 # Sur DOWN CTIP + UP PKX 
 
 Profile_Barplot(stdCTIP, "CTIP", path)
-Profile_EnrichmentBarplot(stdCTIP, path)
+Profile_EnrichmentBarplot(stdCTIP, path, "CTIP")
 
 ###### Répartition des gènes avec IES selon les filtres ####
 print("Gene with IES repartition barplot")
@@ -237,12 +237,12 @@ path = paste0(save_path,"Barplot_IES/")
 dir.create(path ,recursive=T,showWarnings=F)
 
 # Sur UP PGM KU80c & XRCC4
-IES_Barplot(UP_PKX, "UP", path)
+IES_Barplot(UP_PKX, path, "UP")
 IES_EnrichmentBarplot(UP_PKX, path)
 
 
 # Sur DOWN CTIP + UP PKX
-IES_Barplot(stdCTIP, "CTIP", path)
+IES_Barplot(stdCTIP, path, "CTIP")
 IES_EnrichmentBarplot(stdCTIP, path)
 
 
@@ -252,16 +252,6 @@ source("0_Stat_function.R")
 
 LIST = c(UP_PKX, stdCTIP)
 names(LIST)= c(names(UP_PKX), names(stdCTIP))
-
-#### Chi2 en gènes intermediate peak parmis les UP et CTIP
-
-sink(paste0(save_path,"/Chi2_profile.txt"))
-for ( n in names(LIST)){
-  print(paste(n, "intermediate peak", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$inter_peak)))
-  print(paste(n, "early peak", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$early_peak)))
-  print(paste(n, "autoagmy", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$autogamy)))
-}
-sink()
 
 #### Enrichissement en gènes intermediate peak parmis les UP et CTIP
 

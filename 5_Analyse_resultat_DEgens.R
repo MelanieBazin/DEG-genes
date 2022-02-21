@@ -8,7 +8,8 @@ source("0_Cluster.R")
 source("0_Visualisation_fonction.R")
 
 # Definitir les fichiers à ouvrir
-date = "02-08"
+date = Sys.Date()
+# date = "02-08"
 condition =  names(rnai_list)[2]
 
 # Localiser les donner
@@ -244,28 +245,34 @@ IES_EnrichmentBarplot(UP_PKX, path)
 IES_Barplot(stdCTIP, "CTIP", path)
 IES_EnrichmentBarplot(stdCTIP, path)
 
-sink(paste0(save_path,"/sessionInfo.txt"))
-print(sessionInfo())
-sink()
 
 
 ### Analyse statitique ####
-# Enrichissement en gènes intermediate peak parmis les UP et CTIP
-intermed = length(AUTOGAMY$inter_peak)
-up_pgm = length(UP_PKX$UP_PGM)
-up_ku80c = length(UP_PKX$UP_KU80c)
-up_xrcc4 = length(UP_PKX$UP_XRCC4)
-up_all = length(stdCTIP$UP_ALL)
-down_ctip = length(stdCTIP$DOWN_CTIP)
-up_down = length(stdCTIP$DOWN_UP)
+source("0_Stat_function.R")
+
+LIST = c(UP_PKX, stdCTIP)
+names(LIST)= c(names(UP_PKX), names(stdCTIP))
+
+#### Chi2 en gènes intermediate peak parmis les UP et CTIP
+
+sink(paste0(save_path,"/Chi2_profile.txt"))
+for ( n in names(LIST)){
+  print(paste(n, "intermediate peak", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$inter_peak)))
+  print(paste(n, "early peak", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$early_peak)))
+  print(paste(n, "autoagmy", Khi2_intermed(UP_PKX[[n]], AUTOGAMY$autogamy)))
+}
+sink()
+
+#### Enrichissement en gènes intermediate peak parmis les UP et CTIP
+
+my_data = cbind(annotation$ID, annotation$EXPRESSION_PROFIL)
+
+sink(paste0(save_path,"/Enrichissement_profile.txt"))
+Enrichment_padj(LIST, my_data)
+sink()
 
 
-t_not_up = table(pos)
-tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
-tab[is.na(tab)] = 0
-colnames(tab) = c("start", "not_UP", "UP")
-mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
-
-chi2 = chisq.test(mat)
-
-
+#### Imprimer l'état de R ####
+sink(paste0(save_path,"/sessionInfo.txt"))
+print(sessionInfo())
+sink()

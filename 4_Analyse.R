@@ -132,7 +132,7 @@ for (condition in names(rnai_list)){
   }
   
   #### Lancer les visulalisation des données ####
-  data_tab = read.table(paste0(path,condition ,"_expression_table_vst.tab"), sep = "\t", header = T)
+  data_tab = assay(vst(deseq, blind = T))
   data_tab = as.matrix(data_tab)
   path = paste0(path_dir,condition ,"/Visualisation/")
   

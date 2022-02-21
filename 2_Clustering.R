@@ -63,7 +63,7 @@ for (corr in c("Corrected", "Uncorrected")){
   
   write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
   
-  color = Culster_color(vsd, collapse = T)
+  color = Culster_color(vsd)
   names(color) = colnames(vsd)
   
   PCA_plot_generator(vsd,
@@ -90,6 +90,6 @@ for (corr in c("Corrected", "Uncorrected")){
                ylab = "Principal Component 2")
   dev.off()
   
-  # MyHeatmaps(path = paste0(path,"/Visualisation/Cluster/"),
-  #            vsd, infodata, condition)
+  MyHeatmaps(path = paste0(path,"/Visualisation/Cluster/"),
+             vsd, infodata, condition)
 }

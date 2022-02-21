@@ -76,17 +76,19 @@ for (color_type in c("methods","replicates")){
   dev.off()
 }
 
-##### Heatmap et profils  ####
-# print(paste( condition, "-----> Conception des heatmap"))
-# 
-# # Avant moyenne par cluster
-# MyHeatmaps(path = paste0(path,"Heatmap/"),data_tab,infodata, condition =  condition)
-# 
-# # Avec calcul des moyennes sur les clusters
-# mean_data_tab = MeanTabCalculation(data_tab, infodata)
-# mean_data_tab = OrderColumn(mean_data_tab, infodata)
-# write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_vst.tab"), sep="\t",row.names=T,quote=F)
-# 
-# MyHeatmaps(paste0(path,"Visualisation/Heatmap/"),mean_data_tab,infodata, moyenne = T, condition =  condition)
+##### Heatmap ####
+print(paste( condition, "-----> Conception des heatmap"))
 
+data_tab_ord = OrderColumn(data_tab, infodata_collapse)
 
+# Avant moyenne par cluster
+MyHeatmaps(path = paste0(path,"Visualisation/"),data_tab_ord,infodata_collapse, condition)
+
+print ("Heatmap 1 done")
+# Avec calcul des moyennes sur les clusters
+mean_data_tab = MeanTabCalculation(data_tab, infodata_collapse)
+write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_vst.tab"), sep="\t",row.names=T,quote=F)
+
+MyHeatmaps(paste0(path,"Visualisation/"),mean_data_tab,infodata_collapse, condition,  moyenne = T)
+
+print ("Heatmap mean done")

@@ -1,7 +1,7 @@
 
 Khi2_intermed <- function(genes_list, profil_list){
   nb_genes = length(genes_list[which(is.element(genes_list, profil_list))])
-  other = length(genes) - nb_genes
+  other = length(nb_genes) - nb_genes
   # Définition des probabilitée théoriques
   proba = length(profil_list)/length(AUTOGAMY$all_genes) 
   proba = c(proba, 1-proba)

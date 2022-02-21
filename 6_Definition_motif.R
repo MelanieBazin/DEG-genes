@@ -38,7 +38,7 @@ dir.create(path,recursive=T,showWarnings=F)
 prom_UP = promoteur[which(is.element(names(promoteur),up_pkx))]
 # write.fasta(sequences = prom_UP, names = names(prom_UP), file.out = paste0(path, "PromUP.fa") )
 
-prom_UP_int = prom_UP[which(is.element(names(prom_UP),inter_genes))]
+prom_UP_int = prom_UP[which(is.element(names(prom_UP),AUTOGAMY$inter_peak))]
 write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
 
 for (i in 1:5){
@@ -52,18 +52,18 @@ for (i in 1:5){
 ##### Partie 2 - Définition du motif par STREME ####
 # Definition lieu sauvegarde
 path = paste0(save_path, "STREME/")
-dir.create(save_path,recursive=T,showWarnings=F)
-
-print("1- Search enriched motif on STREME") 
-print("Parametres :")
-print("  Minimum width = 5 ; Minimum width = 20")  
-print("  p-value threshold = 0.05")
-print("  Markov order -> default"  )
-print("  Align sequences on their Right Ends" ) 
-print(paste0("2- Save the 5 Minimal MEME motifs in : ", path))
+dir.create(path,recursive=T,showWarnings=F)
 
 # Attendre que ce soit fait avant de passer à la suite
-readline(prompt="Press [enter] to continue")
+readline(prompt=paste("1- Search enriched motif on STREME",
+                      "Parametres :",
+                      "  Minimum width = 5 ; Minimum width = 20",
+                      "  p-value threshold = 0.05",
+                      "  Markov order -> default" ,
+                      "  Align sequences on their Right Ends",
+                      "2- Save the 5 Minimal MEME motifs in : ", 
+                      path,
+                      "Press [enter] to continue", sep ="\n"))
 
 print("3- Definition of a mean motif") 
 

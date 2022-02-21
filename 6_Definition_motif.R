@@ -14,7 +14,8 @@ debut = "TSS"
 promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_",debut,".fa"))
 
 # Definitir les fichiers d'analyse à ouvrir
-date = "02-08"
+date = Sys.Date()
+# date = "02-08"
 condition =  names(rnai_list)[2]
 
 # Localiser les donner

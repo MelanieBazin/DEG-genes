@@ -1,5 +1,6 @@
 options(stringsAsFactors = FALSE)
-library("stringr") 
+library("stringr")
+library(dendextend)
 
 ###### Modification de tableau ####
 
@@ -48,35 +49,27 @@ DivideByGeneSeize <- function(countdata){
 }
 
 MeanTabCalculation <- function(data_tab, infodata){
-  rnai = sub("_Veg","",colnames(data_tab)[grep("Veg", colnames(data_tab))])
   
-  for (c in  1:ncol(data_tab)){
-    c_name = colnames(data_tab)[c]
-    colnames(data_tab)[c] =  infodata$Condition[which(infodata$Names==c_name)]
-  }
-  mean_data_tab = NULL
-  mean_data_tab$ID = rownames(data_tab)
-  c = unique(infodata$Condition)[1]
-  for (c in unique(infodata$Condition)){
-    temp = data_tab[,grep(c, colnames(data_tab))]
-    if (!is.null(dim(temp))){
-      temp = apply(temp, 1, mean)
-      temp$ID = rownames(data_tab)
-    }else{
-      temp$ID = rownames(data_tab)
+  data_tab = OrderColumn(data_tab, infodata)
+  infodata = infodata[colnames(data_tab),]
+  
+  mean_data_tab = as.data.frame(rownames(data_tab))
+  rownames(mean_data_tab) = mean_data_tab[,1]
+  colnames(mean_data_tab) = "ID"
+  
+  for (i in unique(infodata$Condition)){
+    l = grep(i, infodata$Condition)
+    if (length(l) == 1){
+      mean_data_tab = cbind(mean_data_tab, data_tab[,l])
+    }else {
+      tmp = apply(data_tab[,l], 1, mean)
+      mean_data_tab = cbind(mean_data_tab, tmp)
     }
-    temp = as.data.frame(temp)
-    mean_data_tab = merge(mean_data_tab, temp, by.X = "ID", by.y = 0)
-    rownames(mean_data_tab)=mean_data_tab$Row.names
-    mean_data_tab = as.data.frame(mean_data_tab[,-grep("Row.names", colnames(mean_data_tab))])
-    colnames(mean_data_tab)[ncol(mean_data_tab)]= c
   }
   
-  mean_data_tab = mean_data_tab[,-grep("Row.names", colnames(mean_data_tab))]
+  mean_data_tab = mean_data_tab[,-grep("ID", colnames(mean_data_tab))]
+  colnames(mean_data_tab) = unique(infodata$Condition)
   
-  rm(data_tab, ctrl_pos)
-  
-  mean_data_tab = as.matrix(mean_data_tab)
   return(mean_data_tab)
   
 }
@@ -248,11 +241,11 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
 # Fait les heatmap avec tous les gènes par actégories
 library("pheatmap")
 library("ComplexHeatmap")
-# library(magick)
+library(magick)
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, color = "red", Log = T, sortie = "png", raster = F){
+MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "red", Log = T, sortie = "png", raster = F){
   dir.create(path,recursive=T,showWarnings=F)
   
   if (moyenne == T){
@@ -352,74 +345,61 @@ MyHeatmaps <- function(path, data_tab,infodata, moyenne = F, condition, color = 
   
 }
 
-### test zone variable ####
-# path = "./Analyse/2022-01-14_Clustering_groupe/analyseDE/"
-# data_tab = read.table(paste0(path, "analyseDE_expression_table_vst.tab"), header = T, sep = "\t")
-# 
-# 
+MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
+  data_log = log(data_tab+1)
 
-####
+  rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
+  if (is.element("_ctrl",rnai)){
+    rnai = sub("_","",rnai)
+  }else{
+    str_sub(rnai,-1) = ""
+  }
+
+  c_split = c()
+  for (a in rnai){
+    x = grep(a, colnames(data_log))
+    c_split = c(c_split,max(x))
+  }
+
+  # Ajout des annotation au tableau
+  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
+  data_log = merge(data_log, annotation, by = 0)
+  rownames(data_log) = data_log$Row.names
+  data_log= data_log[,-1]
+
+  # Ordonner les lignes par valeur de log du plus grand au plus petit
+  data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
+  colnames(data_log)[1] = "MAX"
+  data_log = data_log[order(data_log$MAX, decreasing = T),]
+
+  # Ordonner les lignes par profils d'expression
+  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
+  
+  r_split =c()
+  for (e in unique(data_log$EXPRESSION_PROFIL)){
+    x = grep(e, data_log$EXPRESSION_PROFIL)
+    r_split = c(r_split,max(x))
+  }
+  
+  # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
+  data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
+  data_log_mat = as.matrix(data_log_mat)
+
+  png("Test.png")
+  heatmap.2(data_log_mat,
+            Rowv=F, Colv=F,
+            rowsep = r_split,
+            colsep = c_split,
+            scale="none",
+            labRow="",
+            # col=hmcol,
+            trace="none",
+            dendrogram = "none",
+            main=paste("Test"))
+  dev.off()
+}
 
 
-# 
-# 
-# MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
-#   
-#   # data_tab= OrderColumn(data_tab, infodata)
-#   data_log = log(data_tab+1)
-#   
-#   rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
-#   if (is.element("_ctrl",rnai)){
-#     rnai = sub("_","",rnai)
-#   }else{
-#     str_sub(rnai,-1) = ""
-#   }
-#   
-#   c_split = c()
-#   i=1
-#   for (a in rnai){
-#     x = grep(a, colnames(data_log))
-#     c_split = c(c_split,rep(i,length(x)))
-#     i=i+1
-#   }
-#   
-#   
-#   
-#   
-#   # Ajout des annotation au tableau
-#   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
-#   data_log = merge(data_log, annotation, by = 0)
-#   rownames(data_log) = data_log$Row.names
-#   data_log= data_log[,-1]
-#   
-#   # Ordonner les lignes par valeur de log du plus grand au plus petit
-#   data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
-#   colnames(data_log)[1] = "MAX"
-#   data_log = data_log[order(data_log$MAX, decreasing = T),]
-#   
-#   # Ordonner les lignes par profils d'expression
-#   data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
-#   
-#   # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
-#   data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
-#   data_log_mat = as.matrix(data_log_mat)
-#   
-#   png("Test.png")
-#   heatmap.2(data_log_mat,
-#             Rowv=NULL,
-#             Colv=NULL)
-#             # rowsep = data_log$EXPRESSION_PROFIL,
-#             # colsep = c_split,
-#             scale="row",
-#             labRow="",
-#             # col=hmcol,
-#             trace="none",
-#             dendrogram = "none",
-#             main=paste("Test"))
-#   dev.off()
-# }
-# 
-# 
 
 
 # Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés

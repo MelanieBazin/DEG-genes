@@ -64,11 +64,18 @@ for (corr in c("Corrected", "Uncorrected")){
   write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
   
   color = Culster_color(vsd)
-  names(color) = colnames(vsd)
   
   PCA_plot_generator(vsd,
                      colors = color,
-                     save_path = paste0(path,"Visualisation/PCA/"),
+                     save_path = paste0(path,"Visualisation/PCA_replicate/"),
+                     main = paste0("PCA ", condition," (vst)"),
+                     sortie = "png")
+  
+  color = Batch_color(vsd)
+  
+  PCA_plot_generator(vsd,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/PCA_method/"),
                      main = paste0("PCA ", condition," (vst)"),
                      sortie = "png")
   

@@ -63,6 +63,14 @@ for (corr in c("Corrected", "Uncorrected")){
   
   write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
   
+  color = Batch_color(vsd)
+  
+  PCA_plot_generator(vsd,
+                     colors = color,
+                     save_path = paste0(path,"Visualisation/PCA_method/"),
+                     main = paste0("PCA ", condition," (vst)"),
+                     sortie = "png")
+  
   color = Culster_color(vsd)
   
   PCA_plot_generator(vsd,
@@ -71,13 +79,6 @@ for (corr in c("Corrected", "Uncorrected")){
                      main = paste0("PCA ", condition," (vst)"),
                      sortie = "png")
   
-  color = Batch_color(vsd)
-  
-  PCA_plot_generator(vsd,
-                     colors = color,
-                     save_path = paste0(path,"Visualisation/PCA_method/"),
-                     main = paste0("PCA ", condition," (vst)"),
-                     sortie = "png")
   
   matDist = as.dist(1-cor(log2(vsd+1), method="pearson"))
   res = hclust(matDist)
@@ -97,6 +98,6 @@ for (corr in c("Corrected", "Uncorrected")){
                ylab = "Principal Component 2")
   dev.off()
   
-  MyHeatmaps(path = paste0(path,"/Visualisation/Cluster/"),
+  MyHeatmaps(path = paste0(path,"/Visualisation/"),
              vsd, infodata, condition)
 }

@@ -12,9 +12,9 @@ debut = "TSS"
 
 # Definitir les fichiers d'analyse à ouvrir
 date = Sys.Date()
-# date = "02-08"
+date = "2022-02-21"
 condition =  names(rnai_list)[2]
-p_valueFIMO = "1E-5"
+p_valueFIMO = "1E-4"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
@@ -26,6 +26,13 @@ RNAi = RNAi[-grep("bis", RNAi)]
 RNAi = RNAi[-grep("ICL7", RNAi)]
 RNAi = RNAi[-grep("ND7", RNAi)]
 source("5-1_Filtres.R")
+
+# Ouverture du fichier tsv
+prom_motif = read.table(paste0(save_path,"fimo.tsv"), sep = "\t", header = T)
+prom_motif$start = prom_motif$start-150
+prom_motif$stop= prom_motif$stop-150
+prom_motif = merge(prom_motif, annotation[,c("ID","NAME", "SYNONYMS")], by.x = "sequence_name", by.y = "ID")
+write.table(prom_motif,paste0(save_path,"/fimoTSV_merge.tab"), sep = "\t", row.names = F)
 
 # Ouverture du fichier FIMO
 colnamesgff3=c("ID","SOURCE","TYPE","START","END","SCORE","STRAND","PHASE", "ATTRIBUTES")
@@ -126,9 +133,9 @@ tab[is.na(tab)] = 0
 colnames(tab) = c("start", "not_UP", "UP")
 mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
 
-chi2 = chisq.test(mat)
-print(paste("Compare UP to all not up", i, "---> chi2 pvalue = ", round(chi2$p.value,4), "significatif ?", chi2$p.value < 0.05))
-
+sink(paste0(save_path,"/chi2_pos_UPvsNOTUP.txt"))
+chisq.test(mat)
+sink()
 
 png(paste0(save_path, "Histogramme_position_not_UP_rand.png"),width = 1700, height = 900)
 par(mfrow=c(4,5))
@@ -418,7 +425,7 @@ mini_tab = prom_motif[,c("ID","SCORE", "START", "STRAND")]
 colnames(mini_tab)[-1] = paste0("Motif_",colnames(mini_tab)[-1])
 
 summary_tab2 = merge(summary_tab, mini_tab, by = "ID", all = T)
-write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary_Motif_",condition,".tab"), sep = "\t", row.names = F) 
+write.table(summary_tab,paste0(save_path,"/Summary_Motif_",condition,".tab"), sep = "\t", row.names = F) 
 
 # Ajout des information du nombre de motif et de la position pour chaque gènes
 nb_motif = table(MOTIF$Motif)
@@ -427,20 +434,20 @@ colnames(nb_motif)= c("ID", "Motif")
 summary_tab = merge(summary_tab, nb_motif, by = "ID", all = T)
 summary_tab = merge(summary_tab, strand_tab, by = "ID")
 summary_tab$Motif_50_80 = is.element(summary_tab$ID, MOTIF_uniq$motif_50.80)
-write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary2_",condition,".tab"), sep = "\t", row.names = F) 
+write.table(summary_tab,paste0(save_path,"/Summary2_",condition,".tab"), sep = "\t", row.names = F) 
 
 
 # Création de séléction de gènes d'intérêt
 selection_tab = summary_tab[which(is.element(summary_tab$ID, stdCTIP$DOWN_UP)),]
 selection_tab = selection_tab[which(is.element(selection_tab$ID, MOTIF$motif_50.80)),]
-write.table(selection_tab,paste0("Analyse/",file_name,"/",condition,"/Selection1_UP_DOWN-",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path, "/Selection1_UP_DOWN-",condition,".tab"), sep = "\t", row.names = F)
 
 selection_tab = selection_tab[which(str_detect(selection_tab$NAME, "PTET")),]
 selection_tab = selection_tab[which(str_detect(selection_tab$SYNONYMS, "PTMB")| selection_tab$SYNONYMS == ""),]
-write.table(selection_tab,paste0("Analyse/",file_name,"/",condition,"/Selection2_unknown_",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path,"/Selection2_unknown_",condition,".tab"), sep = "\t", row.names = F)
 
 selection_tab = selection_tab[which(is.element(selection_tab$ID, TURBO$turbo_OU)),]
-write.table(selection_tab,paste0("Analyse/",file_name,"/",condition,"/Selection3_Tubo_",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path,"/Selection3_Tubo_",condition,".tab"), sep = "\t", row.names = F)
 
 sink(paste0(save_path,"/Analyse_sessionInfo.txt"))
 print(sessionInfo())

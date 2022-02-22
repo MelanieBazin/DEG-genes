@@ -56,9 +56,17 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     nb_simulation = 1000
     
     # Création de données séléction aléatoirement
-    theoric_ID = matrix(NA, nrow = length(LIST[[l]]), ncol = nb_simulation)
-    for (c in 1:ncol(theoric_ID)){
-      theoric_ID[,c] = sample(data_tab$ID, length(LIST[[l]]))
+    
+    if (length(data_tab$ID)>=length(LIST[[l]])){
+      theoric_ID = matrix(NA, nrow = length(LIST[[l]]), ncol = nb_simulation)
+      for (c in 1:ncol(theoric_ID)){
+        theoric_ID[,c] = sample(data_tab$ID, length(LIST[[l]]))
+      }
+    }else{
+      theoric_ID = matrix(NA, nrow = length(data_tab$ID)*2/3, ncol = nb_simulation)
+      for (c in 1:ncol(theoric_ID)){
+        theoric_ID[,c] = sample(data_tab$ID, length(data_tab$ID)*2/3)
+      }
     }
     theoric_pval = matrix(NA, nrow = length(Profils), ncol = nb_simulation)
     row.names(theoric_pval) = Profils

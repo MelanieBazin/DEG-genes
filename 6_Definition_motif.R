@@ -85,7 +85,7 @@ write.table(comp_logo, paste0(path, "PreasonCorrelation.tab"), sep = "\t")
 #Création d'un motif moyen
 MergeMotif = merge_motifs(motifs)
 MergeMotif["name"] = "Mean_motif"
-write_meme(MergeMotif, paste0(path, "MeanMotif.meme"))
+write_meme(MergeMotif, paste0(path, "0-MeanMotif.meme"))
 
 motifs = c(motifs, MergeMotif)
 

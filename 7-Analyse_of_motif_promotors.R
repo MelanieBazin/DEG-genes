@@ -14,7 +14,7 @@ debut = "TSS"
 date = Sys.Date()
 date = "2022-02-21"
 condition =  names(rnai_list)[2]
-p_valueFIMO = "1E-4"
+p_valueFIMO = "1E-6"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
@@ -438,16 +438,20 @@ write.table(summary_tab,paste0(save_path,"/Summary2_",condition,".tab"), sep = "
 
 
 # Création de séléction de gènes d'intérêt
+selection_tab = summary_tab[which(is.element(summary_tab$ID, stdCTIP$UP_ALL)),]
+selection_tab = selection_tab[which(is.element(selection_tab$ID, MOTIF$motif_50.80)),]
+write.table(selection_tab,paste0(save_path, "/Selection1_UP-",condition,".tab"), sep = "\t", row.names = F)
+
 selection_tab = summary_tab[which(is.element(summary_tab$ID, stdCTIP$DOWN_UP)),]
 selection_tab = selection_tab[which(is.element(selection_tab$ID, MOTIF$motif_50.80)),]
-write.table(selection_tab,paste0(save_path, "/Selection1_UP_DOWN-",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path, "/Selection2_UP_DOWN-",condition,".tab"), sep = "\t", row.names = F)
 
 selection_tab = selection_tab[which(str_detect(selection_tab$NAME, "PTET")),]
 selection_tab = selection_tab[which(str_detect(selection_tab$SYNONYMS, "PTMB")| selection_tab$SYNONYMS == ""),]
-write.table(selection_tab,paste0(save_path,"/Selection2_unknown_",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path,"/Selection3_unknown_",condition,".tab"), sep = "\t", row.names = F)
 
 selection_tab = selection_tab[which(is.element(selection_tab$ID, TURBO$turbo_OU)),]
-write.table(selection_tab,paste0(save_path,"/Selection3_Tubo_",condition,".tab"), sep = "\t", row.names = F)
+write.table(selection_tab,paste0(save_path,"/Selection4_Tubo_",condition,".tab"), sep = "\t", row.names = F)
 
 sink(paste0(save_path,"/Analyse_sessionInfo.txt"))
 print(sessionInfo())

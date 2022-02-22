@@ -54,6 +54,9 @@ not_up_pkx = AUTOGAMY$all_genes[!is.element(AUTOGAMY$all_genes, up_pkx)]
 # Les gènes DOWN dérégulés en CTIP early ou inter
 CTIP = rbind(TAB$CTIP_early,TAB$CTIP_inter)
 
+downCTIP = list(CTIP_early = unique(TAB$CTIP_early$ID[TAB$CTIP_early$REGULATION =="Down-regulated"]),
+            CTIP_inter = unique(TAB$CTIP_inter$ID[TAB$CTIP_inter$REGULATION =="Down-regulated"]))
+
 stdCTIP = list(DOWN_CTIP = unique(CTIP[CTIP$REGULATION == "Down-regulated", "ID"]),
                UP_ALL = up_pkx,
                DOWN_UP = intersect(unique(CTIP[CTIP$REGULATION == "Down-regulated", "ID"]), up_pkx))

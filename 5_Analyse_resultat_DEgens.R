@@ -9,7 +9,7 @@ source("0_Visualisation_fonction.R")
 
 # Definitir les fichiers à ouvrir
 date = Sys.Date()
-# date = "02-08"
+# date = "2022-02-21"
 condition =  names(rnai_list)[2]
 
 # Localiser les donner
@@ -185,10 +185,21 @@ ggvenn(LIST,
        set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
 dev.off()
 
-# Avec les UP dérégulés + early peak
+# Avev les CTIP seuls
+LIST = list(Early = downCTIP$CTIP_early,
+            Intermediate = downCTIP$CTIP_inter)
+png(paste0(path,"Venn_CTIP.png"))
+ggvenn(LIST,
+       stroke_size = 0.5,
+       set_name_size = 6,
+       show_percentage = F,
+       text_size = 7)
+dev.off()
+
+# Avec les CTIP UP dérégulés + early peak
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
-            Intermediate_peak = AUTOGAMY$inter_peak)
+            Early_peak = AUTOGAMY$early_peak)
 png(paste0(path,"Venn_CTIP_PKX_EARLY.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
@@ -199,11 +210,11 @@ ggvenn(LIST,
        set_name_color = brewer.pal(n = length(LIST), name = "Set2"))
 dev.off()
 
-# Avec les UP dérégulés + early peak + Turbo
+# Avec les CTIP UP dérégulés + early peak + Turbo
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
-            Intermediate_peak = AUTOGAMY$inter_peak)
+            Early_peak = AUTOGAMY$early_peak)
 png(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),

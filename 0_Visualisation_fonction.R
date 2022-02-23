@@ -669,7 +669,7 @@ PositionHistogram <- function (filtre_list, path, name){
       dev.off()
     }
   }
-  png(paste0(path, "Histogramme_STARTposition_", name,".png"))
+  png(paste0(path, "Boxplot_STARTposition_", name,".png"))
   names(pos_list) = names(filtre_list)
   boxplot(pos_list)
   dev.off()

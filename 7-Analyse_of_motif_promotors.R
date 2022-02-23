@@ -69,18 +69,18 @@ MOTIF_uniq = list(
 )
 
 # Croiser les filtres
-MOTIFxAUTOG = Crossinglist(MOTIF_uniq, AUTOGAMY)
+MOTIFxAUTOG = Crossinglist(MOTIF_uniq["Motif"], AUTOGAMY)
 
-MOTIFxUP_PKX = Crossinglist(MOTIF_uniq, UP_PKX)
+MOTIFxUP_PKX = Crossinglist(MOTIF_uniq["Motif"], UP_PKX)
 MOTIFxUP_PKXxAUTOG = Crossinglist(MOTIFxUP_PKX, AUTOGAMY)
 
-MOTIFxCTIP = Crossinglist(MOTIF_uniq, stdCTIP)
+MOTIFxCTIP = Crossinglist(MOTIF_uniq["Motif"], stdCTIP)
 MOTIFxCTIPxAUTOG = Crossinglist(MOTIFxCTIP, AUTOGAMY)
 
-MOTIFxnotUP_PKX = Crossinglist(MOTIF_uniq, not_UP_PKX)
+MOTIFxnotUP_PKX = Crossinglist(MOTIF_uniq["Motif"], not_UP_PKX)
 MOTIFxnotUP_PKXxAUTOG = Crossinglist(MOTIFxnotUP_PKX, AUTOGAMY)
 
-MOTIFxnotCTIP = Crossinglist(MOTIF_uniq, not_stdCTIP)
+MOTIFxnotCTIP = Crossinglist(MOTIF_uniq["Motif"], not_stdCTIP)
 MOTIFxnotCTIPxAUTOG = Crossinglist(MOTIFxnotCTIP, AUTOGAMY)
 
 #### Répartition des profils parmis les gènes avec et sans motifs ####
@@ -203,7 +203,7 @@ my_data = cbind(prom_motif$ID, pos_fraction)
 LIST = c(UP_PKX, stdCTIP)
 names(LIST)= c(names(UP_PKX), names(stdCTIP))
 
-sink(paste0(save_path,"/Enrichissement_position.txt"))
+sink(paste0(path,"/Enrichissement_position.txt"))
 Enrichment_padj(AUTOGAMY, my_data)
 Enrichment_padj(LIST, my_data)
 sink()
@@ -362,7 +362,7 @@ dev.off()
 
 
 #### Barplot répartition des motifs +/- ####
-print("Repartition of +/- motifs")
+print("Repartition of 50.80 motifs")
 path = paste0(save_path,"Barplot_Motifs_plusVSmoins/")
 dir.create(path ,recursive=T,showWarnings=F)
 

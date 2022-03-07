@@ -15,12 +15,12 @@ promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_"
 
 # Definitir les fichiers d'analyse à ouvrir
 date = Sys.Date()
-# date = "02-08"
+date = "2022-02-21"
 condition =  names(rnai_list)[2]
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/")
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/UP_not_inter/")
 
 
 # Ouvrir les filtres sur les dérégulation
@@ -37,6 +37,9 @@ dir.create(path,recursive=T,showWarnings=F)
 
 prom_UP = promoteur[which(is.element(names(promoteur),up_pkx))]
 # write.fasta(sequences = prom_UP, names = names(prom_UP), file.out = paste0(path, "PromUP.fa") )
+
+prom_UP_not_int = prom_UP[which(!is.element(names(prom_UP),AUTOGAMY$inter_peak))]
+write.fasta(sequences = prom_UP_not_int, names = names(prom_UP), file.out = paste0(path, "PromUP_not_inter.fa") )
 
 prom_UP_int = prom_UP[which(is.element(names(prom_UP),AUTOGAMY$inter_peak))]
 write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
@@ -114,17 +117,12 @@ dev.off()
 ##### Partie 4 - définition des prom avec motif par FIMO ####
 path2 = paste0(save_path,"FIMO_1E-4/")
 dir.create(path2,recursive=T,showWarnings=F)
-path2 = paste0(save_path,"FIMO_1E-5/")
-dir.create(path2,recursive=T,showWarnings=F)
-path2 = paste0(save_path,"FIMO_1E-6/")
-dir.create(path2,recursive=T,showWarnings=F)
-
 
 print("5- Search for motif in promotors on FIMO") 
 print("Parametres :")
 print(paste("  Uploade the input motif :", path, "MeanMotif.meme"))  
 print(paste0("  Uploade the input sequence : ./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_",debut,".fa"))
-print("  Match p-value < 1E-4 / 1E-5 / 1E-6"  )
+print("  Match p-value < 1E-4"  )
 print(paste0("6- Save the identified motif GFF table in : ", path2))
 
 

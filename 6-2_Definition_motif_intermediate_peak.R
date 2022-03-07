@@ -20,7 +20,7 @@ condition =  names(rnai_list)[2]
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/neg_intermediate_notUP/")
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/neg_intermediate_notUP2/")
 
 
 # Ouvrir les filtres sur les dérégulation
@@ -41,7 +41,7 @@ prom_UP = promoteur[which(is.element(names(promoteur),up_pkx))]
 prom_UP_int = prom_UP[which(is.element(names(prom_UP),AUTOGAMY$inter_peak))]
 write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
 
-prom_not_UP_int = promoteur[which(!is.element(names(promoteur),up_pkx))]
+prom_not_UP_int = promoteur[which(is.element(names(promoteur),not_up_pkx))]
 prom_not_UP_int = prom_not_UP_int[which(is.element(names(prom_not_UP_int),AUTOGAMY$inter_peak))]
 
 for (i in 1:5){

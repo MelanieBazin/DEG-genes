@@ -15,10 +15,11 @@ date = Sys.Date()
 date = "2022-02-21"
 condition =  names(rnai_list)[2]
 p_valueFIMO = "1E-4"
+additional_folder = "/UP_inter"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/FIMO_",p_valueFIMO, "/")
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,additional_folder,"/FIMO_",p_valueFIMO, "/")
 
 # Ouvrir les filtres sur les dérégulation
 RNAi = rnai_list[[condition]]
@@ -27,25 +28,38 @@ RNAi = RNAi[-grep("ICL7", RNAi)]
 RNAi = RNAi[-grep("ND7", RNAi)]
 source("5-1_Filtres.R")
 
-# Ouverture du fichier tsv
+# Open the fimo.tsv file
 prom_motif = read.table(paste0(save_path,"fimo.tsv"), sep = "\t", header = T)
 colnames(prom_motif) = c("MOTIF_ID", "MOTIF_alt_ID", "ID","START","END","STRAND","SCORE", "p.value", "q.value", "MOTIF_SEQUENCE")
 prom_motif$START = prom_motif$START-150
 prom_motif$END= prom_motif$END-150
+
+# Saving of the annotated file
 prom_motif2 = merge(prom_motif, annotation[,c("ID","NAME", "SYNONYMS")], by = "ID")
 write.table(prom_motif2,paste0(save_path,"/fimoTSV_merge.tab"), sep = "\t", row.names = F)
 
-# Find the best pvalue (enrichment should be around 45%)
+#### Find the p_value correspondinf to the enrichment given by STREME ####
+if (additional_folder == "/UP_inter"){
+  enrichment = mean(97/215, 103/215, 95/215, 98/215, 95/215)
+}else if (additional_folder == "/neg_intermediate_notUP2"){
+  enrichment = mean(102/215, 98/215, 80/215, 95/215, 135/215)
+}
 query = intersect(AUTOGAMY$inter_peak, stdCTIP$UP_ALL)
-p_value = 2e-06
-prom_motif = prom_motif[prom_motif$p.value < p_value,]
-prom_UP_motif = unique(prom_motif$ID[which(is.element(prom_motif$ID, query))])
+prom_UP_motif = prom_motif[which(is.element(prom_motif$ID, query)),]
+prom_UP_motif = prom_UP_motif[order(prom_UP_motif$p.value),]
+prom_UP_motif = prom_UP_motif[!duplicated(prom_UP_motif$ID),]
+nb_selected = round(length(query)*enrichment)
+p_value = round(prom_UP_motif$p.value[nb_selected], digit = 6)
 
+# Check the enrichmùent obtain
+prom_motif2 = prom_motif[prom_motif$p.value <= p_value,]
+prom_UP_motif = unique(prom_motif2$ID[which(is.element(prom_motif2$ID, query))])
 enrichment = length(prom_UP_motif)/length(query)*100
 enrichment
 
+# Restrain the data to the significative ones
 save_path = paste0(save_path, "p-value_",p_value, "/")
-
+prom_motif = prom_motif[prom_motif$p.value <= p_value,]
 
 #### Création de filtre supplémentaire pour les motifs ####
 print("Addition of new filter")
@@ -66,6 +80,13 @@ MOTIF_uniq = list(
   Motif_plus = unique(prom_motif$ID[prom_motif$STRAND == "+"]),
   motif_moins = unique(prom_motif$ID[prom_motif$STRAND == "-"]),
   motif_50.80 = unique(prom_motif$ID[prom_motif$START > -80 & prom_motif$START < -50 ])
+)
+
+SUPP = list(
+  Inter_motif = intersect(AUTOGAMY$inter_peak,MOTIF_uniq$Motif),
+  not_Inter_motif = setdiff(MOTIF_uniq$Motif,AUTOGAMY$inter_peak),
+  Inter_UP_motif = intersect(intersect(AUTOGAMY$inter_peak,UP_PKX$UP_ALL), MOTIF_uniq$Motif),
+  Inter_UP_ssmotif = setdiff(intersect(AUTOGAMY$inter_peak,UP_PKX$UP_ALL), MOTIF_uniq$Motif)
 )
 
 # Croiser les filtres
@@ -115,6 +136,8 @@ PositionHistogram(MOTIFxAUTOG, path, "MOTIF_AUTOG")
 PositionHistogram(MOTIFxUP_PKXxAUTOG, path, "MOTIF_UP_AUTO")
 PositionHistogram(MOTIFxCTIPxAUTOG, path, "MOTIF_CTIP_AUTO")
 
+PositionHistogram(SUPP[1:3], path, "SUPP")
+dev.off()
 # Parmis les autres gènes
 
 PositionHistogram(MOTIFxnotUP_PKX, path, "MOTIF_notUP")
@@ -177,6 +200,44 @@ hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
 axis(2)
 axis(1, at = seq(-150,0,10))
 dev.off()
+##
+pos_not_inter = prom_motif$START[which(is.element(prom_motif$ID,SUPP$not_Inter_motif))]
+png(paste0(path, "Histogramme_STARTposition_not_inter_rand.png"),width = 1700, height = 900)
+par(mfrow=c(4,5))
+
+rand_pos = list()
+rand_mean = c()
+for (i in 1:20){
+  rand = sample(1:length(pos_not_inter),length(pos_up), replace = F)
+  pos = pos_not_inter[rand]
+  rand_pos = c(rand_pos, list(pos))
+  rand_mean= c(rand_mean, median(pos))
+  
+  t_not_up = table(pos)
+  tab = merge(as.data.frame(t_not_up), as.data.frame(t_up), by = 1, all = T)
+  tab[is.na(tab)] = 0
+  colnames(tab) = c("start", "not_UP", "UP")
+  mat = matrix(c(tab$not_UP, tab$UP),2,length(tab$not_UP),byrow=T)
+  
+  chi2 = chisq.test(mat)
+  
+  hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
+       main = paste("pvalue :", round(chi2$p.value, 4)))
+  axis(2)
+  axis(1, at = seq(-150,0,10))
+  
+}
+dev.off()
+
+png(paste0(path, "Histogramme_STARTposition_not_inter_rand_last.png"))
+par(mfrow=c(1,1))
+hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
+     main = paste("pvalue :", round(chi2$p.value, 4)))
+axis(2)
+axis(1, at = seq(-150,0,10))
+dev.off()
+
+
 
 ## Calcul enrichissement
 # fractionner les positions
@@ -467,6 +528,230 @@ write.table(selection_tab,paste0(save_path,"/Selection3_unknown_",condition,".ta
 selection_tab = selection_tab[which(is.element(selection_tab$ID, TURBO$turbo_OU)),]
 write.table(selection_tab,paste0(save_path,"/Selection4_Tubo_",condition,".tab"), sep = "\t", row.names = F)
 
+#### Comparaison FC et pvalue ####
+path = paste0(save_path,"FC_padj_comparison/")
+dir.create(path ,recursive=T,showWarnings=F)
+
+Inter_UP_motif = summary_tab[which(is.element(summary_tab$ID, SUPP$Inter_UP_motif)),c(1,19:27)]
+Inter_UP_ssmotif = summary_tab[which(is.element(summary_tab$ID, SUPP$Inter_UP_ssmotif)),c(1,19:27)]
+
+Inter_UP_motif_FC = Inter_UP_motif[,grep("FC",colnames(Inter_UP_motif))]
+Inter_UP_ssmotif_FC = Inter_UP_ssmotif[,grep("FC",colnames(Inter_UP_ssmotif))]
+
+Inter_UP_motif_padj = Inter_UP_motif[,grep("padj",colnames(Inter_UP_motif))]
+Inter_UP_ssmotif_padj = Inter_UP_ssmotif[,grep("padj",colnames(Inter_UP_ssmotif))]
+
+Inter_UP_motif50.80_FC = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_50.80)),grep("FC",colnames(Inter_UP_motif))]
+Inter_UP_motif50.80_padj = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_50.80)),grep("padj",colnames(Inter_UP_motif))]
+
+for(i in 1:3){
+  png(paste0(path, colnames(Inter_UP_motif_FC[i]),".png"))
+  boxplot(c(Inter_UP_motif_FC[i],Inter_UP_ssmotif_FC[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main =  colnames(Inter_UP_motif_FC[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_FC[i]),"_avecMotif.png"))
+  hist(Inter_UP_motif_FC[[i]],
+       main =  paste0(colnames(Inter_UP_motif_FC[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_motif_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_ssmotif_FC[i]),"_sansMotif.png"))
+  hist(Inter_UP_ssmotif_FC[[i]],
+       main =  paste0(colnames(Inter_UP_ssmotif_FC[i]),"_sansMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_ssmotif_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_ssmotif_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_padj[i]),".png"))
+  boxplot(c(Inter_UP_motif_padj[i],Inter_UP_ssmotif_padj[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main = colnames(Inter_UP_motif_padj[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_padj[i]),"_avecMotif.png"))
+  hist(Inter_UP_motif_padj[[i]],
+       main =  paste0(colnames(Inter_UP_motif_padj[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_motif_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_ssmotif_padj[i]),"_sansMotif.png"))
+  hist(Inter_UP_ssmotif_padj[[i]],
+       main =  paste0(colnames(Inter_UP_ssmotif_padj[i]),"_sansMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_ssmotif_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_ssmotif_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_FC[i]),"_80-50.png"))
+  boxplot(c(Inter_UP_motif50.80_FC[i],Inter_UP_ssmotif_FC[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main =  colnames(Inter_UP_motif50.80_FC[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_FC[i]),"_avecMotif_80-50.png"))
+  hist(Inter_UP_motif50.80_FC[[i]],
+       main =  paste0(colnames(Inter_UP_motif50.80_FC[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_motif50.80_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif50.80_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_padj[i]),"_80-50.png"))
+  boxplot(c(Inter_UP_motif50.80_padj[i],Inter_UP_ssmotif_padj[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main = colnames(Inter_UP_motif_padj[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_padj[i]),"_avecMotif_80-50.png"))
+  hist(Inter_UP_motif50.80_padj[[i]],
+       main =  paste0(colnames(Inter_UP_motif50.80_padj[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_motif50.80_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif50.80_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+}
+
+path = paste0(save_path,"FC_padj_comparison/FC_2.5/")
+dir.create(path ,recursive=T,showWarnings=F)
+
+
+Inter_UP_motif_FC = summary_tab[which(is.element(summary_tab$ID, SUPP$Inter_UP_motif)),c(1,19:27)]
+Inter_UP_motif_FC = Inter_UP_motif_FC[Inter_UP_motif_FC[grep("FC", colnames(Inter_UP_motif_FC))[1]]>= 2.5,]
+Inter_UP_motif_FC = Inter_UP_motif_FC[Inter_UP_motif_FC[grep("FC", colnames(Inter_UP_motif_FC))[2]]>= 2.5,]
+Inter_UP_motif_FC = Inter_UP_motif_FC[Inter_UP_motif_FC[grep("FC", colnames(Inter_UP_motif_FC))[3]]>= 2.5,]
+
+Inter_UP_ssmotif_FC = summary_tab[which(is.element(summary_tab$ID, SUPP$Inter_UP_ssmotif)),c(1,19:27)]
+Inter_UP_ssmotif_FC = Inter_UP_ssmotif_FC[Inter_UP_ssmotif_FC[grep("FC", colnames(Inter_UP_ssmotif_FC))[1]]>= 2.5,]
+Inter_UP_ssmotif_FC = Inter_UP_ssmotif_FC[Inter_UP_ssmotif_FC[grep("FC", colnames(Inter_UP_ssmotif_FC))[2]]>= 2.5,]
+Inter_UP_ssmotif_FC = Inter_UP_ssmotif_FC[Inter_UP_ssmotif_FC[grep("FC", colnames(Inter_UP_ssmotif_FC))[3]]>= 2.5,]
+
+Inter_UP_motif_FC_FC = Inter_UP_motif_FC[,grep("FC",colnames(Inter_UP_motif_FC))]
+Inter_UP_motif50.80_FC_FC = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_50.80)),grep("FC",colnames(Inter_UP_motif_FC))]
+Inter_UP_ssmotif_FC_FC = Inter_UP_ssmotif_FC[,grep("FC",colnames(Inter_UP_ssmotif_FC))]
+
+Inter_UP_motif_FC_padj = Inter_UP_motif_FC[,grep("padj",colnames(Inter_UP_motif_FC))]
+Inter_UP_motif50.80_FC_padj = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_50.80)),grep("padj",colnames(Inter_UP_motif_FC))]
+Inter_UP_ssmotif_FC_padj = Inter_UP_ssmotif_FC[,grep("padj",colnames(Inter_UP_ssmotif_FC))]
+
+Inter_UP_motif_FC = Inter_UP_motif_FC_FC
+Inter_UP_motif50.80_FC = Inter_UP_motif50.80_FC_FC 
+Inter_UP_ssmotif_FC = Inter_UP_motif_FC_FC
+
+Inter_UP_motif_padj = Inter_UP_motif_FC_padj
+
+
+for(i in 1:3){
+  png(paste0(path, colnames(Inter_UP_motif_FC[i]),".png"))
+  boxplot(c(Inter_UP_motif_FC[i],Inter_UP_ssmotif_FC[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main =  colnames(Inter_UP_motif_FC[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_FC[i]),"_avecMotif.png"))
+  hist(Inter_UP_motif_FC[[i]],
+       main =  paste0(colnames(Inter_UP_motif_FC[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_motif_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_ssmotif_FC[i]),"_sansMotif.png"))
+  hist(Inter_UP_ssmotif_FC[[i]],
+       main =  paste0(colnames(Inter_UP_ssmotif_FC[i]),"_sansMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_ssmotif_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_ssmotif_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_padj[i]),".png"))
+  boxplot(c(Inter_UP_motif_padj[i],Inter_UP_ssmotif_padj[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main = colnames(Inter_UP_motif_padj[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif_padj[i]),"_avecMotif.png"))
+  hist(Inter_UP_motif_padj[[i]],
+       main =  paste0(colnames(Inter_UP_motif_padj[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_motif_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_ssmotif_padj[i]),"_sansMotif.png"))
+  hist(Inter_UP_ssmotif_padj[[i]],
+       main =  paste0(colnames(Inter_UP_ssmotif_padj[i]),"_sansMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_ssmotif_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_ssmotif_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_FC[i]),"_80-50.png"))
+  boxplot(c(Inter_UP_motif50.80_FC[i],Inter_UP_ssmotif_FC[i]), 
+          names = c("Avec_Motif","Sans_motif"),
+          main =  colnames(Inter_UP_motif50.80_FC[i]),
+          outline = F)
+  dev.off()
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_FC[i]),"_avecMotif_80-50.png"))
+  hist(Inter_UP_motif50.80_FC[[i]],
+       main =  paste0(colnames(Inter_UP_motif50.80_FC[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(1,8))
+  abline(v = mean(Inter_UP_motif50.80_FC[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif50.80_FC[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+  
+  png(paste0(path, colnames(Inter_UP_motif50.80_padj[i]),"_80-50.png"))
+  boxplot(c(Inter_UP_motif50.80_padj[i],Inter_UP_ssmotif_padj[i]),
+          names = c("Avec_Motif","Sans_motif"),
+          main = colnames(Inter_UP_motif_padj[i]),
+          outline = F)
+  dev.off()
+
+  png(paste0(path, colnames(Inter_UP_motif50.80_padj[i]),"_avecMotif_80-50.png"))
+  hist(Inter_UP_motif50.80_padj[[i]],
+       main =  paste0(colnames(Inter_UP_motif50.80_padj[i]),"_avecMotif"),
+       breaks = 50,
+       xlim = c(0,0.05))
+  abline(v = mean(Inter_UP_motif50.80_padj[[i]]), col = "grey", lty = "dashed")
+  abline(v = median(Inter_UP_motif50.80_padj[[i]]), col = "red", lty = "dashed")
+  dev.off()
+  
+}
+
+
+#### compraison des profils des intermdiate avec et sans motif ####
+
+
+
+
+##### Etat de R #####
 sink(paste0(save_path,"/Analyse_sessionInfo.txt"))
 print(sessionInfo())
 sink()

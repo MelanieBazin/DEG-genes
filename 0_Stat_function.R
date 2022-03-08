@@ -29,6 +29,7 @@ Khi2_intermed <- function(genes_list, profil_list){
   return(paste(format(pv,digits=3), signif))
 }
 
+
 Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
 
   data_tab = as.data.frame(data_tab)
@@ -42,12 +43,11 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
   for (l in names(LIST)){
     ## Calcul des p-value
     pval = c()
+    nb_genes = length(LIST[[l]][which(is.element(LIST[[l]], data_tab$ID))])
     for (p in Profils){
       nb_profil = sum(data_tab$PROFIL == p)
-      nb_genes = length(LIST[[l]])
       nb_genes_profil = length(LIST[l][which(is.element(LIST[[l]], data_tab$ID[data_tab$PROFIL == p]))])
-      
-      
+
       pval = c(pval, 1- phyper(nb_genes_profil-1, nb_profil, all - nb_profil, nb_genes))
     }
     names(pval) = Profils
@@ -91,6 +91,7 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     }
     
     names(pval_adj) = Profils
+    pval_adj = format(pval_adj, scientific = T, digit = 3)
     
     print(l)
     print(table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))]))

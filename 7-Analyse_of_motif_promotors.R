@@ -38,7 +38,7 @@ prom_motif$END= prom_motif$END-150
 prom_motif2 = merge(prom_motif, annotation[,c("ID","NAME", "SYNONYMS")], by = "ID")
 write.table(prom_motif2,paste0(save_path,"/fimoTSV_merge.tab"), sep = "\t", row.names = F)
 
-#### Find the p_value correspondinf to the enrichment given by STREME ####
+#### Find the p_value corresponding to the enrichment given by STREME ####
 if (additional_folder == "/UP_inter"){
   enrichment = mean(97/215, 103/215, 95/215, 98/215, 95/215)
 }else if (additional_folder == "/neg_intermediate_notUP2"){
@@ -258,14 +258,15 @@ for(l in 1:nrow(prom_motif)){
   }
 }
 
-table(pos_fraction)
 
-my_data = cbind(prom_motif$ID, pos_fraction)
+my_data = as.data.frame(cbind(prom_motif$ID, pos_fraction))
 LIST = c(UP_PKX, stdCTIP)
 names(LIST)= c(names(UP_PKX), names(stdCTIP))
 
-sink(paste0(path,"/Enrichissement_position.txt"))
+sink(paste0(path,"/Enrichissement_position_autogamy.txt"))
 Enrichment_padj(AUTOGAMY, my_data)
+sink()
+sink(paste0(path,"/Enrichissement_position_motif.txt"))
 Enrichment_padj(LIST, my_data)
 sink()
 
@@ -747,7 +748,14 @@ for(i in 1:3){
 
 
 #### compraison des profils des intermdiate avec et sans motif ####
+# Localiser les donner
 
+SUPP$ 
+
+ExpressionProfils(type = "vst",
+                  condition,
+                  file = paste0("./Analyse/",file_name, "/"),
+                  select_ID = NULL)
 
 
 

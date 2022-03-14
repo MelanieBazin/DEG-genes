@@ -84,7 +84,7 @@ OrderColumn <- function(data_tab, infodata){
     rnai_position = str_which(colnames(data_tab),r)
     Timing = infodata$Timing[grep(r, infodata$Names)]
     Timing = sub("Veg","-1", Timing)
-  
+    
     cluster_position = rnai_position[order(as.numeric(Timing))]
     
     
@@ -177,13 +177,16 @@ library("factoextra")
 library(ggplot2)
 library(gtools)
 
-PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,image_prefix="PCA_",show_barplot=T, vline=0, sortie = "png", ...) {
+PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
+                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "png", 
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"), ...) {
   dir.create(save_path,recursive=T,showWarnings=F)
   resExp = PCA(t(data_tab), graph = F)
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
-    if (sortie == "png") {png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
+    if (sortie == "png") {
+      png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
     }else if (sortie =="pdf"){
       pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
     }
@@ -198,11 +201,16 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
     }
     dev.off()
   }  
+
   
   for (i in 1:dim(combn(1:max_dim,2))[2]) {
     
-    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind",  col.hab = colors, title = main,
-                 ggoptions = list(size=3))
+    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", 
+                 label = label, col.hab = colors, 
+                 title = main,
+                 ggoptions = list(size=3),
+                 select = selection,
+                 unselect = 0.85)
     ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
@@ -347,31 +355,31 @@ MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "
 
 MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
   data_log = log(data_tab+1)
-
+  
   rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
   if (is.element("_ctrl",rnai)){
     rnai = sub("_","",rnai)
   }else{
     str_sub(rnai,-1) = ""
   }
-
+  
   c_split = c()
   for (a in rnai){
     x = grep(a, colnames(data_log))
     c_split = c(c_split,max(x))
   }
-
+  
   # Ajout des annotation au tableau
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
   data_log = merge(data_log, annotation, by = 0)
   rownames(data_log) = data_log$Row.names
   data_log= data_log[,-1]
-
+  
   # Ordonner les lignes par valeur de log du plus grand au plus petit
   data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
   colnames(data_log)[1] = "MAX"
   data_log = data_log[order(data_log$MAX, decreasing = T),]
-
+  
   # Ordonner les lignes par profils d'expression
   data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
   
@@ -384,7 +392,7 @@ MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
   # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
   data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
   data_log_mat = as.matrix(data_log_mat)
-
+  
   png("Test.png")
   heatmap.2(data_log_mat,
             Rowv=F, Colv=F,
@@ -404,7 +412,7 @@ MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
 
 # Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés
 library("RColorBrewer")
-ExpressionProfils <- function(type , condition, file, select_ID = NULL){
+ExpressionProfils <- function(type , condition, file, select_ID = NULL, rnai = NULL){
   
   if (type  == "vst"){
     path = paste0(file,condition,"/")
@@ -413,7 +421,9 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL){
     path = paste0(path,"Visualisation/profils/")
     dir.create(path,recursive=T,showWarnings=F)
     
-    rnai = rnai_list[[condition]]
+    if (is.null(rnai)){
+      rnai = rnai_list[[condition]]
+    }
     rnai = rnai[-grep("bis",rnai)]
     
   }else{
@@ -455,17 +465,16 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL){
     rnai_name = "tout_"
   }
   
-  pdf(paste0(path,type,"_",rnai_name,"profils_par_genes.pdf"))
   for (s in rownames(EXPRESSION)){
     x_axis = unique(unlist(timing_list))
     x_axis_order = c(1,order(as.numeric(gsub("T", "", x_axis[2:length(x_axis)])))+1)
     x_axis = x_axis[x_axis_order]
     
-    plot(NULL, xlim = c(1,length(x_axis)),
-         ylim=c(0,MAX[s]),
-         axes=F,ylab=type,
-         xlab="Timing Autogamie",
-         main=paste("Profils expression",names(select_ID)[grep(s,select_ID)]))
+    p = plot(NULL, xlim = c(1,length(x_axis)),
+             ylim=c(0,MAX[s]),
+             axes=F,ylab=type,
+             xlab="Timing Autogamie",
+             main=paste(names(select_ID)[grep(s,select_ID)]))
     
     
     
@@ -489,7 +498,86 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL){
     } 
     
   }
-  dev.off()
+  return(p)
+}
+
+
+library(ggplot2)
+Mean_expression <- function( condition, file, select_ID = NULL, rnai = NULL){
+  
+  path = paste0(file,condition,"/")
+  EXPRESSION = read.table(paste0(path,condition ,"_expression_table_vst.tab"))
+  infodata = read.table(paste0(path,condition ,"_infodata_collapse.tab"))
+  
+  path = paste0(path,"Visualisation/profils/")
+  dir.create(path,recursive=T,showWarnings=F)
+  
+  if (rnai == "ctrl"){
+    rnai = rnai_list[[condition]][c(grep("ND7",rnai_list[[condition]]),grep("ICL7",rnai_list[[condition]]))]
+  }else {
+    rnai = rnai_list[[condition]]
+  }
+  rnai = rnai[-grep("bis",rnai)]
+  
+  if(!is.null(select_ID)){
+    EXPRESSION = EXPRESSION[select_ID,]
+  } else {
+    select_ID = annotation$ID
+    names(select_ID) = annotation$NAME
+  }
+  
+  timing_list = list()
+  col_order = c()
+  for(r in rnai){
+    timing = str_remove_all(colnames(EXPRESSION)[grep(r, colnames(EXPRESSION))], paste0(r,"_"))
+    timing = timing[c(length(timing), order(as.numeric(gsub("T", "", timing[1:(length(timing)-1)]))))]
+    timing_list = c(timing_list, list(timing))
+    for (t in timing){
+      col_order = c(col_order,
+                    grep(paste(r,t,sep="_"), colnames(EXPRESSION))[1])
+    } 
+  }
+  names(timing_list)=rnai
+  
+  EXPRESSION = OrderColumn(EXPRESSION, infodata)
+  
+  
+  timing_list = timing_list[rnai]
+  rnai_name = paste(rnai, collapse = "_")
+  
+  tab = t(EXPRESSION)
+  
+  ggplot(EXPRESSION[1,]) 
+  geom_point(aes(color = infodata$Feeding))
+}
+
+BoxnBarpolt_repartion <- function(LIST, path){
+  for(i in 1:ncol(LIST[[1]])){
+    png(paste0(path, colnames(LIST[[1]][i]),".png"))
+    boxplot(c(LIST[[1]][i],LIST[[2]][i]), 
+            names = c("Avec_Motif","Sans_motif"),
+            main =  colnames(LIST[[1]][i]),
+            outline = F)
+    dev.off()
+    
+    png(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.png"))
+    hist(LIST[[1]][[i]],
+         main =  paste0(colnames(LIST[[1]][i]),"_avecMotif"),
+         breaks = 50,
+         xlim = c(1,8))
+    abline(v = mean(LIST[[1]][[i]]), col = "grey", lty = "dashed")
+    abline(v = median(LIST[[1]][[i]]), col = "red", lty = "dashed")
+    dev.off()
+    
+    png(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.png"))
+    hist(LIST[[2]][[i]],
+         main =  paste0(colnames(LIST[[2]][i]),"_sansMotif"),
+         breaks = 50,
+         xlim = c(1,8))
+    abline(v = mean(LIST[[2]][[i]]), col = "grey", lty = "dashed")
+    abline(v = median(LIST[[2]][[i]]), col = "red", lty = "dashed")
+    dev.off()
+  }
 }
 
 ###### Pour études des gènes DEG ######

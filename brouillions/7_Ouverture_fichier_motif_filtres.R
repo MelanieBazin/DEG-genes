@@ -15,7 +15,7 @@ date = Sys.Date()
 date = "2022-02-21"
 condition =  names(rnai_list)[2]
 p_valueFIMO = "1E-4"
-additional_folder = "/UP_inter"
+additional_folder = "/UP_CTIP_inter"
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
@@ -43,6 +43,8 @@ if (additional_folder == "/UP_inter"){
   enrichment = mean(97/215, 103/215, 95/215, 98/215, 95/215)
 }else if (additional_folder == "/neg_intermediate_notUP2"){
   enrichment = mean(102/215, 98/215, 80/215, 95/215, 135/215)
+}else if (additional_folder == "/UP_CTIP_inter"){
+  enrichment = mean(112/187, 112/187, 86/187, 85/187, 90/187)
 }
 query = intersect(AUTOGAMY$inter_peak, stdCTIP$UP_ALL)
 prom_UP_motif = prom_motif[which(is.element(prom_motif$ID, query)),]

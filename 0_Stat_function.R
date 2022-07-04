@@ -94,8 +94,14 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     pval_adj = format(pval_adj, scientific = T, digit = 3)
     
     print(l)
-    print(table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))]))
-    print(cbind(as.data.frame(pval_adj),pval_adj < 0.05))
+    freq = as.data.frame(table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))]))
+    tab = cbind(as.data.frame(pval_adj),as.numeric(pval_adj) < 0.05)
+    tab = merge(freq, tab, by.x = "Var1", by.y = 0)
+    
+    rownames(tab) = tab$Var1
+    tab = tab[,-1]
+    colnames(tab) = c("nb_Motif", "pval_adj", "pval_adj < 0.05")
+    print(tab)
     
   }
 }

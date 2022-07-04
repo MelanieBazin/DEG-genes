@@ -412,17 +412,18 @@ MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
 
 # Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés
 library("RColorBrewer")
-ExpressionProfils <- function(type , condition, file, select_ID = NULL, rnai = NULL){
+ExpressionProfils <- function(type , condition, file, name = NULL, select_ID = NULL, rnai = NULL, infodata = NULL){
   
   if (type  == "vst"){
     path = paste0(file,condition,"/")
     EXPRESSION = read.table(paste0(path,condition ,"_expression_table_vst.tab"))
-    
-    path = paste0(path,"Visualisation/profils/")
-    dir.create(path,recursive=T,showWarnings=F)
+    infodata = read.table(paste0(path,condition ,"_infodata_collapse.tab"))
     
     if (is.null(rnai)){
       rnai = rnai_list[[condition]]
+      RNAi = NULL
+    }else{
+      RNAi = paste(rnai, collapse = "-")
     }
     rnai = rnai[-grep("bis",rnai)]
     
@@ -432,39 +433,42 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL, rnai = N
     EXPRESSION = ConcatTab(type, conditions = rnai)
     
   }
+  path = paste0(path,"Visualisation/profils/")
+  dir.create(path,recursive=T,showWarnings=F)
   
   if(!is.null(select_ID)){
     EXPRESSION = EXPRESSION[select_ID,]
+    
+    NAMES = c()
+    for (g in select_ID){
+      NAMES = c(NAMES,annotation$NAME[grep(g,annotation$ID)])
+    }
+    names(select_ID) = NAMES
+    select = "selectedID"
+  
   } else {
     select_ID = annotation$ID
     names(select_ID) = annotation$NAME
+    select = "all_genes"
+  
   }
+  
+  EXPRESSION = OrderColumn(EXPRESSION, infodata)
+  infodata = infodata[colnames(EXPRESSION),]
   
   MAX = apply(EXPRESSION,1, max)
   names(MAX)=rownames(EXPRESSION)
   
   timing_list = list()
-  col_order = c()
-  for(r in rnai){
-    timing = str_remove_all(colnames(EXPRESSION)[grep(r, colnames(EXPRESSION))], paste0(r,"_"))
-    timing = timing[c(length(timing), order(as.numeric(gsub("T", "", timing[1:(length(timing)-1)]))))]
+  for (r in rnai){
+    timing = infodata$Timing[grep(r, infodata$Names)]
     timing_list = c(timing_list, list(timing))
-    for (t in timing){
-      col_order = c(col_order,
-                    grep(paste(r,t,sep="_"), colnames(EXPRESSION))[1])
-    } 
   }
   names(timing_list)=rnai
+  timing_list = timing_list[rnai]
   
-  EXPRESSION = EXPRESSION[,col_order]
   
-  if(condition != "tout"){if (!is.null(rnai)){
-    timing_list = timing_list[rnai]
-    rnai_name = paste(rnai, collapse = "_")
-  }}else{
-    rnai_name = "tout_"
-  }
-  
+  pdf(paste0(path,"Profils_",type,"_",RNAi,"_", select,"_", name, ".pdf"))
   for (s in rownames(EXPRESSION)){
     x_axis = unique(unlist(timing_list))
     x_axis_order = c(1,order(as.numeric(gsub("T", "", x_axis[2:length(x_axis)])))+1)
@@ -473,7 +477,7 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL, rnai = N
     p = plot(NULL, xlim = c(1,length(x_axis)),
              ylim=c(0,MAX[s]),
              axes=F,ylab=type,
-             xlab="Timing Autogamie",
+             xlab="Timing Autogamie (h)",
              main=paste(names(select_ID)[grep(s,select_ID)]))
     
     
@@ -489,16 +493,17 @@ ExpressionProfils <- function(type , condition, file, select_ID = NULL, rnai = N
       color = color+1
       expression = EXPRESSION[s,grep(paste0(i,"_"), colnames(EXPRESSION))]
       positions = c()
-      for (g in gsub(paste0(i, "_"),"", colnames(expression))){
+      for (g in gsub("T","",gsub(paste0(i, "_"),"", colnames(expression)))){
         positions = c(positions,grep(g, x_axis)[1])
       }
       
       lines(positions,expression,col=col_pal[color],lwd=2)
       
     } 
-    
+    print(p)
+    p = NULL
   }
-  return(p)
+  dev.off()
 }
 
 

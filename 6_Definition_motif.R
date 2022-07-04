@@ -20,7 +20,7 @@ condition =  names(rnai_list)[2]
 
 # Localiser les donner
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
-save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/UP_not_inter/")
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,"/UP_CTIP_inter/")
 
 
 # Ouvrir les filtres sur les dérégulation
@@ -35,14 +35,15 @@ print("List of promotors creation")
 path = paste0(save_path, "Promotors/")
 dir.create(path,recursive=T,showWarnings=F)
 
-prom_UP = promoteur[which(is.element(names(promoteur),up_pkx))]
+
+prom_UP = promoteur[which(is.element(names(promoteur),stdCTIP$DOWN_UP))]
 # write.fasta(sequences = prom_UP, names = names(prom_UP), file.out = paste0(path, "PromUP.fa") )
 
-prom_UP_not_int = prom_UP[which(!is.element(names(prom_UP),AUTOGAMY$inter_peak))]
-write.fasta(sequences = prom_UP_not_int, names = names(prom_UP), file.out = paste0(path, "PromUP_not_inter.fa") )
+# prom_UP_not_int = prom_UP[which(!is.element(names(prom_UP),AUTOGAMY$inter_peak))]
+# write.fasta(sequences = prom_UP_not_int, names = names(prom_UP), file.out = paste0(path, "PromUP_not_inter.fa") )
 
 prom_UP_int = prom_UP[which(is.element(names(prom_UP),AUTOGAMY$inter_peak))]
-write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_inter.fa") )
+write.fasta(sequences = prom_UP_int, names = names(prom_UP_int), file.out = paste0(path, "PromUP_CTIP_inter.fa") )
 
 for (i in 1:5){
   prom_rand = sample(names(promoteur),length(names(prom_UP_int)), replace = F)

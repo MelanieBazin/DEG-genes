@@ -9,7 +9,7 @@ source("0_Visualisation_fonction.R")
 
 # Definitir les fichiers à ouvrir
 date = Sys.Date()
-# date = "2022-02-21"
+date = "2022-02-21"
 condition =  names(rnai_list)[2]
 
 # Localiser les donner
@@ -40,7 +40,27 @@ summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
 colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
 summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
 
-write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary_",condition,".tab"), sep = "\t", row.names = F) 
+write.table(summary_tab,paste0("Analyse/",file_name,"/",condition,"/Summary_",condition,".tab"), sep = "\t", row.names = F)
+
+### Dessiner profils pour gens up ####
+
+UP_interearly = unique(UP_PKX$UP_KU80c, unique(UP_PKX$UP_PGM, UP_PKX$UP_XRCC4))
+UP_interearly = intersect(UP_interearly, unique(AUTOGAMY$inter_peak, AUTOGAMY$early_peak))
+ExpressionProfils(type = "vst",
+                  condition = condition,
+                  file = paste0("./Analyse/",file_name, "/"),
+                  name = "up_interearly",
+                  select_ID = UP_interearly)
+
+selection = c("PTET.51.1.G0050231", "PTET.51.1.G1660029", "PTET.51.1.G0400281", "PTET.51.1.G0590135", "PTET.51.1.G0410063", 
+              "PTET.51.1.G0950056", "PTET.51.1.G0950057")
+
+ExpressionProfils(type = "vst",
+                  condition = condition,
+                  file = paste0("./Analyse/",file_name, "/"),
+                  name = "forRNAi",
+                  select_ID = selection)
+
 
 ### Venn Diagrame ####
 print("Venn Digramm in progress")

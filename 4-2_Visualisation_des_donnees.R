@@ -34,7 +34,6 @@ ExpressionProfils(type = "vst",
                   file = path_dir,
                   select_ID = select_ID)
 
-
 for (color_type in c("methods","replicates")){
   # Choix de la couleur utilisé
   print(paste( condition, "-----> Setting",color_type,"colors"))

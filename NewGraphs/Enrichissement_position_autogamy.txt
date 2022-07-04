@@ -1,0 +1,49 @@
+[1] "Table of all data"
+
+       Early peak  Early repression Intermediate peak    Late induction         Late peak   Late repression              none 
+             1974              4536              2037              3741               468              4434             24343 
+[1] "PGM"
+                  nb_Motif pval_adj pval_adj < 0.05
+Early peak             540    0e+00            TRUE
+Early repression       268    1e+00           FALSE
+Intermediate peak      587    0e+00            TRUE
+Late induction         353    1e+00           FALSE
+Late peak              137    0e+00            TRUE
+Late repression        889    0e+00            TRUE
+none                  2748    1e+00           FALSE
+[1] "KU80c"
+                  nb_Motif pval_adj pval_adj < 0.05
+Early peak             391 1.00e-03            TRUE
+Early repression       364 1.00e+00           FALSE
+Intermediate peak      715 0.00e+00            TRUE
+Late induction         836 0.00e+00            TRUE
+Late peak              160 0.00e+00            TRUE
+Late repression        510 1.00e+00           FALSE
+none                  4278 2.52e-01           FALSE
+[1] "XRCC4"
+                  nb_Motif pval_adj pval_adj < 0.05
+Early peak              96 0.00e+00            TRUE
+Early repression        66 1.00e+00           FALSE
+Intermediate peak      252 0.00e+00            TRUE
+Late induction          58 1.00e+00           FALSE
+Late peak                8 8.64e-01           FALSE
+Late repression        103 8.55e-01           FALSE
+none                   479 1.00e+00           FALSE
+[1] "CTIP"
+                  nb_Motif pval_adj pval_adj < 0.05
+Early peak             468 0.00e+00            TRUE
+Early repression        82 1.00e+00           FALSE
+Intermediate peak      687 0.00e+00            TRUE
+Late induction         440 0.00e+00            TRUE
+Late peak               39 6.54e-01           FALSE
+Late repression        634 0.00e+00            TRUE
+none                  1413 1.00e+00           FALSE
+[1] "UP_CTIP"
+                  nb_Motif pval_adj pval_adj < 0.05
+Early peak              20 2.50e-02            TRUE
+Early repression         2 1.00e+00           FALSE
+Intermediate peak      187 0.00e+00            TRUE
+Late induction          22 6.99e-01           FALSE
+Late peak                1 8.10e-01           FALSE
+Late repression          7 1.00e+00           FALSE
+none                    41 1.00e+00           FALSE

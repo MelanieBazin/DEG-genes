@@ -1,13 +1,65 @@
-# source("7_Ouverture_fichier_motif_filtres.R")
+options(stringsAsFactors = FALSE)
+library(ggvenn)
+library(ggplot2) 
+library(RColorBrewer)
+source("0_Cluster.R")
+source("0_Visualisation_fonction.R")
+source("0_Stat_function.R")
 
-summary_tab = read.table(paste0(save_path,"/Summary2_",condition,".tab"), sep = '\t', header = T)
+# Definition des fichier promoteur à ouvrir
+IES = NULL
+debut = "TSS"
+
+# Definitir les fichiers d'analyse à ouvrir
+date = Sys.Date()
+date = "2022-02-21"
+condition =  names(rnai_list)[2]
+p_valueFIMO = "1.4e-05"
+additional_folder = "/UP_CTIP_inter"
+
+# Localiser les donner
+file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
+save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,additional_folder,"/FIMO_1E-4/p-value_",p_valueFIMO, "/")
+
+
+summary_tab = read.table(paste0(save_path,"Summary2_",condition,".tab"), sep = '\t', header = T)
+prom_motif = read.table(paste0(save_path,"Motifs_",p_valueFIMO,".tab"), sep = '\t', header = T)
 
 MotifColor <- function(tab){
   motif_color = cbind(is.element(rownames(tab), MOTIF_uniq$Motif),
-                      is.element(rownames(tab), MOTIF_uniq$motif_50.80))
+                      is.element(rownames(tab), MOTIF_uniq$motif_pos))
   motif_color = apply(motif_color, 1, sum)
   motif_color = sub("0","grey",sub("1","deepskyblue",sub("2","red", motif_color)))
 }
+
+UPdownColor <- function(tab){
+  up_color = cbind(is.element(rownames(tab), UP_PKX$UP_ALL),
+                   is.element(rownames(tab), unique(downCTIP$CTIP_early, downCTIP$CTIP_inter)))
+  
+  up_color = apply(up_color, 1, sum)
+  up_color = sub("0","grey",sub("1","red",sub("2","deepskyblue", up_color)))
+}
+
+# Ouvrir les filtres sur les dérégulation
+RNAi = rnai_list[[condition]]
+RNAi = RNAi[-grep("bis", RNAi)]
+RNAi = RNAi[-grep("ICL7", RNAi)]
+RNAi = RNAi[-grep("ND7", RNAi)]
+source("5-1_Filtres.R")
+MOTIF_uniq = list(
+  Motif = unique(prom_motif$ID),
+  Motif_plus = unique(prom_motif$ID[prom_motif$STRAND == "+"]),
+  motif_moins = unique(prom_motif$ID[prom_motif$STRAND == "-"]),
+  motif_pos = unique(prom_motif$ID[prom_motif$START > -70 & prom_motif$START < -50 ])
+)
+
+
+SUPP = list(
+  Inter_motif = intersect(AUTOGAMY$inter_peak,MOTIF_uniq$Motif),
+  not_Inter_motif = setdiff(MOTIF_uniq$Motif,AUTOGAMY$inter_peak),
+  Inter_UP_motif = intersect(intersect(AUTOGAMY$inter_peak,UP_PKX$UP_ALL), MOTIF_uniq$Motif),
+  Inter_UP_ssmotif = setdiff(intersect(AUTOGAMY$inter_peak,UP_PKX$UP_ALL), MOTIF_uniq$Motif)
+)
 
 #### Comparison FC and pvalue ####
 print("Comparison FC and pvalue")
@@ -31,8 +83,8 @@ BoxnBarpolt_repartion(list(Inter_UP_motif_padj = Inter_UP_motif[,grep("padj",col
                            Inter_UP_ssmotif_padj = Inter_UP_ssmotif[,grep("padj",colnames(Inter_UP_ssmotif))]),
                       path)
 
-Inter_UP_motif50.80_FC = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_50.80)),grep("FC",colnames(Inter_UP_motif))]
-Inter_UP_motif50.80_padj = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_50.80)),grep("padj",colnames(Inter_UP_motif))]
+Inter_UP_motif50.80_FC = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_pos)),grep("FC",colnames(Inter_UP_motif))]
+Inter_UP_motif50.80_padj = Inter_UP_motif[which(is.element(Inter_UP_motif$ID, MOTIF$motif_pos)),grep("padj",colnames(Inter_UP_motif))]
 
 # Histograms with the position limitation
 for(i in 1:ncol(Inter_UP_motif50.80_FC)){
@@ -104,8 +156,8 @@ BoxnBarpolt_repartion(list(Inter_UP_motif_FC_padj = Inter_UP_motif_FC[,grep("pad
                            Inter_UP_ssmotif_FC_padj = Inter_UP_ssmotif_FC[,grep("padj",colnames(Inter_UP_ssmotif_FC))]),
                       path)
 
-Inter_UP_motif50.80_FC = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_50.80)),grep("FC",colnames(Inter_UP_motif_FC))]
-Inter_UP_motif50.80_padj = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_50.80)),grep("padj",colnames(Inter_UP_motif_FC))]
+Inter_UP_motif50.80_FC = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_pos)),grep("FC",colnames(Inter_UP_motif_FC))]
+Inter_UP_motif50.80_padj = Inter_UP_motif_FC[which(is.element(Inter_UP_motif_FC$ID, MOTIF$motif_pos)),grep("padj",colnames(Inter_UP_motif_FC))]
 
 # Histograms with the position limitation
 for(i in 1:ncol(Inter_UP_motif50.80_FC)){
@@ -215,7 +267,7 @@ padj_lim = c(trunc(min(padj_lim)),ceiling(max(padj_lim)))
 
 tgrey = rgb(t(col2rgb("grey")), max = 255, alpha = 1, names = "t.Gray")
 
-# Profils copparison by PCA
+# Profils comparison by PCA
 rnai = rnai_list[[condition]]
 for (ctrl in c("ND7","ICL7")){
   rnai = rnai[-grep(ctrl, rnai)]
@@ -226,16 +278,31 @@ for (r in cond){
   expression = EXPRESSION[AUTOGAMY$inter_peak,grep(r, colnames(EXPRESSION))]
   expression = na.omit(expression)
   motif_color = MotifColor(expression)
+  deg_color = UPdownColor(expression)
+  
   PCA_plot_generator(as.matrix(t(expression)),
                      motif_color,
                      main = r,
-                     save_path = paste0(path,"PCA_profil_interP_",r,"/"),
+                     save_path = paste0(path,"PCA_profil_interP_",r,"/Motifcolor/"),
                      label = "none")
   
   PCA_plot_generator(as.matrix(t(expression)),
                      motif_color,
                      main = r,
-                     save_path = paste0(path,"PCA_profil_interP_",r,"/motif/"),
+                     save_path = paste0(path,"PCA_profil_interP_",r,"/Motifcolor/motif/"),
+                     label = "none",
+                     selection = SUPP$Inter_motif)
+  
+  PCA_plot_generator(as.matrix(t(expression)),
+                     deg_color,
+                     main = r,
+                     save_path = paste0(path,"PCA_profil_interP_",r,"/DEGcolor/"),
+                     label = "none")
+  
+  PCA_plot_generator(as.matrix(t(expression)),
+                     deg_color,
+                     main = r,
+                     save_path = paste0(path,"PCA_profil_interP_",r,"/DEGcolor/motif/"),
                      label = "none",
                      selection = SUPP$Inter_motif)
   
@@ -279,6 +346,10 @@ for (r in cond){
 }
 
 ####
+
+
+
+#### Profils of selected genes ####
 rownames(summary_tab) = summary_tab$ID
 info_data = read.table(paste0(data_path,condition ,"_infodata_collapse.tab"))
 EXPRESSION = OrderColumn(EXPRESSION, info_data)

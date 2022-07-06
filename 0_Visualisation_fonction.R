@@ -179,7 +179,7 @@ library(gtools)
 
 PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "png", 
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"), ...) {
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
   dir.create(save_path,recursive=T,showWarnings=F)
   resExp = PCA(t(data_tab), graph = F)
   
@@ -208,7 +208,7 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
     gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", 
                  label = label, col.hab = colors, 
                  title = main,
-                 ggoptions = list(size=3),
+                 ggoptions = list(size=police_seize),
                  select = selection,
                  unselect = 0.85)
     ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)

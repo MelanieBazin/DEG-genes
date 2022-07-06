@@ -42,14 +42,14 @@ for (color_type in c("methods","replicates")){
     color = Batch_color(data_tab, cluster_list = cluster)
   }else if (color_type == "replicates"){
     # Créaction du vecteur de couleur par groupe de pseudo_réplicat
-    color = Culster_color(data_tab, cluster_list = cluster)
+    color = Culster_color_info(data_tab,infodata)
   }
-  names(color) = colnames(data_tab)
   
   #### Analyse multi-variée des données pour clustering  ####
   print(paste( condition, "-----> PCA analysis :", color_type))
   PCA_plot_generator(data_tab,
                      colors = color,
+                     police_seize = 2,
                      save_path = paste0(path,"PCA_",color_type,"/"),
                      main = paste0("PCA ", condition," (DESeq2)"),
                      sortie = "png")
@@ -59,9 +59,8 @@ for (color_type in c("methods","replicates")){
   print(paste( condition, "-----> Hierarchical clustering :", color_type))
   
   matDist = as.matrix(cor(data_tab))
-  p =pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
   png(paste0(path, condition,"_Matrice_pearson.png"),  width = 600, height = 600)
-  print(p)
+  pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
   dev.off()
   
   matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
@@ -69,9 +68,8 @@ for (color_type in c("methods","replicates")){
   res = as.dendrogram(res)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
-  p= plot(res, main = "pearson_vst")
-  png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 600)
-  print(p)
+  png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 200)
+  plot(res, main = "pearson_vst")
   dev.off()
 }
 

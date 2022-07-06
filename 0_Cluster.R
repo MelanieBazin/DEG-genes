@@ -60,6 +60,29 @@ Culster_color <- function(data_tab, list = rnai_list, cluster_list = cluster, co
   return(color)
 }
 
+Culster_color_info <- function(data_tab, infodata , color_list = cluster_color){
+  
+  if(is.element(FALSE, colnames(data_tab)==rownames(infodata))){
+    infodata = infodata[colnames(data_tab),]
+  }
+  cluster = infodata$Cluster
+  color = c()
+    for (clust in cluster){
+      if (clust == "VEG"){
+        color = c(color, color_list[["veg"]])
+      } else if(clust == "EARLY" ){
+        color = c(color, color_list[["early"]])
+      } else if(clust == "INTER" ){
+        color = c(color, color_list[["inter"]])
+      } else if(clust == "LATE" ){
+        color = c(color, color_list[["late"]])
+      }
+    }
+  names(color) = rownames(infodata)
+
+  return(color)
+}
+
 method_color = list(
   HiSeq = "chartreuse4",
   NextSeq = "blue4",

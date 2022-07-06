@@ -16,8 +16,12 @@ source("0_Visualisation_fonction.R")
 source("0_Functions_AnalyeDESeq2.R")
 
 ##### Ouvir fichier des données ###
-# data_tab = read.table("./Analyse/2021-07-07_Analyse_DESeq2_tout_CombatON_FC-1.5_pval-0.05/tout/tout_expression_table_normaliserDESeq2.tab", row.names = 1, sep="\t", header = T)
-
+path_dir = "./Analyse/2022-02-21_Analyse_DESeq2_FC-1.5_pval-0.05/"
+condition = names(rnai_list)[2]
+data_tab = read.table(paste0(path_dir,condition ,"analyseDE_expression_table_vst.tab"), row.names = 1, sep="\t", header = T)
+infodata = read.table(paste0(path_dir,condition ,"analyseDE_infodata_collapse.tab"), row.names = 1, sep="\t", header = T)
+path = paste0(path_dir,condition ,"/Visualisation/")
+###################################
 
 analyseName = paste0("Analyse_DESeq2")
 

@@ -31,7 +31,8 @@
 # if (!require(devtools)) install.packages("devtools")
 # devtools::install_github("yanlinlin82/ggvenn")
 # devtools::install_github("zhangyuqing/sva-devel")
-
+# library(devtools)
+# install_github("vqv/ggbiplot")
 
 options(stringsAsFactors = FALSE)
 library(stringr) 

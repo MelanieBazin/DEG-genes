@@ -102,6 +102,22 @@ OrderColumn <- function(data_tab, infodata){
   
 }
 
+RenameCol_PCA<- function(data_tab){
+  name = colnames(data_tab)
+  name = str_replace_all(name, "Veg","V")
+  name = str_replace_all(name, "ND7_C","NC")
+  name = str_replace_all(name, "ND7_X","NX")
+  name = str_replace_all(name, "ND7_K","NK")
+  name = str_replace_all(name, "ICL7","I")
+  name = str_replace_all(name, "CTIP","C")
+  name = str_replace_all(name, "XRCC4","X")
+  name = str_replace_all(name, "KU80c","K")
+  name = str_replace_all(name, "PGM","P")
+  colnames(data_tab) = name
+  
+  return(data_tab)
+}
+
 
 ##### Création tabeau info avec les métadonnées #####
 CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
@@ -176,19 +192,24 @@ library(FactoMineR)
 library("factoextra")
 library(ggplot2)
 library(gtools)
+library(ggrepel)
+library(ggbiplot)
 
 PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
                                label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
+  
   dir.create(save_path,recursive=T,showWarnings=F)
-  resExp = PCA(t(data_tab), graph = F)
+  
+  resExp = RenameCol_PCA(data_tab)
+  resExp = PCA(t(resExp), graph = F)
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
     if (sortie == "pdf") {
       pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
-    }else if (sortie =="pdf"){
-      pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
+    }else if (sortie =="pngf"){
+      png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
     }
     
     barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
@@ -214,8 +235,68 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
     ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
+  
   return(resExp)
 }
+
+PCA_ggplot_generator <- function(data_tab, infodata,save_path, main,max_dim=3,barplot_max_dim=3,
+                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
+  
+  dir.create(save_path,recursive=T,showWarnings=F)
+  
+  data_tab2 = t(RenameCol_PCA(data_tab))
+  resExp = PCA(data_tab2, graph = F)
+  
+  if(show_barplot) {
+    eigenvalues <- resExp$eig
+    if (sortie == "pdf") {
+      pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
+    }else if (sortie =="pngf"){
+      png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
+    }
+    
+    barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
+            main = "Variances",
+            xlab = "Principal Components",
+            ylab = "Percentage of variances",
+            col ="gray")
+    if(vline!=0) {
+      abline(v=vline,lty=2,lwd=2)
+    }
+    dev.off()
+  }  
+  
+  
+  for (i in max_dim:1){
+    data_tab2 = cbind(resExp$ind$coord[, i],data_tab2 )
+    colnames(data_tab2)[1] = paste0("Dim",i)
+  }
+  
+  for (i in 1:dim(combn(1:max_dim,2))[2]){
+    gp = ggplot(data = as.data.frame(data_tab2), aes(x = get(paste0("Dim",combn(1:max_dim,2)[1,i])), y = get(paste0("Dim",combn(1:max_dim,2)[2,i])), 
+                                                     color = infodata$Cluster, 
+                                                     label = rownames(data_tab2))) + 
+      geom_point(alpha = 0.8, size = 0.5) +
+      scale_color_manual(values = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )) +
+      theme_classic() +
+      geom_hline(yintercept = 0, lty = 1) +
+      geom_vline(xintercept = 0, lty = 1) +
+      geom_text_repel(size=police_seize) +
+      theme(legend.position="none") +
+      labs(title = main,
+           x = paste0("Dim",combn(1:max_dim,2)[1,i]),
+           y = paste0("Dim",combn(1:max_dim,2)[2,i]))
+    
+    gp
+    
+    ggsave(paste0(save_path ,image_prefix,i,".",sortie), device = sortie, plot = gp)
+    
+  }
+  
+  return(resExp)
+}
+
 
 
 ###### Création graphique ####

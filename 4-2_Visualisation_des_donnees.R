@@ -53,7 +53,12 @@ for (color_type in c("methods","replicates")){
                      save_path = paste0(path,"PCA_",color_type,"/"),
                      main = paste0("PCA ", condition," (DESeq2)"),
                      sortie = "pdf")
-  
+  PCA_ggplot_generator(data_tab,
+                     infodata,
+                     police_seize = 2,
+                     save_path = paste0(path,"PCA_",color_type,"/ggplot/"),
+                     main = paste0("PCA ", condition," (DESeq2)"),
+                     sortie = "pdf")
   
   #### Matrice de distance et clusterng hiérarchique  ####
   print(paste( condition, "-----> Hierarchical clustering :", color_type))

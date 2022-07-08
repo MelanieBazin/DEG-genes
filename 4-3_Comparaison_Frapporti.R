@@ -1,5 +1,6 @@
 options(stringsAsFactors = FALSE)
 library(ggvenn)
+library("VennDiagram")
 
 save_path = paste0(path,"Compared_Frapporti/")
 dir.create(save_path,recursive=T,showWarnings=F)
@@ -39,6 +40,20 @@ for (deg in c("UP", "DOWN")){
     pdf(paste0(save_path,"Venn_",timing,"_sig",deg,".pdf"))
     print(p)
     dev.off()
+    
+    pdf(paste0(save_path,"VennProp_",timing,"_sig",deg,".pdf"))
+    grid.newpage() 
+    draw.pairwise.venn(area1 = length(sign_MyData$ID),
+                       area2 = length(sign_Frapporti$ID),
+                       cross.area = length(intersect(sign_MyData$ID, sign_Frapporti$ID)),
+                       category = c("My_data", "Frapporti"),
+                       col = c("dodgerblue", "gold1"),
+                       fill = c("dodgerblue", "gold1"),
+                       alpha = rep(0.5, 2),
+                       scaled = TRUE)
+    dev.off()
+    
+    
     
     CrossData = merge(sign_MyData, sign_Frapporti, by = "ID")
     

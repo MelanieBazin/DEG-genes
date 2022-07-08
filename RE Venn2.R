@@ -2,6 +2,7 @@ options(stringsAsFactors = FALSE)
 library(ggvenn)
 library(ggplot2) 
 library(RColorBrewer)
+library("VennDiagram")
 
 path = "./Analyse/2022-02-21_Analyse_DESeq2_FC-1.5_pval-0.05/analyseDE/NewGraphs_UP_CTIP_inter/"
 # path = "./NewGraphs/"
@@ -57,19 +58,17 @@ MOTIF_pos_moins = setdiff(MOTIF_pos_moins, MOTIF_pos_both)
 LIST = list(RNAi_KU80c = KU,
             RNAi_PGM = PGM,
             RNAi_XRCC4 = XRCC4)
-png(paste0(path,"Venn_UP.png"))
+pdf(paste0(path,"Venn_UP.pdf"))
 ggvenn(LIST,
        fill_color = c("deeppink1","dodgerblue3","ivory2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
 dev.off()
 
-
-
 #Venn with UP& CTIP
 LIST = list(UP = UP,
             RNAi_CTIP = CTIP,
             Intermediate = INTER)
-png(paste0(path,"Venn_UP_CTIP_inter.png"))
+pdf(paste0(path,"Venn_UP_CTIP_inter.pdf"))
 ggvenn(LIST,
        fill_color = c("plum4", "chartreuse3", "red1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -78,7 +77,7 @@ dev.off()
 #Venn with UP& CTIP
 LIST = list(UP = UP,
             RNAi_CTIP = CTIP)
-png(paste0(path,"Venn_UP_CTIP.png"))
+pdf(paste0(path,"Venn_UP_CTIP.pdf"))
 ggvenn(LIST,
        fill_color = c("plum4", "chartreuse3"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -88,7 +87,7 @@ dev.off()
 LIST = list(UP_CTIP = UP_CTIP,
             Intermediate = INTER,
             Motif = MOTIF)
-png(paste0(path,"Venn_Motif_inter_up_ctip.png"))
+pdf(paste0(path,"Venn_Motif_inter_up_ctip.pdf"))
 ggvenn(LIST,
        fill_color = c("chartreuse4", "red1","darkgoldenrod2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -96,7 +95,7 @@ dev.off()
 
 LIST = list(UP_CTIP_inter = UP_CTIP_inter,
             Motif = MOTIF)
-png(paste0(path,"Venn2_Motif_inter_up_ctip_CTIP.png"))
+pdf(paste0(path,"Venn2_Motif_inter_up_ctip_CTIP.pdf"))
 ggvenn(LIST,
        fill_color = c("indianred","darkgoldenrod2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -107,7 +106,7 @@ dev.off()
 LIST = list(UP_CTIP = UP_CTIP,
             Inter = INTER,
             Motif = MOTIF_pos)
-png(paste0(path,"Venn_Motif_pos_inter_up_ctip_CTIP.png"))
+pdf(paste0(path,"Venn_Motif_pos_inter_up_ctip_CTIP.pdf"))
 ggvenn(LIST,
        fill_color = c("chartreuse4", "red1","darkgoldenrod2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -115,7 +114,7 @@ dev.off()
 
 LIST = list(UP_CTIP_inter = UP_CTIP_inter,
             Motif = MOTIF_pos)
-png(paste0(path,"Venn2_Motif_pos_inter_up_ctip_CTIP.png"))
+pdf(paste0(path,"Venn2_Motif_pos_inter_up_ctip_CTIP.pdf"))
 ggvenn(LIST,
        fill_color = c("indianred","darkgoldenrod2"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -128,7 +127,7 @@ write.table(summary[which(is.element(summary$ID,A)),],paste0(path,"Venn_Motif_po
 LIST = list(Motif = MOTIF,
             Intermediate = INTER,
             UP = UP)
-png(paste0(path,"Venn_Motif_inter_UP.png"))
+pdf(paste0(path,"Venn_Motif_inter_UP.pdf"))
 ggvenn(LIST,
        fill_color = c("darkgoldenrod2", "red1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
@@ -138,11 +137,89 @@ dev.off()
 LIST = list(Motif = MOTIF_pos,
             Inter = INTER,
             UP = UP)
-png(paste0(path,"Venn_Motif_pos_inter_up.png"))
+pdf(paste0(path,"Venn_Motif_pos_inter_up.pdf"))
 ggvenn(LIST,
        fill_color = c("darkgoldenrod2", "red1","plum4"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 10)
 dev.off()
+
+
+#### Venn porportionels ####
+# UP in PGM, KU80c, XRCC4
+pdf(paste0(path,"VennProp_UP.pdf"))
+grid.newpage() 
+overrideTriple=T
+draw.triple.venn(area1 = length(KU),
+                 area2 = length(PGM),
+                 area3 = length(XRCC4),
+                 n12 = length(intersect(KU, PGM)),
+                 n23 = length(intersect(PGM, XRCC4)),
+                 n13 = length(intersect(KU, XRCC4)),
+                 n123 = length(intersect(intersect(KU, PGM),XRCC4)),
+                 category = c("KU80c RNAi", "PGM RNAi", "XRCC4 RNAi"),
+                 col = c("deeppink1","dodgerblue3","ivory2"),
+                 fill = c("deeppink1","dodgerblue3","ivory2"),
+                 alpha = rep(0.5, 3),
+                 scaled = TRUE)
+dev.off()
+
+# UP in PGM, KU80c, XRCC4 & DOWN CTIP
+pdf(paste0(path,"VennProp_UP_CTIP.pdf"))
+grid.newpage() 
+draw.pairwise.venn(area1 = length(UP),
+                   area2 = length(CTIP),
+                   cross.area = length(intersect(UP, CTIP)),
+                   category = c("UP", "CTIP"),
+                   col = c("plum4", "chartreuse3"),
+                   fill = c("plum4", "chartreuse3"),
+                   alpha = rep(0.5, 2),
+                   scaled = TRUE)
+dev.off()
+
+# UP in PGM, KU80c, XRCC4 & DOWN CTIP + Motif + Intermediate peak
+pdf(paste0(path,"VennProp_Motif_inter_up_ctip.pdf"))
+grid.newpage() 
+overrideTriple=T
+draw.triple.venn(area1 = length(UP_CTIP),
+                 area2 = length(INTER),
+                 area3 = length(MOTIF),
+                 n12 = length(intersect(UP_CTIP, INTER)),
+                 n23 = length(intersect(INTER, MOTIF)),
+                 n13 = length(intersect(UP_CTIP, MOTIF)),
+                 n123 = length(intersect(intersect(UP_CTIP, INTER),MOTIF)),
+                 category = c("UP_CTIP", "IntermediatePeak", "Motif"),
+                 col = c("chartreuse4", "red1","darkgoldenrod2"),
+                 fill = c("chartreuse4", "red1","darkgoldenrod2"),
+                 alpha = rep(0.5, 3),
+                 scaled = TRUE)
+dev.off()
+
+pdf(paste0(path,"VennProp2_Motif_inter_up_ctip_CTIP.pdf"))
+grid.newpage() 
+draw.pairwise.venn(area1 = length(UP_CTIP_inter),
+                   area2 = length(MOTIF),
+                   cross.area = length(intersect(UP_CTIP_inter, MOTIF)),
+                   category = c("UP_CTIP_inter", "Motif"),
+                   col = c("indianred","darkgoldenrod2"),
+                   fill = c("indianred","darkgoldenrod2"),
+                   alpha = rep(0.5, 2),
+                   scaled = TRUE)
+dev.off()
+
+
+pdf(paste0(path,"VennProp_FrapportiTRASH.pdf"))
+grid.newpage() 
+draw.pairwise.venn(area1 = (1358+1579),
+                   area2 = (1358+147),
+                   cross.area = 1358,
+                   category = c("My_data", "Frapporti"),
+                   col = c("dodgerblue", "gold1"),
+                   fill = c("dodgerblue", "gold1"),
+                   alpha = rep(0.5, 2),
+                   scaled = TRUE)
+dev.off()
+
+
 
 #### Barplot Motif position proportion ####
 tab = c(length(MOTIF_pos), length(MOTIF_notPos), length(MOTIF))
@@ -155,7 +232,7 @@ write.table(tab, paste0(path,"Motif_pos.tab"), sep = "\t")
 tab2 = tab[,1:2]/tab[,"sum"]*100
 write.table(tab2, paste0(path,"Motif_pos_prct.tab"), sep = "\t")
 
-png(paste0(path,"BarPlot_Motif_position.png"))
+pdf(paste0(path,"BarPlot_Motif_position.pdf"))
 barplot(t(tab2),
         col = c("goldenrod3","moccasin"))
 dev.off()
@@ -185,7 +262,7 @@ write.table(tab, paste0(path,"Motif_orientation_UP_CTIP_inter.tab"), sep = "\t")
 tab2 = tab[,1:3]/tab[,"sum"]*100
 write.table(tab2, paste0(path,"Motif_orientation_UP_CTIP_inter_prct.tab"), sep = "\t")
 
-png(paste0(path,"BarPlot_Motif_orientation_UP_CTIP_inter.png"),width = 240, height = 480)
+pdf(paste0(path,"BarPlot_Motif_orientation_UP_CTIP_inter.pdf"),width = 240, height = 480)
 barplot(t(tab2),
         col = c("goldenrod2","olivedrab","cyan4"))
 dev.off()
@@ -215,7 +292,7 @@ write.table(tab, paste0(path,"Motif_orientation_INTER.tab"), sep = "\t")
 tab2 = tab[,1:3]/tab[,"sum"]*100
 write.table(tab2, paste0(path,"Motif_orientation_INTER_prct.tab"), sep = "\t")
 
-png(paste0(path,"BarPlot_Motif_orientation_INTER.png"),width = 240, height = 480)
+pdf(paste0(path,"BarPlot_Motif_orientation_INTER.pdf"),width = 240, height = 480)
 barplot(t(tab2),
         col = c("goldenrod2","olivedrab","cyan4"))
 dev.off()

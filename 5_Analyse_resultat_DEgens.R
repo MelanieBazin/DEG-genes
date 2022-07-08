@@ -71,7 +71,7 @@ LIST = list(
   TurboPGM = TurboPGM$PROTEIN_NAME,
   TurboPGML4 = TurboPGML4$PROTEIN_NAME
 )
-png(paste0(path,"Venn_Turbo.png"))
+pdf(paste0(path,"Venn_Turbo.pdf"))
 ggvenn(LIST,
        stroke_size = 0.5,
        set_name_size = 6,
@@ -85,7 +85,7 @@ turbo = intersect(turboPGM, turboPGML4)
 
 ###### Croisement des UP PGM KU80c XRCC4 ####
 LIST = UP_PKX
-png(paste0(path,"Venn_UP_PKX.png"))
+pdf(paste0(path,"Venn_UP_PKX.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -97,7 +97,7 @@ dev.off()
 
 # Avec intermediate peak
 LIST = c(UP_PKX, Intermediate_peak = list(AUTOGAMY$inter_peak))
-png(paste0(path,"Venn_UP_PKX_INTER.png"))
+pdf(paste0(path,"Venn_UP_PKX_INTER.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -112,7 +112,7 @@ LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
             Intermediate_peak = AUTOGAMY$inter_peak)
-png(paste0(path,"Venn_PKX_INTER_TURBO.png"))
+pdf(paste0(path,"Venn_PKX_INTER_TURBO.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -124,7 +124,7 @@ dev.off()
 
 # Avec early peak
 LIST = c(UP_PKX, Early_peak = list(AUTOGAMY$early_peak))
-png(paste0(path,"Venn_UP_PKX_EARLY.png"))
+pdf(paste0(path,"Venn_UP_PKX_EARLY.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -139,7 +139,7 @@ LIST = list(UP_PKX = up_pkx,
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4,
             Early_peak = AUTOGAMY$early_peak)
-png(paste0(path,"Venn_PKX_EARLY_TURBO.png"))
+pdf(paste0(path,"Venn_PKX_EARLY_TURBO.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -154,7 +154,7 @@ dev.off()
 LIST = list(DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM = turboPGM,
             TurboPGML4 = turboPGML4)
-png(paste0(path,"Venn_CTIP_TURBO.png"))
+pdf(paste0(path,"Venn_CTIP_TURBO.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -166,7 +166,7 @@ dev.off()
 
 # Avec les UP dérégulés en PGM, KU80c, XRCC4
 LIST = c(UP_PKX, DOWN_CTIP = list(stdCTIP[["DOWN_CTIP"]]))
-png(paste0(path,"Venn_CTIP_PKX.png"))
+pdf(paste0(path,"Venn_CTIP_PKX.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -180,7 +180,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             Intermediate_peak = AUTOGAMY$inter_peak)
-png(paste0(path,"Venn_CTIP_PKX_INTER.png"))
+pdf(paste0(path,"Venn_CTIP_PKX_INTER.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -195,7 +195,7 @@ LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
             Intermediate_peak = AUTOGAMY$inter_peak)
-png(paste0(path,"Venn_CTIP_PKX_INTER_TURBO.png"))
+pdf(paste0(path,"Venn_CTIP_PKX_INTER_TURBO.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -208,7 +208,7 @@ dev.off()
 # Avev les CTIP seuls
 LIST = list(Early = downCTIP$CTIP_early,
             Intermediate = downCTIP$CTIP_inter)
-png(paste0(path,"Venn_CTIP.png"))
+pdf(paste0(path,"Venn_CTIP.pdf"))
 ggvenn(LIST,
        stroke_size = 0.5,
        set_name_size = 6,
@@ -220,7 +220,7 @@ dev.off()
 LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             Early_peak = AUTOGAMY$early_peak)
-png(paste0(path,"Venn_CTIP_PKX_EARLY.png"))
+pdf(paste0(path,"Venn_CTIP_PKX_EARLY.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,
@@ -235,7 +235,7 @@ LIST = list(UP_PKX = up_pkx,
             DOWN_CTIP = stdCTIP[["DOWN_CTIP"]],
             TurboPGM_PGML4 = turbo,
             Early_peak = AUTOGAMY$early_peak)
-png(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.png"))
+pdf(paste0(path,"Venn_CTIP_PKX_EARLY_TURBO.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set2"),
        stroke_size = 0.5,

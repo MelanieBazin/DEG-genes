@@ -69,7 +69,7 @@ for (corr in c("Corrected", "Uncorrected")){
                      colors = color,
                      save_path = paste0(path,"Visualisation/PCA_method/"),
                      main = paste0("PCA ", condition," (vst)"),
-                     sortie = "png")
+                     sortie = "pdf")
   
   color = Culster_color(vsd)
   
@@ -77,7 +77,7 @@ for (corr in c("Corrected", "Uncorrected")){
                      colors = color,
                      save_path = paste0(path,"Visualisation/PCA_replicate/"),
                      main = paste0("PCA ", condition," (vst)"),
-                     sortie = "png")
+                     sortie = "pdf")
   
   
   matDist = as.dist(1-cor(log2(vsd+1), method="pearson"))
@@ -85,12 +85,12 @@ for (corr in c("Corrected", "Uncorrected")){
   res = as.dendrogram(res)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
-  png(paste0(path,"/Visualisation/Cluster/", condition,"_Cluster_pearson_vst.png"),  width = 800, height = 600)
+  pdf(paste0(path,"/Visualisation/Cluster/", condition,"_Cluster_pearson_vst.pdf"),  width = 800, height = 600)
   plot(res, main = "pearson_vst")
   dev.off()
   
   res = kmeans(matDist, 4)
-  png(paste0(path,"/Visualisation/Cluster/", condition,"_Kmean_pearson_vst.png"),  width = 800, height = 600)
+  pdf(paste0(path,"/Visualisation/Cluster/", condition,"_Kmean_pearson_vst.pdf"),  width = 800, height = 600)
   fviz_cluster(res, data = matDist, geom = c("point",  "text"), labelsize = 10, repel = T, 
                show.clust.cent = F, ellipse = T, ggtheme = theme_bw(),
                main = "pearson_vst_kmean", 

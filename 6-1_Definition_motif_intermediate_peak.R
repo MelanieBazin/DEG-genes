@@ -86,20 +86,20 @@ write_meme(MergeMotif, paste0(path, "0-MeanMotif.meme"))
 motifs = c(motifs, MergeMotif)
 
 # Création de logo pour les motifs
-png(paste0(path,"All_Motifs_logo.png"),width = 800, height = 1000, bg = "transparent")
+pdf(paste0(path,"All_Motifs_logo.pdf"),width = 800, height = 1000, bg = "transparent")
 view_motifs(motifs)
 dev.off()
 
 for (m in motifs){
   v=view_motifs(m, show.positions = F)
-  png(paste0(path,m["name"], "_logo.png"),width = 1000, height = 400, bg = "transparent")
+  pdf(paste0(path,m["name"], "_logo.pdf"),width = 1000, height = 400, bg = "transparent")
   print(v)
   dev.off()
   
   #Image du reverse complement
   logo_mean_rev = motif_rc(m)
   v = view_motifs(logo_mean_rev, show.positions = F)
-  png(paste0(path,m["name"], "_logo-rev.png"),width = 1000, height = 400, bg = "transparent")
+  pdf(paste0(path,m["name"], "_logo-rev.pdf"),width = 1000, height = 400, bg = "transparent")
   print(v)
   dev.off()
 }

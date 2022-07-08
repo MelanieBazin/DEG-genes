@@ -19,7 +19,7 @@ PositionHistogram(MOTIFxnotUP_PKXxAUTOG, path, "MOTIF_notUP_auto")
 pos_inter = prom_motif$START[which(is.element(prom_motif$ID,SUPP$Inter_motif))]
 pos_not_inter = prom_motif$START[which(is.element(prom_motif$ID,SUPP$not_Inter_motif))]
 
-png(paste0(path, "Histogramme_STARTposition_intervs_notinter.png"),width = 1000, height = 800)
+pdf(paste0(path, "Histogramme_STARTposition_intervs_notinter.pdf"),width = 1000, height = 800)
 par(mfrow=c(2,1))
 hist(pos_not_inter,breaks = 75, xlim = c(-150,0))
 hist(pos_inter,breaks = 75, xlim = c(-150,0))
@@ -36,7 +36,7 @@ sink(paste0(path,"/chi2_pos_UPvsNOTUP.txt"))
 chisq.test(mat)
 sink()
 
-png(paste0(path, "Histogramme_STARTposition_not_inter_rand.png"),width = 1700, height = 900)
+pdf(paste0(path, "Histogramme_STARTposition_not_inter_rand.pdf"),width = 1700, height = 900)
 par(mfrow=c(4,5))
 
 rand_pos = list()
@@ -63,7 +63,7 @@ for (i in 1:20){
 }
 dev.off()
 
-png(paste0(path, "Histogramme_STARTposition_not_inter_rand_last.png"))
+pdf(paste0(path, "Histogramme_STARTposition_not_inter_rand_last.pdf"))
 par(mfrow=c(1,1))
 hist(pos,breaks = 75, xlim = c(-150,0), axes = F,
      main = paste("pvalue :", round(chi2$p.value, 4)))

@@ -36,7 +36,7 @@ for (deg in c("UP", "DOWN")){
                text_size = 6,
                set_name_color = c("dodgerblue", "gold1"))
     
-    png(paste0(save_path,"Venn_",timing,"_sig",deg,".png"))
+    pdf(paste0(save_path,"Venn_",timing,"_sig",deg,".pdf"))
     print(p)
     dev.off()
     

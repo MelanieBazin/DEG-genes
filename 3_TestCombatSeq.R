@@ -94,7 +94,7 @@ for (correction in c("corrected","uncorrected")){
                        colors = color,
                        save_path = paste0(path,"PCA_",color_type,"/"),
                        main = paste0("PCA ", condition," (DESeq2)"),
-                       sortie = "png")
+                       sortie = "pdf")
     
     
     #### Matrice de distance et clusterng hiérarchique  ####
@@ -103,7 +103,7 @@ for (correction in c("corrected","uncorrected")){
     matDist = as.matrix(cor(data_tab))
     p= pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
     
-    png(paste0(path, condition,"_Matrice_pearson.png"),  width = 600, height = 600)
+    pdf(paste0(path, condition,"_Matrice_pearson.pdf"),  width = 600, height = 600)
     print(p)
     dev.off()
     
@@ -112,7 +112,7 @@ for (correction in c("corrected","uncorrected")){
     res = as.dendrogram(res)
     labels_colors(res)= as.character(color)[order.dendrogram(res)]
     
-    png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 600)
+    pdf(paste0(path, condition,"_HCL_",color_type,".pdf"),  width = 800, height = 600)
     plot(res, main = "pearson_vst")
     dev.off()
   }
@@ -140,7 +140,7 @@ if (condition == names(rnai_list["HiSeqvsNextSeq"])){
   p= pheatmap(matDist, main = paste("Pheatmap Pearson DESeq2",  condition), cluster_rows = F, cluster_cols = F)
   matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
   
-  png(paste0(path_dir,condition,"/" , condition,"_Matrix.png"),  width = 600, height = 600)
+  pdf(paste0(path_dir,condition,"/" , condition,"_Matrix.pdf"),  width = 600, height = 600)
   print(p)
   dev.off()
   

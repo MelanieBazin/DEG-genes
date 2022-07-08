@@ -27,7 +27,7 @@ dir.create(path ,recursive=T,showWarnings=F)
 LIST = list(Autogamy = AUTOGAMY$autogamy,
             Motif =  MOTIF_uniq$Motif,
             Motifpos =  MOTIF_uniq$motif_pos)
-png(paste0(path,"Venn_Motif_autogamy.png"))
+pdf(paste0(path,"Venn_Motif_autogamy.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -39,7 +39,7 @@ LIST = list(IntermediatePeak = AUTOGAMY$inter_peak,
             Motif =  MOTIF_uniq$Motif,
             Motifpos =  MOTIF_uniq$motif_pos)
 
-png(paste0(path,"Venn_Motif_inter.png"))
+pdf(paste0(path,"Venn_Motif_inter.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -49,13 +49,13 @@ dev.off()
 
 # Croiser Motif avec UP PGM, KU70c ou XRCC4
 LIST = c(UP_PKX[-4],   Motif = list(MOTIF_uniq[[1]]))
-png(paste0(path,"Venn_Motif_UP.png"))
+pdf(paste0(path,"Venn_Motif_UP.pdf"))
 ggvenn(LIST,
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7)
 dev.off()
 
 LIST = c(UP_PKX[-4],   Motif_pos = list(MOTIF_uniq[["motif_pos"]]))
-png(paste0(path,"Venn_Motif",a,b,"_UP.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP.pdf"))
 ggvenn(LIST,
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7)
 dev.off()
@@ -63,7 +63,7 @@ dev.off()
 LIST = list(IntermediatePeak = AUTOGAMY$inter_peak,
             Motif =  MOTIF_uniq$Motif,
             UP_PKX = UP_PKX$UP_ALL)
-png(paste0(path,"Venn_Motif_UP_inter.png"))
+pdf(paste0(path,"Venn_Motif_UP_inter.pdf"))
 ggvenn(LIST,
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7)
 dev.off()
@@ -71,7 +71,7 @@ dev.off()
 LIST = list(EarlyPeak = AUTOGAMY$early_peak,
             Motif =  MOTIF_uniq$Motif,
             UP_PKX = UP_PKX$UP_ALL)
-png(paste0(path,"Venn_Motif_UP_early.png"))
+pdf(paste0(path,"Venn_Motif_UP_early.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -82,7 +82,7 @@ dev.off()
 LIST = list(IntermediatePeak = AUTOGAMY$inter_peak,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_PKX = UP_PKX$UP_ALL)
-png(paste0(path,"Venn_Motif",a,b,"_UP_inter.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP_inter.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -92,7 +92,7 @@ dev.off()
 LIST = list(EarlyPeak = AUTOGAMY$early_peak,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_PKX = UP_PKX$UP_ALL)
-png(paste0(path,"Venn_Motif",a,b,"_UP_early.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP_early.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -104,7 +104,7 @@ dev.off()
 LIST = list(DOWN_CTIP = stdCTIP$DOWN_CTIP,
             Motif =  MOTIF_uniq$Motif,
             UP_PKX = UP_PKX$UP_ALL)
-png(paste0(path,"Venn_Motif_UP-CTIP.png"))
+pdf(paste0(path,"Venn_Motif_UP-CTIP.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -115,7 +115,7 @@ LIST = list(IntermediatePeak = AUTOGAMY$inter_peak,
             Motif =  MOTIF_uniq$Motif,
             UP_PKX = UP_PKX$UP_ALL,
             DOWN_CTIP = stdCTIP$DOWN_CTIP)
-png(paste0(path,"Venn_Motif_UP-CTIP_inter.png"))
+pdf(paste0(path,"Venn_Motif_UP-CTIP_inter.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -126,7 +126,7 @@ LIST = list(EarlyPeak = AUTOGAMY$early_peak,
             Motif =  MOTIF_uniq$Motif,
             UP_PKX = UP_PKX$UP_ALL,
             DOWN_CTIP = stdCTIP$DOWN_CTIP)
-png(paste0(path,"Venn_Motif_UP-CTIP_early.png"))
+pdf(paste0(path,"Venn_Motif_UP-CTIP_early.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -137,7 +137,7 @@ LIST = list(EarlyPeak = AUTOGAMY$early_peak,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_PKX = UP_PKX$UP_ALL,
             DOWN_CTIP = stdCTIP$DOWN_CTIP)
-png(paste0(path,"Venn_Motif",a,b,"_UP-CTIP_early.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP-CTIP_early.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -148,7 +148,7 @@ LIST = list(IntermediatePeak = AUTOGAMY$inter_peak,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_PKX = UP_PKX$UP_ALL,
             DOWN_CTIP = stdCTIP$DOWN_CTIP)
-png(paste0(path,"Venn_Motif",a,b,"_CTIP_inter.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_CTIP_inter.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -159,7 +159,7 @@ LIST = list(Turbo = TURBO$turbo_OU,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_PKX = UP_PKX$UP_ALL,
             DOWN_CTIP = stdCTIP$DOWN_CTIP)
-png(paste0(path,"Venn_Motif",a,b,"_UP-CTIP_Turbo.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP-CTIP_Turbo.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,
@@ -170,7 +170,7 @@ LIST = list(InterPeak = AUTOGAMY$inter_peak,
             Motifpos =  MOTIF_uniq$motif_pos,
             UP_DOWN = stdCTIP$DOWN_UP,
             Turbo = TURBO$turbo_OU)
-png(paste0(path,"Venn_Motif",a,b,"_UP-DOWN_Turbo_inter.png"))
+pdf(paste0(path,"Venn_Motif",a,b,"_UP-DOWN_Turbo_inter.pdf"))
 ggvenn(LIST,
        fill_color = brewer.pal(n = length(LIST), name = "Set1"),
        stroke_size = 0.5, set_name_size = 6, show_percentage = F, text_size = 7,

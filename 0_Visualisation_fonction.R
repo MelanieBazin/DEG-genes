@@ -178,15 +178,15 @@ library(ggplot2)
 library(gtools)
 
 PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
-                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "png", 
+                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
                                label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
   dir.create(save_path,recursive=T,showWarnings=F)
   resExp = PCA(t(data_tab), graph = F)
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
-    if (sortie == "png") {
-      png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
+    if (sortie == "pdf") {
+      pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
     }else if (sortie =="pdf"){
       pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
     }
@@ -253,7 +253,7 @@ library(magick)
 library("RColorBrewer")
 library(circlize)
 library(gplots)
-MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "red", Log = T, sortie = "png", raster = F){
+MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "red", Log = T, sortie = "pdf", raster = F){
   dir.create(path,recursive=T,showWarnings=F)
   
   if (moyenne == T){
@@ -339,8 +339,8 @@ MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "
   )
   
   
-  if (sortie == "png"){
-    png(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".png"),width = 800, height = 800)
+  if (sortie == "pdf"){
+    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".pdf"),width = 800, height = 800)
     draw(h)
     dev.off()
     
@@ -393,7 +393,7 @@ MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
   data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
   data_log_mat = as.matrix(data_log_mat)
   
-  png("Test.png")
+  pdf("Test.pdf")
   heatmap.2(data_log_mat,
             Rowv=F, Colv=F,
             rowsep = r_split,
@@ -558,14 +558,14 @@ Mean_expression <- function( condition, file, select_ID = NULL, rnai = NULL){
 
 BoxnBarpolt_repartion <- function(LIST, path){
   for(i in 1:ncol(LIST[[1]])){
-    png(paste0(path, colnames(LIST[[1]][i]),".png"))
+    pdf(paste0(path, colnames(LIST[[1]][i]),".pdf"))
     boxplot(c(LIST[[1]][i],LIST[[2]][i]), 
             names = c("Avec_Motif","Sans_motif"),
             main =  colnames(LIST[[1]][i]),
             outline = F)
     dev.off()
     
-    png(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.png"))
+    pdf(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.pdf"))
     hist(LIST[[1]][[i]],
          main =  paste0(colnames(LIST[[1]][i]),"_avecMotif"),
          breaks = 50,
@@ -574,7 +574,7 @@ BoxnBarpolt_repartion <- function(LIST, path){
     abline(v = median(LIST[[1]][[i]]), col = "red", lty = "dashed")
     dev.off()
     
-    png(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.png"))
+    pdf(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.pdf"))
     hist(LIST[[2]][[i]],
          main =  paste0(colnames(LIST[[2]][i]),"_sansMotif"),
          breaks = 50,
@@ -606,7 +606,7 @@ Profile_Barplot <- function(filtre_list, nom, path){
   
   
   ### Histogramme empilés
-  png(paste0(path,"Profils_barplot_",nom,".png"),width = 550, height = 500)
+  pdf(paste0(path,"Profils_barplot_",nom,".pdf"),width = 550, height = 500)
   barplot(as.matrix(profil),
           col = colors,
           main = "Profil repartition",
@@ -624,7 +624,7 @@ Profile_Barplot <- function(filtre_list, nom, path){
     profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
   }
   
-  png(paste0(path,"Profils_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  pdf(paste0(path,"Profils_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
   barplot(as.matrix(profil_prct),
           col = colors,
           main = "Profil repartition",
@@ -651,7 +651,7 @@ Profile_EnrichmentBarplot <- function (filtre_list, path, names){
     }
     
     
-    png(paste0(path,"Enrichment_barplot_",names,".png"),width = 800, height = 500)
+    pdf(paste0(path,"Enrichment_barplot_",names,".pdf"),width = 800, height = 500)
     barplot(t(as.matrix(tab_prct)),
             beside = T,
             main = paste("Profil repartition of",up ),
@@ -683,7 +683,7 @@ IES_Barplot <- function(filtre_list, path, nom){
   
   
   ### Histogramme empilés
-  png(paste0(path,"Profils_barplot",nom,".png"),width = 550, height = 500)
+  pdf(paste0(path,"Profils_barplot",nom,".pdf"),width = 550, height = 500)
   barplot(as.matrix(profil),
           col = colors,
           main = "Profil repartition",
@@ -701,7 +701,7 @@ IES_Barplot <- function(filtre_list, path, nom){
     profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
   }
   
-  png(paste0(path,"Profils_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  pdf(paste0(path,"Profils_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
   barplot(as.matrix(profil_prct),
           col = colors,
           main = "Profil repartition",
@@ -727,7 +727,7 @@ IES_EnrichmentBarplot <- function (filtre_list, path){
     }
     
     
-    png(paste0(path,"Profils_barplot_",up,".png"),width = 400, height = 500)
+    pdf(paste0(path,"Profils_barplot_",up,".pdf"),width = 400, height = 500)
     barplot(t(as.matrix(tab_prct)),
             beside = T,
             main = "Profil repartition of UP deregulated genes",
@@ -752,7 +752,7 @@ PositionHistogram <- function (filtre_list, path, name){
     if (length(filtre) != 0){
       position = prom_motif$START[is.element(prom_motif$ID, filtre)]
       pos_list = c(pos_list, list(position) ) 
-      png(paste0(path, "Histogramme_STARTposition_", n,".png"))
+      pdf(paste0(path, "Histogramme_STARTposition_", n,".pdf"))
       hist(position, breaks = 75, xlim = c(-150,0), axes = F,
            xlab = paste("Distance from", debut),
            ylab = "Nb of motif",
@@ -762,7 +762,7 @@ PositionHistogram <- function (filtre_list, path, name){
       dev.off()
     }
   }
-  png(paste0(path, "Boxplot_STARTposition_", name,".png"))
+  pdf(paste0(path, "Boxplot_STARTposition_", name,".pdf"))
   names(pos_list) = names(filtre_list)
   boxplot(pos_list)
   dev.off()
@@ -785,7 +785,7 @@ PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
   tab_stand = tab_stand[row_order,]
   
   ### Histogramme empilés
-  png(paste0(path,"Pil_barplot_",nom,".png"),width = 550, height = 500)
+  pdf(paste0(path,"Pil_barplot_",nom,".pdf"),width = 550, height = 500)
   barplot(as.matrix(tab_stand),
           col = colors)
   legend("topright",
@@ -800,7 +800,7 @@ PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
     profil_prct[,n] = profil_prct[,n]/sum(tab_stand[,n])*100
   }
   
-  png(paste0(path,"Pil_barplot_",nom,"_prct.png"),width = 550, height = 500)
+  pdf(paste0(path,"Pil_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
   barplot(as.matrix(profil_prct),
           col = colors,
           main = "Profil repartition",
@@ -826,7 +826,7 @@ EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
     }
     
     
-    png(paste0(path,"Enrichment_barplot_",names,"_",up,".png"),width = 800, height = 500)
+    pdf(paste0(path,"Enrichment_barplot_",names,"_",up,".pdf"),width = 800, height = 500)
     barplot(t(as.matrix(tab_prct)),
             beside = T,
             main = paste("Profil repartition of", up ),

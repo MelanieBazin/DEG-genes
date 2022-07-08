@@ -9,7 +9,7 @@
 
 ##### Boxplot des comptages normalisés divisé par la taille des gènes #####
 print(paste( condition, "-----> Creation BoxPlot normalise"))
-png(paste0(path, "Comptage_bolxplot_DESeq.png"))
+pdf(paste0(path, "Comptage_bolxplot_DESeq.pdf"))
 CountBoxplot(data_tab, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
 dev.off()
 
@@ -22,7 +22,7 @@ if (is.element(paste0( condition,"_DESeq2-seize.tab"),list.files(paste0("./DATA/
   write.table(data_tab_seize,paste0("./DATA/DESeq2-seize/", condition,"_DESeq2-seize.tab"), sep="\t",row.names=F,quote=F)
 }
 
-png(paste0(path, "Comptage_bolxplot_row_DESeq-seize.png"))
+pdf(paste0(path, "Comptage_bolxplot_row_DESeq-seize.pdf"))
 CountBoxplot(data_tab_seize, "DESeq2_seize", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21))) 
 dev.off()
 
@@ -52,14 +52,14 @@ for (color_type in c("methods","replicates")){
                      police_seize = 2,
                      save_path = paste0(path,"PCA_",color_type,"/"),
                      main = paste0("PCA ", condition," (DESeq2)"),
-                     sortie = "png")
+                     sortie = "pdf")
   
   
   #### Matrice de distance et clusterng hiérarchique  ####
   print(paste( condition, "-----> Hierarchical clustering :", color_type))
   
   matDist = as.matrix(cor(data_tab))
-  png(paste0(path, condition,"_Matrice_pearson.png"),  width = 600, height = 600)
+  pdf(paste0(path, condition,"_Matrice_pearson.pdf"),  width = 600, height = 600)
   pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
   dev.off()
   
@@ -68,7 +68,7 @@ for (color_type in c("methods","replicates")){
   res = as.dendrogram(res)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
-  png(paste0(path, condition,"_HCL_",color_type,".png"),  width = 800, height = 200)
+  pdf(paste0(path, condition,"_HCL_",color_type,".pdf"),  width = 800, height = 200)
   plot(res, main = "pearson_vst")
   dev.off()
 }

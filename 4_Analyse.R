@@ -60,7 +60,7 @@ for (condition in names(rnai_list)){
   # Boxplot des comptages avant normalisation #
   print(paste(condition , "-----> Creation BoxPlot non-normalise"))
   # pdf(paste0(path,condition ,"_row.pdf"))
-  png(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_uncorrected.png"))
+  pdf(paste0(path_dir,condition ,"/Visualisation/Comptage_bolxplot_uncorrected.pdf"))
   CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
@@ -92,7 +92,7 @@ for (condition in names(rnai_list)){
   
   # Graphique du paramètre de dispersion
   # pdf(paste0(path,condition ,"_disperssion_DESeq2.pdf"))
-  png(paste0(path_dir,condition ,"/Visualisation/Disperssion_DESeq2.png"))
+  pdf(paste0(path_dir,condition ,"/Visualisation/Disperssion_DESeq2.pdf"))
   plotDispEsts(deseq, ylim = c(1e-6, 1e1))
   dev.off()
   

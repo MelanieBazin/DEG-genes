@@ -14,6 +14,8 @@ source("0_Cluster.R")
 source("0_Visualisation_fonction.R")
 
 
+analyseName = "2022-02-21_Test_Combatseq"
+
 analyseName = paste0("Test_Combatseq")
 
 analyseName = paste0(Sys.Date(),"_", analyseName)
@@ -31,36 +33,40 @@ for (correction in c("corrected","uncorrected")){
   dir.create(path,recursive=T,showWarnings=F)
 
   #### Analyse DESeq2 ####
-  # Ouerture du tableau de donnée
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)
+  # # Ouerture du tableau de donnée
+  # countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)
+  # 
+  # # Création du tableau avec les info des colonnes
+  # infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
+  # 
+  # if (condition == names(rnai_list["HiSeqvsNextSeq"])){
+  #   # Se limiter au données présentes dans les 2 séquancages
+  #   time = unique(infodata$Timing[which(infodata$Seq_method == "NextSeq")])
+  #   countdata = countdata[,is.element(infodata$Timing, time)]
+  #   infodata = infodata[is.element(infodata$Timing, time),]
+  # }
+  # 
+  # 
+  # # Creataion de l'objet DESeq2
+  # countdata = as.matrix(countdata)
+  # deseq = DESeqDataSetFromMatrix(countData = countdata,
+  #                                colData  = infodata,
+  #                                design   = ~ Samples)
+  # 
+  # 
+  # # Analyse DESeq2
+  # print(paste(condition , "-----> DESeq2 analysis"))
+  # deseq = DESeq(deseq)
+  # 
+  # # Récupération des données de comptage normalisées
+  # data_tab = assay(vst(deseq, blind = T))
+  # 
+  # write.table(data_tab,paste0(path,condition,"_expression_table_",correction,".tab"), sep="\t",row.names=T,quote=F)
+  # write.table(infodata,paste0(path,condition,"_infodata_",correction,".tab"), sep="\t",row.names=T,quote=F)
   
-  # Création du tableau avec les info des colonnes
-  infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
-  
-  if (condition == names(rnai_list["HiSeqvsNextSeq"])){
-    # Se limiter au données présentes dans les 2 séquancages
-    time = unique(infodata$Timing[which(infodata$Seq_method == "NextSeq")])
-    countdata = countdata[,is.element(infodata$Timing, time)]
-    infodata = infodata[is.element(infodata$Timing, time),]
-  }
-  
-  
-  # Creataion de l'objet DESeq2
-  countdata = as.matrix(countdata)
-  deseq = DESeqDataSetFromMatrix(countData = countdata,
-                                 colData  = infodata,
-                                 design   = ~ Samples)
-  
-  
-  # Analyse DESeq2
-  print(paste(condition , "-----> DESeq2 analysis"))
-  deseq = DESeq(deseq)
-  
-  # Récupération des données de comptage normalisées
-  data_tab = assay(vst(deseq, blind = T))
-  
-  write.table(data_tab,paste0(path,condition,"_expression_table_",correction,".tab"), sep="\t",row.names=T,quote=F)
-  write.table(infodata,paste0(path,condition,"_infodata_",correction,".tab"), sep="\t",row.names=T,quote=F)
+  #### Ouverture des fichier ####
+  data_tab = read.table(paste0(path,condition,"_expression_table_",correction,".tab"), sep="\t", header = T)
+  infodata = read.table(paste0(path,condition,"_infodata_",correction,".tab"), sep="\t", header = T)
   
   #### Créer les vecteurs de couleurs  ####
   # Créaction du vecteur de couleur 
@@ -92,29 +98,40 @@ for (correction in c("corrected","uncorrected")){
     print(paste( condition, "-----> PCA analysis :", color_type))
     PCA_plot_generator(data_tab,
                        colors = color,
+                       police_seize = 5,
                        save_path = paste0(path,"PCA_",color_type,"/"),
                        main = paste0("PCA ", condition," (DESeq2)"),
-                       sortie = "pdf")
+                       sortie = "pdf",
+                       rename = F)
+    
+    PCA_ggplot_generator(data_tab,
+                         infodata,
+                         police_seize = 5,
+                         point_seize = 3,
+                         save_path = paste0(path,"PCA_",color_type,"/ggplot/"),
+                         main = paste0("PCA ", condition," (DESeq2)"),
+                         sortie = "pdf",
+                         rename = F)
     
     
     #### Matrice de distance et clusterng hiérarchique  ####
-    print(paste( condition, "-----> Hierarchical clustering :", color_type))
-    
-    matDist = as.matrix(cor(data_tab))
-    p= pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
-    
-    pdf(paste0(path, condition,"_Matrice_pearson.pdf"),  width = 600, height = 600)
-    print(p)
-    dev.off()
-    
-    matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
-    res = hclust(matDist)
-    res = as.dendrogram(res)
-    labels_colors(res)= as.character(color)[order.dendrogram(res)]
-    
-    pdf(paste0(path, condition,"_HCL_",color_type,".pdf"),  width = 800, height = 600)
-    plot(res, main = "pearson_vst")
-    dev.off()
+    # print(paste( condition, "-----> Hierarchical clustering :", color_type))
+    # 
+    # matDist = as.matrix(cor(data_tab))
+    # p= pheatmap(matDist, main = paste("Pheatmap Pearson",  condition), cluster_rows = F, cluster_cols = F)
+    # 
+    # pdf(paste0(path, condition,"_Matrice_pearson.pdf"),  width = 600, height = 600)
+    # print(p)
+    # dev.off()
+    # 
+    # matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
+    # res = hclust(matDist)
+    # res = as.dendrogram(res)
+    # labels_colors(res)= as.character(color)[order.dendrogram(res)]
+    # 
+    # pdf(paste0(path, condition,"_HCL_",color_type,".pdf"),  width = 800, height = 600)
+    # plot(res, main = "pearson_vst")
+    # dev.off()
   }
   
   

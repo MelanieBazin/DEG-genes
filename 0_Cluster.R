@@ -124,6 +124,15 @@ Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color
   return(seq_color)
 }
 
+profile_color = c("Early peak" = "purple3",
+                  "Intermediate peak" = "red2",
+                  "Late peak" = "chartreuse4",
+                  "Early repression" = "dodgerblue3",
+                  "Late induction" = "deeppink",
+                  "Late repression" = "darkorange",
+                  "none" = "snow3")
+
+
 #### Definition de l'ordre des colonnes #####
 tabs = list.files("./DATA/EXPRESSION")
 timing_list = as.list(tabs)

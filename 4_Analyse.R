@@ -26,8 +26,8 @@ path = paste0(path_dir,condition ,"/Visualisation/")
 analyseName = paste0("Analyse_DESeq2")
 
 #### Definiton des variables DESeq2 ####
-FC = 1.5 #Mini 1.5 -> XRCC4 = 2
-pvalue = 0.05 #Maxi 0.05 -> XRCC4 = 0.01
+FC = 1.5 #Mini 1.5
+pvalue = 0.05 #Maxi 0.05
 
 analyseName = paste0(Sys.Date(),"_", analyseName, "_FC-", FC, "_pval-", pvalue)
 
@@ -150,7 +150,12 @@ for (condition in names(rnai_list)){
     
     # comparaison avec les donnée publiées pour EZL1
     print("Comparaison avec les données publiée dans Frapporti et al. 2019")
+    FC = 2
+    pvalue = 0.05
     source("4-3_Comparaison_Frapporti.R")
+  }else{
+    FC = 1.5
+    pvalue = 0.05
   }
 }
 

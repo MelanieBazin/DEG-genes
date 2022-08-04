@@ -113,6 +113,17 @@ RenameCol_PCA<- function(data_tab){
   name = str_replace_all(name, "XRCC4","X")
   name = str_replace_all(name, "KU80c","K")
   name = str_replace_all(name, "PGM","P")
+  name = str_replace_all(name, "EZL1","E")
+  colnames(data_tab) = name
+  
+  return(data_tab)
+}
+
+RenameCol_PCA2<- function(data_tab){
+  name = colnames(data_tab)
+  name = str_replace_all(name, "Veg","V")
+  name = str_remove_all(name, "ND7_")
+  name =str_split_fixed(name,"_",n=2)[,2]
   colnames(data_tab) = name
   
   return(data_tab)
@@ -197,12 +208,14 @@ library(ggbiplot)
 
 PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, rename = F, ...) {
   
   dir.create(save_path,recursive=T,showWarnings=F)
+  if(rename == T){
+    data_tab = RenameCol_PCA(data_tab)
+  }
   
-  resExp = RenameCol_PCA(data_tab)
-  resExp = PCA(t(resExp), graph = F)
+  resExp = PCA(t(data_tab), graph = F)
   
   if(show_barplot) {
     eigenvalues <- resExp$eig
@@ -239,20 +252,35 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
   return(resExp)
 }
 
-PCA_ggplot_generator <- function(data_tab, infodata,save_path, main,max_dim=3,barplot_max_dim=3,
+PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main,  max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, ...) {
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, rename = F, ...) {
   
+  save_path = paste0(save_path,"PCA_",color_type,"/ggplot/")
   dir.create(save_path,recursive=T,showWarnings=F)
   
-  data_tab2 = t(RenameCol_PCA(data_tab))
+  # identifier les différents RNAi
+  Kinetics = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
+  Kinetics = str_split_fixed(Kinetics,"_V", n= 2)[,1]
+  
+  # Renomer colonne pour raccourcir nom
+  shortname = colnames(data_tab)
+  if(rename == T){
+    shortname = str_replace_all(shortname, "Veg","V")
+    shortname = str_remove_all(shortname, "ND7_")
+    shortname =str_split_fixed(shortname,"_",n=2)[,2]
+  }
+  
+  # analyse PCA
+  data_tab2 = t(data_tab)
   resExp = PCA(data_tab2, graph = F)
   
+  # Bar plot des variance
   if(show_barplot) {
     eigenvalues <- resExp$eig
     if (sortie == "pdf") {
       pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
-    }else if (sortie =="pngf"){
+    }else if (sortie =="png"){
       png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
     }
     
@@ -267,30 +295,45 @@ PCA_ggplot_generator <- function(data_tab, infodata,save_path, main,max_dim=3,ba
     dev.off()
   }  
   
-  
+  # Defintion des dimentionà représentées
   for (i in max_dim:1){
     data_tab2 = cbind(resExp$ind$coord[, i],data_tab2 )
     colnames(data_tab2)[1] = paste0("Dim",i)
   }
   
+  # Definition des couleurs pour l'ACP
+  if (color_type == "replicates"){
+    color_info = infodata$Cluster
+    color_palette = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )
+  } else if (color_type == "methods"){
+    color_info = infodata$Seq_method
+    color_palette = c("HiSeq" = "chartreuse4", "NextSeq" = "blue4" )
+  }
+    
+  # Plot de l'ACP
   for (i in 1:dim(combn(1:max_dim,2))[2]){
     gp = ggplot(data = as.data.frame(data_tab2), aes(x = get(paste0("Dim",combn(1:max_dim,2)[1,i])), y = get(paste0("Dim",combn(1:max_dim,2)[2,i])), 
-                                                     color = infodata$Cluster, 
-                                                     label = rownames(data_tab2))) + 
-      geom_point(alpha = 0.8, size = 0.5) +
-      scale_color_manual(values = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )) +
-      theme_classic() +
+                                                     color = color_info, 
+                                                     label = shortname,
+                                                     shape = Kinetics)) + 
+      geom_point(alpha = 0.8, size = point_seize) +
+      scale_shape_manual(values = c(15:18,3,4,0:2,5,6)[1:length(unique(Kinetics))]) +
+      scale_color_manual(values = color_palette) +
+      theme_classic(base_size = 9, base_line_size = 0.1) +
       geom_hline(yintercept = 0, lty = 1) +
       geom_vline(xintercept = 0, lty = 1) +
       geom_text_repel(size=police_seize) +
-      theme(legend.position="none") +
+      guides(color = FALSE) +
       labs(title = main,
            x = paste0("Dim",combn(1:max_dim,2)[1,i]),
            y = paste0("Dim",combn(1:max_dim,2)[2,i]))
     
+    if (rename != T){
+      gp = gp+theme(legend.position="none")
+    }
     gp
     
-    ggsave(paste0(save_path ,image_prefix,i,".",sortie), device = sortie, plot = gp)
+    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
     
   }
   

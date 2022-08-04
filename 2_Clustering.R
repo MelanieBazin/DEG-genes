@@ -79,6 +79,12 @@ for (corr in c("Corrected", "Uncorrected")){
                      main = paste0("PCA ", condition," (vst)"),
                      sortie = "pdf")
   
+  PCA_ggplot_generator(vsd,
+                     infodata = infodata_collapse,
+                     save_path = paste0(path,"Visualisation/PCA_method/"),
+                     main = paste0("PCA ", condition," (vst)"),
+                     sortie = "pdf")
+  
   
   matDist = as.dist(1-cor(log2(vsd+1), method="pearson"))
   res = hclust(matDist)

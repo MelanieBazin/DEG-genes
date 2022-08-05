@@ -112,7 +112,7 @@ profils = unique(annotation$EXPRESSION_PROFIL)
 
 
 
-pdf(paste0(path,condition , "_Boxplot_ExpressionVST", ".pdf"), width = 20, height = 5)
+pdf(paste0(path,condition , "_Boxplot_ExpressionVST", ".pdf"), width = 20, height = 4)
 par(mfrow = c(1,length(rnai)))
 for (p in profils){
   

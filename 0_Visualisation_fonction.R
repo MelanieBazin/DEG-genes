@@ -245,7 +245,8 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
                  ggoptions = list(size=police_seize),
                  select = selection,
                  unselect = 0.85)
-    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
+    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp,
+           width = 10, height = 7, dpi = 300)
     
   }
   

@@ -17,9 +17,11 @@ condition =  names(rnai_list)[2]
 p_valueFIMO = "1E-4"
 additional_folder = "/UP_CTIP_inter"
 
-# Localiser les donner
+# Localiser les données
 file_name = list.files("./Analyse/")[grep(paste0(date,"_Analyse_DESeq2"),list.files("./Analyse/"))]
 save_path = paste0("./Analyse/",file_name, "/", condition, "/Motif/From_",debut, "_IN_MAC",IES,additional_folder,"/FIMO_",p_valueFIMO, "/")
+
+# prom_motif = read.table(paste0(save_path, "/p-value_1.4e-05/Motifs_1.4e-05.tab"), sep = "\t", header = T)
 
 # Ouvrir les filtres sur les dérégulation
 RNAi = rnai_list[[condition]]
@@ -63,7 +65,7 @@ prom_inter = unique(prom_motif2$ID[which(is.element(prom_motif2$ID, query))])
 enrichment = length(prom_inter)/length(query)*100
 
 # Venn Diagram
-source("8-0_Venn_digram.R")
+source("7-0_Venn_digram.R")
 
 
 # Restrain the data to the significant ones
@@ -74,10 +76,10 @@ write.table(prom_motif, paste(save_path, "Motifs_",p_value,".tab"), sep = "\t", 
 
 #### Création de filtre supplémentaire pour les motifs ####
 print("Addition of new filter")
-source("8-1_New_filter.R")
+source("7-1_New_filter.R")
 
 #### Position motif ####
-source("8-2_Analyse_motif_position.R")
+source("7-2_Analyse_motif_position.R")
 
 # position enrichment
 a = -70
@@ -89,6 +91,6 @@ write.table(prom_motif_pos, paste0(save_path, "Motifs_",p_value,"_",a,"_",b,".ta
 MOTIF = c(MOTIF, list(motif_pos = prom_motif$ID[prom_motif$START > a & prom_motif$START < b ]))
 MOTIF_uniq = c(MOTIF_uniq, list(motif_pos = unique(prom_motif$ID[prom_motif$START > a & prom_motif$START < b ])))
 
-source("8-3_Motif_among_gene_cathegories.R")
-source("8-4_Motif_strand.R")
-source("8-5_Summary_table.R")
+source("7-3_Motif_among_gene_cathegories.R")
+source("7-4_Motif_strand.R")
+source("7-5_Summary_table.R")

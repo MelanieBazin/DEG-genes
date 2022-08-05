@@ -20,6 +20,12 @@ SUPP = list(
   Inter_UP_ssmotif = setdiff(intersect(AUTOGAMY$inter_peak,UP_PKX$UP_ALL), MOTIF_uniq$Motif)
 )
 
+SUPP2 = list(
+  Candidats = intersect(stdCTIP$DOWN_UP,MOTIF_uniq$Motif),
+  NotCandidats = setdiff(MOTIF_uniq$Motif, stdCTIP$DOWN_UP),
+  NotCandidats_inter = intersect(AUTOGAMY$inter_peak,setdiff(MOTIF_uniq$Motif, stdCTIP$DOWN_UP))
+)
+
 # Croiser les filtres
 MOTIFxAUTOG = Crossinglist(MOTIF_uniq["Motif"], AUTOGAMY)
 

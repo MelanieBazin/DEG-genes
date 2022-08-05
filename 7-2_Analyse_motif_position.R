@@ -15,6 +15,37 @@ PositionHistogram(MOTIFxnotUP_PKX, path, "MOTIF_notUP")
 PositionHistogram(MOTIFxnotCTIP, path, "MOTIF_notCTIP")
 PositionHistogram(MOTIFxnotUP_PKXxAUTOG, path, "MOTIF_notUP_auto")
 
+
+## Plot densitée position
+density_tab = NULL
+for (n in names(SUPP2)){
+  filtre = SUPP2[[n]]
+  position = prom_motif$START[is.element(prom_motif$ID, filtre)]
+  
+  h = hist(position, breaks = 150, plot = F)
+  h_tab = as.data.frame(cbind(h$mids, h$density*100))
+  h_tab = cbind(h_tab, rep(n, nrow(h_tab)))
+
+  density_tab = rbind(density_tab, h_tab)
+  
+  
+}
+colnames(density_tab) = c("mids","density", "group")
+
+col_plot = c("chartreuse3","black","red")
+names(col_plot) = names(SUPP2)
+
+gp = ggplot(data = density_tab, aes(x = mids , y = density, color = group))+
+  theme_classic() +
+  scale_color_manual("Gene groups", values = col_plot) +
+  labs(x = paste("Distance from", debut), y = "Motif density") +
+  geom_smooth(span = 0.5,
+              se = FALSE) +
+  scale_x_continuous(limits = c(-150, 0), breaks = seq(-150, 0, 10))
+gp
+ggsave(paste0(save_path,"/p-value_1.4e-05/Density_position.pdf"), device = "pdf", plot = gp,
+       width = 7, height = 4, dpi = 300)
+
 # Faire une séléaction de gènes et voir les localisation
 pos_inter = prom_motif$START[which(is.element(prom_motif$ID,SUPP$Inter_motif))]
 pos_not_inter = prom_motif$START[which(is.element(prom_motif$ID,SUPP$not_Inter_motif))]

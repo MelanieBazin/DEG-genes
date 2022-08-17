@@ -36,8 +36,6 @@ colnames(prom_motif) = c("MOTIF_ID", "MOTIF_alt_ID", "ID","START","END","STRAND"
 prom_motif$START = prom_motif$START-150
 prom_motif$END= prom_motif$END-150
 
-
-
 # Saving of the annotated file
 prom_motif2 = merge(prom_motif, annotation[,c("ID","NAME", "SYNONYMS")], by = "ID")
 write.table(prom_motif2,paste0(save_path,"/fimoTSV_merge.tab"), sep = "\t", row.names = F)
@@ -64,6 +62,7 @@ prom_motif2 = prom_motif[prom_motif$p.value <= p_value,]
 prom_inter = unique(prom_motif2$ID[which(is.element(prom_motif2$ID, query))])
 enrichment = length(prom_inter)/length(query)*100
 
+
 # Venn Diagram
 source("7-0_Venn_digram.R")
 
@@ -77,6 +76,23 @@ write.table(prom_motif, paste(save_path, "Motifs_",p_value,".tab"), sep = "\t", 
 #### Création de filtre supplémentaire pour les motifs ####
 print("Addition of new filter")
 source("7-1_New_filter.R")
+
+# Barplot enrichissement
+tab = c(length(SUPP2$NotCandidats), length(setdiff(AUTOGAMY$all_genes, stdCTIP$DOWN_UP)))
+tab = rbind(tab,c(length(SUPP2$Candidats), length(stdCTIP$DOWN_UP)))
+tab = rbind(tab,c(length(SUPP2$NotCandidats_inter), length(setdiff(AUTOGAMY$inter_peak, stdCTIP$DOWN_UP))))
+colnames(tab) = c("Motif", "Total")
+rownames(tab) = c("NotCandidats", "Candidats" ,"NotCandidats_inter")
+tab[,1] =  tab[,1]/tab[,"Total"]*100
+
+pdf(paste0(save_path,"Motif_enrichment.pdf"), width = 2.5, height = 6)
+barplot(tab[,1],
+        ylim = c(0,100),
+        ylab = "% of gene with motif",
+        col = "darkgoldenrod2",
+        las =  2)
+dev.off()
+
 
 #### Position motif ####
 source("7-2_Analyse_motif_position.R")

@@ -116,7 +116,7 @@ for (condition in names(rnai_list)){
     dir.create(res_dir, recursive=T,showWarnings=F)
     
     # For each time course
-    source("4-2_Analyse_DESeq2.R") # Extracting the results from DESeq2 analysis
+    source("4-2_DESeq2_results.R") # Extracting the results from DESeq2 analysis
     
   }
   

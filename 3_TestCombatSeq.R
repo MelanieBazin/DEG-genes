@@ -16,7 +16,6 @@ source("0_Visualisation_fonction.R")
 
 analyseName = "2022-02-21_Test_Combatseq"
 
-analyseName = paste0("Test_Combatseq")
 
 analyseName = paste0(Sys.Date(),"_", analyseName)
 path_dir = paste0("./Analyse/",analyseName,"/")
@@ -31,7 +30,7 @@ for (correction in c("corrected","uncorrected")){
   
   path = paste0(path_dir,condition ,"/",correction,"/")
   dir.create(path,recursive=T,showWarnings=F)
-
+  
   #### Analyse DESeq2 ####
   # # Ouerture du tableau de donnée
   # countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)
@@ -106,12 +105,15 @@ for (correction in c("corrected","uncorrected")){
     
     PCA_ggplot_generator(data_tab,
                          infodata,
-                         police_seize = 5,
+                         police_seize = 4,
                          point_seize = 3,
-                         save_path = paste0(path,"PCA_",color_type,"/ggplot/"),
+                         save_path = path,
                          main = paste0("PCA ", condition," (DESeq2)"),
                          sortie = "pdf",
-                         rename = F)
+                         rename = F,
+                         color_type = color_type,
+                         w = 4,
+                         h = 4)
     
     
     #### Matrice de distance et clusterng hiérarchique  ####

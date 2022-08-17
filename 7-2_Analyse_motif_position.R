@@ -43,7 +43,7 @@ gp = ggplot(data = density_tab, aes(x = mids , y = density, color = group))+
               se = FALSE) +
   scale_x_continuous(limits = c(-150, 0), breaks = seq(-150, 0, 10))
 gp
-ggsave(paste0(save_path,"/p-value_1.4e-05/Density_position.pdf"), device = "pdf", plot = gp,
+ggsave(paste0(save_path,"/Density_position.pdf"), device = "pdf", plot = gp,
        width = 7, height = 4, dpi = 300)
 
 # Faire une séléaction de gènes et voir les localisation
@@ -104,7 +104,7 @@ dev.off()
 
 ## Calcul enrichissement
 # fractionner les positions
-fraction = 1
+fraction = 5
 
 pos_fraction = c()
 for(l in 1:nrow(prom_motif)){

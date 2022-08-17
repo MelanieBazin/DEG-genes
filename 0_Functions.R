@@ -1,9 +1,12 @@
+###################
+#### Homemade function used in the analysis
+###################
 options(stringsAsFactors = FALSE)
 library("stringr")
 library(dendextend)
 
-###### Modification de tableau ####
-
+###### Table modification ####
+# Merge count table in one table to be analysed by DESeq2
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   path = paste0("./DATA/", type, "/")
@@ -131,6 +134,7 @@ RenameCol_PCA2<- function(data_tab){
 
 
 ##### Création tabeau info avec les métadonnées #####
+# Creation of the table with the information about the sample in the column of a count table
 CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
@@ -162,7 +166,7 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
     }
     
     
-    if (r == "ND7_K" | r == "PGM"| r == "KU80C" | r == "ICL7" | r == "EZL1"){
+    if (r == "ND7_K" | r == "PGM"| r == "KU80c" | r == "ICL7" | r == "EZL1"){
       batch = c(batch,rep("HiSeq", length(cluster[[r]])))
     }else{
       batch = c(batch,rep("NextSeq",length(cluster[[r]])))
@@ -197,72 +201,25 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
   return(infodata)
 }
 
-##### Analyse multi-variée #####
-# ACP_plot_generator fait par Olivier
+##### Graphical representataion #####
+# PCA analysis using ggplot representation
 library(FactoMineR)
 library("factoextra")
 library(ggplot2)
 library(gtools)
 library(ggrepel)
 library(ggbiplot)
-
-PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplot_max_dim=3,
-                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, rename = F, ...) {
-  
-  dir.create(save_path,recursive=T,showWarnings=F)
-  if(rename == T){
-    data_tab = RenameCol_PCA(data_tab)
-  }
-  
-  resExp = PCA(t(data_tab), graph = F)
-  
-  if(show_barplot) {
-    eigenvalues <- resExp$eig
-    if (sortie == "pdf") {
-      pdf(paste0(save_path,image_prefix,"_PCA_Variance.pdf"))
-    }else if (sortie =="pngf"){
-      png(paste0(save_path,image_prefix,"_PCA_Variance.png"))
-    }
-    
-    barplot(eigenvalues[1:barplot_max_dim, 2], names.arg=1:barplot_max_dim, 
-            main = "Variances",
-            xlab = "Principal Components",
-            ylab = "Percentage of variances",
-            col ="gray")
-    if(vline!=0) {
-      abline(v=vline,lty=2,lwd=2)
-    }
-    dev.off()
-  }  
-
-  
-  for (i in 1:dim(combn(1:max_dim,2))[2]) {
-    
-    gp<-plot.PCA(resExp, axes = combn(1:max_dim,2)[,i], habillage = "ind", 
-                 label = label, col.hab = colors, 
-                 title = main,
-                 ggoptions = list(size=police_seize),
-                 select = selection,
-                 unselect = 0.85)
-    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp,
-           width = 10, height = 7, dpi = 300)
-    
-  }
-  
-  return(resExp)
-}
-
 PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main,  max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", h = 5, w = 5,
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, rename = F, ...) {
+                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, 
+                               rename = F, collapse = F, ...) {
   
-  save_path = paste0(save_path,"PCA_",color_type,"/ggplot/")
+  save_path = paste0(save_path,"/",color_type,"/ggPCA/")
   dir.create(save_path,recursive=T,showWarnings=F)
   
   # identifier les différents RNAi
-  Kinetics = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
-  Kinetics = str_split_fixed(Kinetics,"_V", n= 2)[,1]
+  TimeCourses = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
+  TimeCourses = str_split_fixed(TimeCourses,"_V", n= 2)[,1]
   
   # Renomer colonne pour raccourcir nom
   shortname = colnames(data_tab)
@@ -308,8 +265,12 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     color_info = infodata$AutogStage
     color_palette = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )
   } else if (color_type == "methods"){
+    if (collapse == T){
+      for (t in c("T0", "T10"))
+      infodata$Seq_method[grep(",", infodata$runsCollapsed)] = "Both"
+    }
     color_info = infodata$Seq_method
-    color_palette = c("HiSeq" = "chartreuse4", "NextSeq" = "blue4" )
+    color_palette = c("HiSeq" = "chartreuse4", "NextSeq" = "blue4", "Both" = "mediumturquoise" )
   }
     
   # Plot de l'ACP
@@ -317,9 +278,9 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     gp = ggplot(data = as.data.frame(data_tab2), aes(x = get(paste0("Dim",combn(1:max_dim,2)[1,i])), y = get(paste0("Dim",combn(1:max_dim,2)[2,i])), 
                                                      color = color_info, 
                                                      label = shortname,
-                                                     shape = Kinetics)) + 
+                                                     shape = TimeCourses)) + 
       geom_point(alpha = 0.8, size = point_seize) +
-      scale_shape_manual(values = c(15:18,3,4,0:2,5,6)[1:length(unique(Kinetics))]) +
+      scale_shape_manual(values = c(15:18,3,4,0:2,5,6)[1:length(unique(TimeCourses))]) +
       scale_color_manual(values = color_palette) +
       theme_classic(base_size = 9, base_line_size = 0.25) +
       geom_hline(yintercept = 0, lty = 2, size = 0.25) +
@@ -344,7 +305,7 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
 
 
 
-###### Création graphique ####
+
 
 # Crée des boxplot sur toues les gènes par catégories
 CountBoxplot <- function (tab, type, color = "lightgray"){
@@ -968,3 +929,113 @@ EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
     dev.off()
   }
 }
+
+#### Stat function ####
+
+Khi2_intermed <- function(genes_list, profil_list){
+  nb_genes = length(genes_list[which(is.element(genes_list, profil_list))])
+  other = length(nb_genes) - nb_genes
+  # Définition des probabilitée théoriques
+  proba = length(profil_list)/length(AUTOGAMY$all_genes) 
+  proba = c(proba, 1-proba)
+  chi2 = chisq.test(c(nb_genes, other), p  = proba)
+  
+  pv=chi2$p.value
+  signif="ns"
+  if(pv < 1e-200) {
+    signif="****"
+  } else {
+    if(pv < 1e-100) {
+      signif="***"
+    } else {   
+      
+      if(pv < 1e-20) {
+        signif="**"
+      } else {
+        if(pv < 1e-10) {
+          signif="*"
+        }
+      }
+    }
+  }
+  
+  return(paste(format(pv,digits=3), signif))
+}
+
+
+Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
+  
+  data_tab = as.data.frame(data_tab)
+  colnames(data_tab) = c("ID", "PROFIL")
+  
+  print("Table of all data")
+  print(table(data_tab$PROFIL))
+  
+  Profils = unique(data_tab$PROFIL)
+  all = length(data_tab$ID)
+  for (l in names(LIST)){
+    ## Calcul des p-value
+    pval = c()
+    nb_genes = length(LIST[[l]][which(is.element(LIST[[l]], data_tab$ID))])
+    for (p in Profils){
+      nb_profil = sum(data_tab$PROFIL == p)
+      nb_genes_profil = length(LIST[l][which(is.element(LIST[[l]], data_tab$ID[data_tab$PROFIL == p]))])
+      
+      pval = c(pval, 1- phyper(nb_genes_profil-1, nb_profil, all - nb_profil, nb_genes))
+    }
+    names(pval) = Profils
+    
+    ##  Correction des p-value
+    nb_simulation = 1000
+    
+    # Création de données séléction aléatoirement
+    
+    if (length(data_tab$ID)>=length(LIST[[l]])){
+      theoric_ID = matrix(NA, nrow = length(LIST[[l]]), ncol = nb_simulation)
+      for (c in 1:ncol(theoric_ID)){
+        theoric_ID[,c] = sample(data_tab$ID, length(LIST[[l]]))
+      }
+    }else{
+      theoric_ID = matrix(NA, nrow = length(data_tab$ID)*2/3, ncol = nb_simulation)
+      for (c in 1:ncol(theoric_ID)){
+        theoric_ID[,c] = sample(data_tab$ID, length(data_tab$ID)*2/3)
+      }
+    }
+    theoric_pval = matrix(NA, nrow = length(Profils), ncol = nb_simulation)
+    row.names(theoric_pval) = Profils
+    
+    for (s in 1:nb_simulation){
+      genes = theoric_ID[,s]
+      pvals = c()
+      for (p in Profils){
+        nb_profil = sum(data_tab$PROFIL == p)
+        nb_genes = length(genes)
+        nb_genes_profil = length(genes[which(is.element(genes, data_tab$ID[data_tab$PROFIL == p]))])
+        pvals = c(pvals, 1- phyper(nb_genes_profil-1, nb_profil, all - nb_profil, nb_genes))
+      }
+      theoric_pval[,s] = pvals
+    }
+    
+    # Ajuster les pvalue
+    pval_adj = c()
+    for (p in Profils){
+      th_pvals = theoric_pval[p,]
+      pval_adj = c(pval_adj, sum(th_pvals< pval[p])/length(th_pvals))
+    }
+    
+    names(pval_adj) = Profils
+    pval_adj = format(pval_adj, scientific = T, digit = 3)
+    
+    print(l)
+    freq = as.data.frame(table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))]))
+    tab = cbind(as.data.frame(pval_adj),as.numeric(pval_adj) < 0.05)
+    tab = merge(freq, tab, by.x = "Var1", by.y = 0)
+    
+    rownames(tab) = tab$Var1
+    tab = tab[,-1]
+    colnames(tab) = c("nb_Motif", "pval_adj", "pval_adj < 0.05")
+    print(tab)
+    
+  }
+}
+

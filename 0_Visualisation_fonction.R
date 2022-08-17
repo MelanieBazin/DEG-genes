@@ -88,7 +88,7 @@ OrderColumn <- function(data_tab, infodata){
     cluster_position = rnai_position[order(as.numeric(Timing))]
     
     
-    if(infodata$Feeding[rnai_position[1]] == "ctrl"){
+    if(infodata$KnockDown[rnai_position[1]] == "ctrl"){
       colum_order_ctrl = c(colum_order_ctrl, cluster_position)
     }else{
       colum_order_rnai = c(colum_order_rnai, cluster_position)
@@ -105,7 +105,7 @@ OrderColumn <- function(data_tab, infodata){
 RenameCol_PCA<- function(data_tab){
   name = colnames(data_tab)
   name = str_replace_all(name, "Veg","V")
-  name = str_replace_all(name, "ND7_C","NC")
+  name = str_replace_all(name, "ND7_L","NL")
   name = str_replace_all(name, "ND7_X","NX")
   name = str_replace_all(name, "ND7_K","NK")
   name = str_replace_all(name, "ICL7","I")
@@ -134,7 +134,7 @@ RenameCol_PCA2<- function(data_tab){
 CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
   row.names(infodata) = colnames(countdata)
-  colnames(infodata) = c("Names","Samples", "Feeding", "Timing", "Cluster", "Condition","Seq_method","Labo")
+  colnames(infodata) = c("Names","Samples", "KnockDown", "Timing", "AutogStage", "Condition","Seq_method","Labo")
   
   infodata[,"Names"] = colnames(countdata)
   
@@ -144,20 +144,20 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
   timing = c()
   clust = c()
   batch = c()
-  feeding = c()
+  KnockDown = c()
   condition = c()
   labo = c()
   for(r in rnai){
     clust = c(clust, cluster[[r]])
     
     if (length(grep("CTRL",r))>0 | length(grep("ND7",r))>0 | length(grep("ICL7",r))>0 ){
-      feeding =c(feeding, rep("ctrl", length(cluster[[r]])))
+      KnockDown =c(KnockDown, rep("ctrl", length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],"ctrl",sep = "_"))
     }else if (length(grep("EZL1",r))>0){
-      feeding =c(feeding, rep("EZL1", length(cluster[[r]])))
+      KnockDown =c(KnockDown, rep("EZL1", length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],"EZL1",sep = "_"))
     }else{
-      feeding =c(feeding, rep(r, length(cluster[[r]])))
+      KnockDown =c(KnockDown, rep(r, length(cluster[[r]])))
       condition = c(condition, paste(cluster[[r]],r,sep = "_" ))
     }
     
@@ -184,9 +184,9 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
   }
   
   
-  infodata[,"Feeding"] = feeding
+  infodata[,"KnockDown"] = KnockDown
   infodata[,"Timing"] = str_remove_all(timing, "T")
-  infodata[,"Cluster"] = clust
+  infodata[,"AutogStage"] = clust
   infodata[,"Seq_method"] = batch
   infodata[,"Condition"]= condition
   infodata[,"Labo"]= labo
@@ -254,7 +254,7 @@ PCA_plot_generator <- function(data_tab, colors,save_path, main,max_dim=3,barplo
 }
 
 PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main,  max_dim=3,barplot_max_dim=3,
-                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", 
+                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", h = 5, w = 5,
                                label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, rename = F, ...) {
   
   save_path = paste0(save_path,"PCA_",color_type,"/ggplot/")
@@ -271,6 +271,7 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     shortname = str_remove_all(shortname, "ND7_")
     shortname =str_split_fixed(shortname,"_",n=2)[,2]
   }
+  shortname = str_remove_all(shortname, "bis")
   
   # analyse PCA
   data_tab2 = t(data_tab)
@@ -304,7 +305,7 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   
   # Definition des couleurs pour l'ACP
   if (color_type == "replicates"){
-    color_info = infodata$Cluster
+    color_info = infodata$AutogStage
     color_palette = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )
   } else if (color_type == "methods"){
     color_info = infodata$Seq_method
@@ -320,9 +321,9 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
       geom_point(alpha = 0.8, size = point_seize) +
       scale_shape_manual(values = c(15:18,3,4,0:2,5,6)[1:length(unique(Kinetics))]) +
       scale_color_manual(values = color_palette) +
-      theme_classic(base_size = 9, base_line_size = 0.1) +
-      geom_hline(yintercept = 0, lty = 1) +
-      geom_vline(xintercept = 0, lty = 1) +
+      theme_classic(base_size = 9, base_line_size = 0.25) +
+      geom_hline(yintercept = 0, lty = 2, size = 0.25) +
+      geom_vline(xintercept = 0, lty = 2, size = 0.25) +
       geom_text_repel(size=police_seize) +
       guides(color = FALSE) +
       labs(title = main,
@@ -334,11 +335,11 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     }
     gp
     
-    ggsave(paste0(save_path,image_prefix,i,".",sortie), device = sortie, plot = gp)
+    ggsave(paste0(save_path,image_prefix,i,".",sortie), height = h, width = w, device = sortie, plot = gp)
     
   }
   
-  return(resExp)
+  return(gp)
 }
 
 
@@ -678,7 +679,7 @@ Mean_expression <- function( condition, file, select_ID = NULL, rnai = NULL){
   tab = t(EXPRESSION)
   
   ggplot(EXPRESSION[1,]) 
-  geom_point(aes(color = infodata$Feeding))
+  geom_point(aes(color = infodata$KnockDown))
 }
 
 BoxnBarpolt_repartion <- function(LIST, path){

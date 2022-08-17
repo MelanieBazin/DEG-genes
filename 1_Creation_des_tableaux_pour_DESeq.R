@@ -1,5 +1,3 @@
-### A Executer sur R version 4
-
 options(stringsAsFactors = FALSE)
 source("0_Cluster.R")
 source("0_Visualisation_fonction.R")
@@ -9,26 +7,24 @@ set.seed(10111)
 
 dir.create("./DATA/Pour_DESeq/",recursive=T,showWarnings=F)
 
+# Put all data that need will be analysed together in a table
 for (i in names(rnai_list)){
-  ##### Création du tableau de donnée à analyser ensemble ####
-  #Ouverture des fichiers et création de l'objet countdata
+  # Opening files
   countdata = ConcatTab(type = "EXPRESSION", conditions = rnai_list[[i]])
-
-  # Enregistrement des tableau qui seront utiliser pour DESeq
-  infodata = CreatInfoData(countdata, conditions = i , rnai_list, cluster)
-  countdata = as.matrix(countdata)
   
-  # Avant correction 
+  # Save the table required for DESeq2 analysis
+  infodata = CreatInfoData(countdata, conditions = i , rnai_list, cluster)
+  write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_infodata.tab"), sep="\t",row.names=T,quote=F)
+  
+  # Before ComBat-seq correction
+  countdata = as.matrix(countdata)
   write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_expression_table_uncorrected.tab"), sep="\t",row.names=T,quote=F)
   
-  # Après correction
+  # After ComBat-seq correction
   batch = paste(infodata$Seq_method,infodata$Labo, sep = "_")
   countdata = ComBat_seq(countdata, batch = batch)
  
   write.table(countdata,paste0("./DATA/Pour_DESeq/",i,"_expression_table_corrected.tab"), sep="\t",row.names=T,quote=F)
    
-  print(paste("Tableau pour la condition",i, "termine"))
+  print(paste("Table done for",i))
 }
-
-# Pour ouvrir les tableau avec correction BATch
-# countdata = read.table(paste0("./DATA/Pour_DESeq/",i,"_expression_table_pour_DESeq_v1.tab"), sep="\t",row.names=1,header =  T)

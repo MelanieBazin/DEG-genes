@@ -39,6 +39,8 @@ notUP_CTIP_inter = setdiff(summary$ID, UP_CTIP_inter)
 
 
 MOTIF = summary$ID[which(!is.na(summary$Motif))]
+MOTIF_uniq = unique(MOTIF)
+
 MOTIF_pos = summary$ID[which(summary$Motif_50_70 == TRUE)]
 MOTIF_notPos = setdiff(MOTIF,MOTIF_pos)
 
@@ -53,6 +55,11 @@ MOTIF_pos_moins = unique(motif_pos$ID[which(motif_pos$STRAND == "-")])
 MOTIF_pos_both = intersect(MOTIF_pos_plus, MOTIF_pos_moins)
 MOTIF_pos_plus = setdiff(MOTIF_pos_plus, MOTIF_pos_both)
 MOTIF_pos_moins = setdiff(MOTIF_pos_moins, MOTIF_pos_both)
+
+Candidats = intersect(UP_CTIP,MOTIF_uniq)
+NotCandidats = setdiff(MOTIF_uniq, UP_CTIP)
+NotCandidats_inter = intersect(INTER,setdiff(MOTIF_uniq, UP_CTIP))
+
 
 #Venn with UP
 LIST = list(RNAi_KU80c = KU,
@@ -297,3 +304,38 @@ barplot(t(tab2),
         col = c("goldenrod2","olivedrab","cyan4"))
 dev.off()
 
+#Bar plot motif orientation all candidats et inter
+tab = c(length(MOTIF_plus),
+        length(MOTIF_both), 
+        length(MOTIF_minus),
+        length(MOTIF))
+tab = rbind(tab,c(length(intersect(MOTIF_plus, NotCandidats)),
+                  length(intersect(MOTIF_both, NotCandidats)),
+                  length(intersect(MOTIF_minus, NotCandidats)),
+                  length(intersect(MOTIF,NotCandidats))))
+tab = rbind(tab,c(length(intersect(MOTIF_plus, Candidats)),
+                  length(intersect(MOTIF_both, Candidats)),
+                  length(intersect(MOTIF_minus, Candidats)),
+                  length(intersect(MOTIF,Candidats))))
+tab = rbind(tab,c(length(intersect(MOTIF_plus, NotCandidats_inter)),
+                  length(intersect(MOTIF_both, NotCandidats_inter)),
+                  length(intersect(MOTIF_minus, NotCandidats_inter)),
+                  length(intersect(MOTIF,NotCandidats_inter))))
+
+colnames(tab)= c("plus","both","minus","sum")
+rownames(tab)= c("ALL","NotCandidats","Candidats","NotCandidats_inter")
+write.table(tab, paste0(path,"Motif_orientation_SUPP2.tab"), sep = "\t")
+
+tab2 = tab[,1:3]/tab[,"sum"]*100
+write.table(tab2, paste0(path,"Motif_orientation_SUPP2_prct.tab"), sep = "\t")
+
+pdf(paste0(path,"BarPlot_Motif_orientation_SUPP2.pdf"),width = 5, height = 8)
+barplot(t(tab2[2:4,]),
+        col = c("goldenrod2","olivedrab","cyan4"),
+        ylab = "% of genes with motif")
+dev.off()
+
+
+Candidats = intersect(UP_CTIP,MOTIF_uniq)
+NotCandidats = setdiff(MOTIF_uniq, UP_CTIP)
+NotCandidats_inter = intersect(INTER,setdiff(MOTIF_uniq, UP_CTIP))

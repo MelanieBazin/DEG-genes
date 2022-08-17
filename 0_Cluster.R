@@ -23,7 +23,7 @@ cluster = list(
   PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
   KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   
-  ND7_C = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",2)),
+  ND7_L = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",2)),
   CTIP = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",1)),
   ND7_X = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
   XRCC4 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2))
@@ -96,7 +96,7 @@ Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color
   
   if(any(grepl("bis",rnai))){
     for (j in rnai){
-      if (is.element(j,c("ICL7bis", "EZL1bis", "XRCC4", "CTIP", "ND7_C", "ND7_X"))){
+      if (is.element(j,c("ICL7bis", "EZL1bis", "XRCC4", "CTIP", "ND7_L", "ND7_X"))){
         seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ICL7", "EZL1", "ND7_K", "KU80c", "PGM"))){
         seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))
@@ -113,7 +113,7 @@ Batch_color <- function(data_tab, list= rnai_list, cluster_list = cluster, color
                       method_color$both, method_color$HiSeq, method_color$both, method_color$HiSeq)
         }
         
-      }else if (is.element(j,c("XRCC4", "CTIP", "ND7_C", "ND7_X"))){
+      }else if (is.element(j,c("XRCC4", "CTIP", "ND7_L", "ND7_X"))){
         seq_color=c(seq_color,rep(color_list[["NextSeq"]],length(cluster_list[[j]])))
       }else if (is.element(j, c("ND7_K", "KU80c", "PGM"))){
         seq_color=c(seq_color,rep(color_list[["HiSeq"]], length(cluster_list[[j]])))

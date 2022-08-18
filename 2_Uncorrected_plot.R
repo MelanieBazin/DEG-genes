@@ -50,8 +50,8 @@ write.table(infodata_collapse,paste0(path,condition ,"_infodata_collapse.tab"), 
 deseq = DESeq(deseq)
 
 # Saving the vst(Variance stabilizing transformation) normalized data
-vsd = assay(vst(deseq, blind = T))
-write.table(vsd,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
+data_tab = assay(vst(deseq, blind = T))
+write.table(data_tab,paste0(path,condition ,"_expression_table_vst.tab"), sep="\t",row.names=T,quote=F)
 
 #### Plotting data ####
 for (color_type in c("methods","replicates")){
@@ -59,7 +59,7 @@ for (color_type in c("methods","replicates")){
   dir.create(save_path,recursive=T,showWarnings=F)
   
   # PCA analysis
-  PCA_ggplot_generator(vsd,
+  PCA_ggplot_generator(data_tab,
                        infodata_collapse,
                        color_type = color_type,
                        collapse = T,
@@ -72,20 +72,12 @@ for (color_type in c("methods","replicates")){
                        w = 6.5,
                        h = 6)
   
-  # Define the color that will be used on the hierarchical clustering
-  cluster = cluster[which(is.element(names(cluster), rnai_list[[condition]]))]
-  cluster = cluster[which(names(cluster) != "ICL7bis")]
-  if (color_type == "methods"){
-    color = Batch_color(vsd, cluster_list = cluster) # Coloration by sequencing method
-  }else if (color_type == "replicates"){
-    color = Culster_color(vsd, cluster_list = cluster) # Coloration by autogamy stages
-  }
-  names(color) = colnames(vsd)
-  
   # Pearson correlation matrix & hierarchical clustering
-  matDist = as.dist(1-cor(log2(vsd+1), method="pearson"))
+  matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
   res = hclust(matDist)
   res = as.dendrogram(res)
+  
+  color = Color_type(data_tab, infodata_collapse, type = color_type)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
   pdf(paste0(save_path, condition ,"_hclust_pearson_vst.pdf"),  width = 12, height = 2.5)

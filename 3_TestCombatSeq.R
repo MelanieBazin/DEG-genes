@@ -82,18 +82,12 @@ for (correction in c("corrected","uncorrected")){
                          w = 4,
                          h = 4)
     
-    # Define the color that will be used on the hierarchical clustering
-    if (color_type == "methods"){
-      color = Batch_color(data_tab, cluster_list = cluster2) # Coloration by sequencing method
-    }else if (color_type == "replicates"){
-      color = Culster_color(data_tab, cluster_list = cluster2) # Coloration by autogamy stages
-    }
-    names(color) = colnames(data_tab)
-    
     # Pearson correlation matrix & hierarchical clustering
     matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
     res = hclust(matDist)
     res = as.dendrogram(res)
+    
+    color = Color_type(data_tab, infodata, type = color_type)
     labels_colors(res)= as.character(color)[order.dendrogram(res)]
     
     pdf(paste0(path, color_type, "/", condition ,"_hclust_pearson_vst.pdf"),  width = 12, height = 2.5)

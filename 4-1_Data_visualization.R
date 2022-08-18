@@ -26,26 +26,19 @@ for (color_type in c("methods","replicates")){
                        sortie = "pdf",
                        rename = T,
                        w = 6.5,
-                       h = 6)
-  
-  # Define the color that will be used on the hierarchical clustering
-  cluster2 = rnai_list[[condition]][-grep("bis", rnai_list[[condition]] )]
-  cluster2 = cluster[which(is.element(names(cluster), cluster2))]
-  if (color_type == "methods"){
-    color = Batch_color(data_tab, cluster_list = cluster2) # Coloration by sequencing method
-  }else if (color_type == "replicates"){
-    color = Culster_color(data_tab, cluster_list = cluster2) # Coloration by autogamy stages
-  }
-  names(color) = colnames(data_tab)
+                       h = 6,
+                       collapse = T)
   
   # Pearson correlation matrix & hierarchical clustering
   print(paste("-----> Hierarchical clustering colored by :", color_type))
   matDist = as.dist(1-cor(log2(data_tab+1), method="pearson"))
   res = hclust(matDist)
   res = as.dendrogram(res)
+  
+  color = Color_type(data_tab, infodata_collapse, type = color_type)
   labels_colors(res)= as.character(color)[order.dendrogram(res)]
   
-  pdf(paste0(graph_path, condition ,"_hclust_pearson_vst.pdf"),  width = 12, height = 2.5)
+  pdf(paste0(graph_path, color_type,"/", condition ,"_hclust_pearson_vst.pdf"),  width = 12, height = 2.5)
   plot(res, main = "pearson_vst")
   dev.off()
 }
@@ -64,7 +57,7 @@ profils = unique(annotation$EXPRESSION_PROFIL)
 mean_data_tab = MeanTabCalculation(data_tab, infodata_collapse)
 write.table(mean_data_tab,paste0(path,condition ,"_MEANexpression_table_vst.tab"), sep="\t",row.names=T,quote=F)
 
-pdf(paste0(graph_path,condition , "_Boxplot_ExpressionVST", ".pdf"), width = 20, height = 4)
+pdf(paste0(graph_path,condition , "_Boxplot_ExpressionVST", ".pdf"))
 par(mfrow = c(1,length(rnai)))
 
 # For each expression profile
@@ -78,7 +71,7 @@ for (p in profils){
     mediane = apply(data_box, 2, median)
     
     # Create a boxplot + median of the expression profile
-    plot(NULL, main = p, sub = r,
+    plot(NULL, main = paste0(p, "\n", "n = ", nrow(data_box)), sub = r,
          ylim = c(0, 20),
          ylab = "Expression level (vst)",
          xlim = c(0.5,4.5),

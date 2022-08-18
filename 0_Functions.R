@@ -1,11 +1,11 @@
-###################
-#### Homemade function used in the analysis
-###################
+####
+# Homemade function used in the analysis ####
+####
 options(stringsAsFactors = FALSE)
 library("stringr")
 library(dendextend)
 
-###### Table modification ####
+###### Table creation/modification ####
 # Merge count table in one table to be analysed by DESeq2
 ConcatTab <- function(type, conditions = NULL){
   annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
@@ -39,18 +39,7 @@ ConcatTab <- function(type, conditions = NULL){
   return(tab_count)
 }
 
-DivideByGeneSeize <- function(countdata){
-  annotation = read.table("./DATA/ptetraurelia_mac_51_annotation_v2.0.tab",header=T,sep="\t",quote='')
-  taille = abs(annotation$NT_START - annotation$NT_END)
-  names(taille)=annotation$ID
-  
-  data_tab_seize  = countdata
-  for (j in rownames(data_tab_seize)){
-    data_tab_seize[j,] = countdata[j,]/taille[j]
-  }
-  return(data_tab_seize)
-}
-
+# Calculate the mean value of the replicates of each autogamy stages
 MeanTabCalculation <- function(data_tab, infodata){
   
   data_tab = OrderColumn(data_tab, infodata)
@@ -105,35 +94,6 @@ OrderColumn <- function(data_tab, infodata){
   
 }
 
-RenameCol_PCA<- function(data_tab){
-  name = colnames(data_tab)
-  name = str_replace_all(name, "Veg","V")
-  name = str_replace_all(name, "ND7_L","NL")
-  name = str_replace_all(name, "ND7_X","NX")
-  name = str_replace_all(name, "ND7_K","NK")
-  name = str_replace_all(name, "ICL7","I")
-  name = str_replace_all(name, "CTIP","C")
-  name = str_replace_all(name, "XRCC4","X")
-  name = str_replace_all(name, "KU80c","K")
-  name = str_replace_all(name, "PGM","P")
-  name = str_replace_all(name, "EZL1","E")
-  colnames(data_tab) = name
-  
-  return(data_tab)
-}
-
-RenameCol_PCA2<- function(data_tab){
-  name = colnames(data_tab)
-  name = str_replace_all(name, "Veg","V")
-  name = str_remove_all(name, "ND7_")
-  name =str_split_fixed(name,"_",n=2)[,2]
-  colnames(data_tab) = name
-  
-  return(data_tab)
-}
-
-
-##### Création tabeau info avec les métadonnées #####
 # Creation of the table with the information about the sample in the column of a count table
 CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NULL){
   infodata = matrix(NA,nrow = ncol(countdata), ncol = 8)
@@ -201,7 +161,54 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
   return(infodata)
 }
 
-##### Graphical representataion #####
+
+#### List modification ####
+# Cross two list
+Crossinglist <- function (list1, list2){
+  LIST = list()
+  list_name = c()
+  for (l in names(list1)){
+    for (m in names(list2)){
+      LIST = c(LIST, list(intersect(list1[[l]],list2[[m]])))
+      list_name = c(list_name, paste(names(list1[l]),names(list2[m]), sep = "x"))
+    }
+  }
+  names(LIST)=list_name
+  
+  return(LIST)
+}
+
+#### All data graphical analysis ####
+# Define the color vector that will be used
+Color_type <- function(data_tab, infodata, type){
+  if(type == "methods"){
+    color_list = method_color
+    
+    method_list = infodata$Seq_method
+    names(method_list) = infodata$Names
+    
+    if(colnames(infodata)[ncol(infodata)] == "runsCollapsed"){
+      method_list[grep("ICL7",names(method_list))] = "both"
+      method_list[grep("EZL1",names(method_list))] = "both"
+    }
+    
+  }else if(type == "replicates"){
+    color_list = cluster_color
+    
+    method_list = infodata$AutogStage
+    names(method_list) = infodata$Names
+  }
+  
+  color = c()
+  for (samp in names(method_list)){
+    color = c(color, color_list[method_list[samp]])
+  }
+  
+  names(color) = colnames(data_tab)
+  return(color)
+  
+}
+
 # PCA analysis using ggplot representation
 library(FactoMineR)
 library("factoextra")
@@ -217,11 +224,11 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   save_path = paste0(save_path,"/",color_type,"/ggPCA/")
   dir.create(save_path,recursive=T,showWarnings=F)
   
-  # identifier les différents RNAi
+  # Identification of the different time courses to be ploted
   TimeCourses = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
   TimeCourses = str_split_fixed(TimeCourses,"_V", n= 2)[,1]
   
-  # Renomer colonne pour raccourcir nom
+  # Shorten the name of the points
   shortname = colnames(data_tab)
   if(rename == T){
     shortname = str_replace_all(shortname, "Veg","V")
@@ -230,11 +237,11 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   }
   shortname = str_remove_all(shortname, "bis")
   
-  # analyse PCA
+  # PCA analisis
   data_tab2 = t(data_tab)
   resExp = PCA(data_tab2, graph = F)
   
-  # Bar plot des variance
+  # % of varience barplot
   if(show_barplot) {
     eigenvalues <- resExp$eig
     if (sortie == "pdf") {
@@ -254,26 +261,26 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     dev.off()
   }  
   
-  # Defintion des dimentionà représentées
+  # Definition of the PCA dimension to represent
   for (i in max_dim:1){
     data_tab2 = cbind(resExp$ind$coord[, i],data_tab2 )
     colnames(data_tab2)[1] = paste0("Dim",i)
   }
   
-  # Definition des couleurs pour l'ACP
+  # Definition of the color to apply
   if (color_type == "replicates"){
     color_info = infodata$AutogStage
-    color_palette = c("VEG" = "darkorange1", "EARLY" = "deepskyblue", "INTER" = "chartreuse3", "LATE"= "red" )
+    color_palette = cluster_color
   } else if (color_type == "methods"){
     if (collapse == T){
       for (t in c("T0", "T10"))
       infodata$Seq_method[grep(",", infodata$runsCollapsed)] = "Both"
     }
     color_info = infodata$Seq_method
-    color_palette = c("HiSeq" = "chartreuse4", "NextSeq" = "blue4", "Both" = "mediumturquoise" )
+    color_palette = method_color
   }
     
-  # Plot de l'ACP
+  # PCA plot
   for (i in 1:dim(combn(1:max_dim,2))[2]){
     gp = ggplot(data = as.data.frame(data_tab2), aes(x = get(paste0("Dim",combn(1:max_dim,2)[1,i])), y = get(paste0("Dim",combn(1:max_dim,2)[2,i])), 
                                                      color = color_info, 
@@ -305,204 +312,29 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
 
 
 
-
-
-# Crée des boxplot sur toues les gènes par catégories
+# Boxplot of the reads count for each time point of each time course
 CountBoxplot <- function (tab, type, color = "lightgray"){
   boxplot(log(tab + 1), ylab = "count values (log scale)",
           main = paste0("Count data (",type,")"), xaxt="n", yaxt="n",
           col = color, outline=FALSE)
   axis(side = 1, labels = FALSE, tick = F)
-  axis(side = 2,
-       ## Rotate labels perpendicular to y-axis.
-       las = 2,
-       ## Adjust y-axis label positions.
+  axis(side = 2, # Rotate labels perpendicular to y-axis.
+       las = 2, # Adjust y-axis label positions.
        mgp = c(3, 0.75, 0))
-  text(x = 1:ncol(tab),
-       ## Move labels to just below bottom of chart.
-       y = par("usr")[3] - 0.1,
-       ## Use names from the data list.
-       labels = colnames(tab),
-       ## Change the clipping region.
-       xpd = NA,
-       ## Rotate the labels by 35 degrees.
-       srt = 90,
-       ## Adjust the labels to almost 100% right-justified.
-       adj = 1,
-       ## Increase label size.
+  text(x = 1:ncol(tab), # Move labels to just below bottom of chart.
+       y = par("usr")[3] - 0.1, # Use names from the data list.
+       labels = colnames(tab), # Change the clipping region.
+       xpd = NA, # Rotate the labels by 35 degrees.
+       srt = 90, # Adjust the labels to almost 100% right-justified.
+       adj = 1, # Increase label size.
        cex = 0.5)
 }
 
-# Fait les heatmap avec tous les gènes par actégories
-library("pheatmap")
-library("ComplexHeatmap")
-library(magick)
+# Draw the expression profiles for al or selected genes in all time courses
 library("RColorBrewer")
-library(circlize)
-library(gplots)
-MyHeatmaps <- function(path, data_tab,infodata, condition, moyenne = F,color = "red", Log = T, sortie = "pdf", raster = F){
-  dir.create(path,recursive=T,showWarnings=F)
-  
-  if (moyenne == T){
-    moyenne = "MOYENNE"
-  }else{
-    moyenne = ""
-  }
-  
-  if (raster == T){
-    r = ""
-  }else{
-    r = "_unraster"
-  }
-  
-  if (Log == T){
-    data_log =  as.data.frame(log(data_tab+1))
-    Ylab = "log(expres)"
-  }else{
-    data_log =  as.data.frame(data_tab)
-    Ylab = "expres"
-  }
-  
-  rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
-  if (is.element("_ctrl",rnai)){
-    rnai = sub("_","",rnai)
-  }else{
-    str_sub(rnai,-1) = ""
-  }
-  
-  c_split = c()
-  for (a in rnai){
-    x = grep(a, colnames(data_log))
-    c_split = c(c_split,rep(a,length(x)))
-  }
-  
-  # Ajout des annotation au tableau
-  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
-  data_log = merge(data_log, annotation, by = 0)
-  rownames(data_log) = data_log$Row.names
-  data_log= data_log[,-1]
-  
-  # Ordonner les lignes par valeur de log du plus grand au plus petit
-  data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
-  colnames(data_log)[1] = "MAX"
-  data_log = data_log[order(data_log$MAX, decreasing = T),]
-  
-  # Ordonner les lignes par profils d'expression
-  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
-  
-  # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
-  data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
-  data_log_mat = as.matrix(data_log_mat)
-  
-  # Definition des couleurs
-  if (color == "red"){
-    color_vec = c(0,quantile(data_log_mat)[[2]],median(data_log_mat),
-                  max(data_log_mat))
-    color_vec = colorRamp2(color_vec,
-                           c("#FFF7EC","#FDBB84","#EF6548","#990000"))
-    
-    # color_vec = brewer.pal(8, "OrRd")
-  }else if (color == "blue"){
-    color_vec = rev(colorRampPalette(brewer.pal(10,"RdBu"))(255))
-  }
-  
-  
-  h = Heatmap(data_log_mat,
-              name = Ylab,
-              column_title = condition,
-              col = color_vec,
-              cluster_rows = F, cluster_columns = F, # turn off  clustering
-              cluster_row_slices = F, cluster_column_slices = F, # turn off the clustering on slice
-              show_row_names = F,
-              
-              row_order = nrow(data_log):1,
-              row_split = data_log$EXPRESSION_PROFIL,
-              row_title_rot = 0,
-              
-              column_split = factor(c_split, levels = unique(c_split)),
-              column_order = 1:ncol(data_log_mat),
-              
-              use_raster = raster #reduce the original image seize
-  )
-  
-  
-  if (sortie == "pdf"){
-    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".pdf"),width = 800, height = 800)
-    draw(h)
-    dev.off()
-    
-    
-  }else if (sortie == "pdf"){
-    pdf(paste0(path,condition,"_AllPoint_",moyenne,"heatmap_",color,r, ".pdf"),width = 800, height = 800)
-    draw(h)
-    dev.off()
-  }
-  
-}
-
-MyHeatmaps.2 <- function(path, data_tab, infodata, condition){
-  data_log = log(data_tab+1)
-  
-  rnai = sub("Veg","",colnames(data_log)[grep("Veg", colnames(data_log), ignore.case = T)], ignore.case = T)
-  if (is.element("_ctrl",rnai)){
-    rnai = sub("_","",rnai)
-  }else{
-    str_sub(rnai,-1) = ""
-  }
-  
-  c_split = c()
-  for (a in rnai){
-    x = grep(a, colnames(data_log))
-    c_split = c(c_split,max(x))
-  }
-  
-  # Ajout des annotation au tableau
-  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t", row.names = 1)
-  data_log = merge(data_log, annotation, by = 0)
-  rownames(data_log) = data_log$Row.names
-  data_log= data_log[,-1]
-  
-  # Ordonner les lignes par valeur de log du plus grand au plus petit
-  data_log = cbind(apply(data_log[,1:ncol(data_tab)], 1, max),data_log)
-  colnames(data_log)[1] = "MAX"
-  data_log = data_log[order(data_log$MAX, decreasing = T),]
-  
-  # Ordonner les lignes par profils d'expression
-  data_log = data_log[order(data_log$EXPRESSION_PROFIL),]
-  
-  r_split =c()
-  for (e in unique(data_log$EXPRESSION_PROFIL)){
-    x = grep(e, data_log$EXPRESSION_PROFIL)
-    r_split = c(r_split,max(x))
-  }
-  
-  # Retirer les colonnes superflues et faire un matrice numerique pour les heatmap
-  data_log_mat = data_log[,is.element(colnames(data_log), colnames(data_tab))]
-  data_log_mat = as.matrix(data_log_mat)
-  
-  pdf("Test.pdf")
-  heatmap.2(data_log_mat,
-            Rowv=F, Colv=F,
-            rowsep = r_split,
-            colsep = c_split,
-            scale="none",
-            labRow="",
-            # col=hmcol,
-            trace="none",
-            dendrogram = "none",
-            main=paste("Test"))
-  dev.off()
-}
-
-
-
-
-# Dessine les profils d'expression de tous les gènes pour tous les RNai demmandés
-library("RColorBrewer")
-ExpressionProfils <- function(type , condition, file, name = NULL, select_ID = NULL, rnai = NULL, infodata = NULL){
+ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = NULL, rnai = NULL, infodata = NULL){
   
   if (type  == "vst"){
-    path = paste0(file,condition,"/")
     EXPRESSION = read.table(paste0(path,condition ,"_expression_table_vst.tab"))
     infodata = read.table(paste0(path,condition ,"_infodata_collapse.tab"))
     
@@ -520,7 +352,7 @@ ExpressionProfils <- function(type , condition, file, name = NULL, select_ID = N
     EXPRESSION = ConcatTab(type, conditions = rnai)
     
   }
-  path = paste0(path,"Visualisation/profils/")
+  path = paste0(path,"Visualization/Profils/")
   dir.create(path,recursive=T,showWarnings=F)
   
   if(!is.null(select_ID)){
@@ -593,167 +425,49 @@ ExpressionProfils <- function(type , condition, file, name = NULL, select_ID = N
   dev.off()
 }
 
-
-library(ggplot2)
-Mean_expression <- function( condition, file, select_ID = NULL, rnai = NULL){
+#### Deregulated genes graphical analysis ####
+Profile_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
   
-  path = paste0(file,condition,"/")
-  EXPRESSION = read.table(paste0(path,condition ,"_expression_table_vst.tab"))
-  infodata = read.table(paste0(path,condition ,"_infodata_collapse.tab"))
-  
-  path = paste0(path,"Visualisation/profils/")
-  dir.create(path,recursive=T,showWarnings=F)
-  
-  if (rnai == "ctrl"){
-    rnai = rnai_list[[condition]][c(grep("ND7",rnai_list[[condition]]),grep("ICL7",rnai_list[[condition]]))]
-  }else {
-    rnai = rnai_list[[condition]]
-  }
-  rnai = rnai[-grep("bis",rnai)]
-  
-  if(!is.null(select_ID)){
-    EXPRESSION = EXPRESSION[select_ID,]
-  } else {
-    select_ID = annotation$ID
-    names(select_ID) = annotation$NAME
-  }
-  
-  timing_list = list()
-  col_order = c()
-  for(r in rnai){
-    timing = str_remove_all(colnames(EXPRESSION)[grep(r, colnames(EXPRESSION))], paste0(r,"_"))
-    timing = timing[c(length(timing), order(as.numeric(gsub("T", "", timing[1:(length(timing)-1)]))))]
-    timing_list = c(timing_list, list(timing))
-    for (t in timing){
-      col_order = c(col_order,
-                    grep(paste(r,t,sep="_"), colnames(EXPRESSION))[1])
-    } 
-  }
-  names(timing_list)=rnai
-  
-  EXPRESSION = OrderColumn(EXPRESSION, infodata)
-  
-  
-  timing_list = timing_list[rnai]
-  rnai_name = paste(rnai, collapse = "_")
-  
-  tab = t(EXPRESSION)
-  
-  ggplot(EXPRESSION[1,]) 
-  geom_point(aes(color = infodata$KnockDown))
-}
-
-BoxnBarpolt_repartion <- function(LIST, path){
-  for(i in 1:ncol(LIST[[1]])){
-    pdf(paste0(path, colnames(LIST[[1]][i]),".pdf"))
-    boxplot(c(LIST[[1]][i],LIST[[2]][i]), 
-            names = c("Avec_Motif","Sans_motif"),
-            main =  colnames(LIST[[1]][i]),
-            outline = F)
-    dev.off()
-    
-    pdf(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.pdf"))
-    hist(LIST[[1]][[i]],
-         main =  paste0(colnames(LIST[[1]][i]),"_avecMotif"),
-         breaks = 50,
-         xlim = c(1,8))
-    abline(v = mean(LIST[[1]][[i]]), col = "grey", lty = "dashed")
-    abline(v = median(LIST[[1]][[i]]), col = "red", lty = "dashed")
-    dev.off()
-    
-    pdf(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.pdf"))
-    hist(LIST[[2]][[i]],
-         main =  paste0(colnames(LIST[[2]][i]),"_sansMotif"),
-         breaks = 50,
-         xlim = c(1,8))
-    abline(v = mean(LIST[[2]][[i]]), col = "grey", lty = "dashed")
-    abline(v = median(LIST[[2]][[i]]), col = "red", lty = "dashed")
-    dev.off()
-  }
-}
-
-###### Pour études des gènes DEG ######
-Profile_Barplot <- function(filtre_list, nom, path){
-  row_order = c("Early peak", "Intermediate peak", "Late peak", "Early repression" ,"Late induction", "Late repression", "none" )
-  colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
-  
+  # Create a table with the number of genes in each cathegory
   profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
+  colnames(profil) = c("Expression_cluster", "ALL")
   for (n in names(filtre_list)){
     tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, filtre_list[[n]]))]))
-    profil = merge(profil, tab, by = "Var1", all = T)
+    colnames(tab) = c("Expression_cluster",n)
+    profil = merge(profil, tab, by = "Expression_cluster", all = T)
     
   }
   
-  rownames(profil) = profil$Var1
-  profil = profil[,-1]
-  colnames(profil) = c("ALL", names(filtre_list))
+  profil[is.na(profil)] = 0
+  rownames(profil) = profil$Expression_cluster
+  profil = profil[,-grep("Expression_cluster", colnames(profil))]
+   
+  write.table(profil, paste0(save_path, "Profils_tab_",nom,".tab"), sep="\t",row.names=T,quote=F)
   
-  # Réordonner les lignes
-  profil = profil[row_order,]
+  # Transform the table in percentages
+  profil_prct = t(t(profil)/apply(profil, 2, sum)*100)
+  profil_prct = profil_prct[names(profile_color),] # reorder the lines
   
-  
-  ### Histogramme empilés
-  pdf(paste0(path,"Profils_barplot_",nom,".pdf"),width = 550, height = 500)
-  barplot(as.matrix(profil),
-          col = colors,
-          main = "Profil repartition",
-          ylab = "gene nb")
-  
-  legend("topright",
-         legend = rownames(profil),
-         fill = colors,
-         bty = "n")
-  dev.off()
-  
-  # Création d'un tableau avec ses pourcentages
-  profil_prct = profil
-  for (n in 1:ncol(profil)){
-    profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-  }
-  
-  pdf(paste0(path,"Profils_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
+  # Creation a a piled-barplot with the different graphs
+  pdf(paste0(save_path,"Profils_barplot_",nom,"_prct.pdf"),width = w, height = h)
   barplot(as.matrix(profil_prct),
-          col = colors,
-          main = "Profil repartition",
+          col = profile_color,
+          main = "Profils repartition",
           ylab = "% of genes",
           names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
   dev.off()
+  
+  pdf(paste0(save_path,"Profils_barplot_legends.pdf"),width = 4.3, height = 5.3)
+  plot.new()
+  legend("center",
+         x.intersp=0.1,
+         legend = rownames(profil),
+         fill = profile_color,
+         bty = "n")
+  dev.off()
+  
 }
 
-Profile_EnrichmentBarplot <- function (filtre_list, path, names){
-  colors = c("purple3","red2","chartreuse4","dodgerblue3","deeppink","darkorange","snow3")
-  
-  profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
-  for(up in names(filtre_list)){
-    tab = as.data.frame(table(annotation$EXPRESSION_PROFIL[which(is.element(annotation$ID, filtre_list[[up]]))]))
-    tab = merge(profil, tab, by = "Var1")
-    rownames(tab) = tab[,"Var1"]
-    tab = tab[,-1]
-    colnames(tab) = c("ALL",up)
-    
-    tab_prct = tab
-    tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-    for (n in rownames(tab)){
-      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-    }
-    
-    
-    pdf(paste0(path,"Enrichment_barplot_",names,".pdf"),width = 800, height = 500)
-    barplot(t(as.matrix(tab_prct)),
-            beside = T,
-            main = paste("Profil repartition of",up ),
-            ylab = "% of genes",
-            ylim = c(0,60),
-            col = c("grey", "indianred2"),
-            names.arg = sub(" "," \n ",rownames(tab)))
-    
-    legend("topleft",
-           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-           fill = c("grey", "indianred2"),
-           bty = "n")
-    dev.off()
-  }
-}
 
 IES_Barplot <- function(filtre_list, path, nom){
   profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
@@ -797,41 +511,37 @@ IES_Barplot <- function(filtre_list, path, nom){
   dev.off()
 }
 
-IES_EnrichmentBarplot <- function (filtre_list, path){
-  profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
-                           sum(annotation$NB_IES == 0)), 
-                         row.names = c("IES+", "IES-"))
-  for(up in names(filtre_list)){
-    tab = c(sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[up]]))] != 0),
-            sum(annotation$NB_IES[which(is.element(annotation$ID, filtre_list[[up]]))] == 0))
-    tab = cbind(profil, tab)
-    colnames(tab) = c("ALL",up)
+
+###### Motif graphical analysis ######
+BoxnBarpolt_repartion <- function(LIST, path){
+  for(i in 1:ncol(LIST[[1]])){
+    pdf(paste0(path, colnames(LIST[[1]][i]),".pdf"))
+    boxplot(c(LIST[[1]][i],LIST[[2]][i]), 
+            names = c("Avec_Motif","Sans_motif"),
+            main =  colnames(LIST[[1]][i]),
+            outline = F)
+    dev.off()
     
-    tab_prct = tab
-    tab_prct[,"ALL"] = tab[,"ALL"]/length(annotation$ID)*100
-    for (n in rownames(tab)){
-      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-    }
+    pdf(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.pdf"))
+    hist(LIST[[1]][[i]],
+         main =  paste0(colnames(LIST[[1]][i]),"_avecMotif"),
+         breaks = 50,
+         xlim = c(1,8))
+    abline(v = mean(LIST[[1]][[i]]), col = "grey", lty = "dashed")
+    abline(v = median(LIST[[1]][[i]]), col = "red", lty = "dashed")
+    dev.off()
     
-    
-    pdf(paste0(path,"Profils_barplot_",up,".pdf"),width = 400, height = 500)
-    barplot(t(as.matrix(tab_prct)),
-            beside = T,
-            main = "Profil repartition of UP deregulated genes",
-            ylab = "% of genes",
-            ylim = c(0,60),
-            col = c("grey", "indianred2"),
-            names.arg = sub(" "," \n ",rownames(tab)))
-    
-    legend("topleft",
-           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-           fill = c("grey", "indianred2"),
-           bty = "n")
+    pdf(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.pdf"))
+    hist(LIST[[2]][[i]],
+         main =  paste0(colnames(LIST[[2]][i]),"_sansMotif"),
+         breaks = 50,
+         xlim = c(1,8))
+    abline(v = mean(LIST[[2]][[i]]), col = "grey", lty = "dashed")
+    abline(v = median(LIST[[2]][[i]]), col = "red", lty = "dashed")
     dev.off()
   }
 }
 
-###### Pour études des motifs ######
 PositionHistogram <- function (filtre_list, path, name){
   pos_list = list()
   for (n in names(filtre_list)){
@@ -930,41 +640,10 @@ EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
   }
 }
 
-#### Stat function ####
+#### Statistics ####
 
-Khi2_intermed <- function(genes_list, profil_list){
-  nb_genes = length(genes_list[which(is.element(genes_list, profil_list))])
-  other = length(nb_genes) - nb_genes
-  # Définition des probabilitée théoriques
-  proba = length(profil_list)/length(AUTOGAMY$all_genes) 
-  proba = c(proba, 1-proba)
-  chi2 = chisq.test(c(nb_genes, other), p  = proba)
-  
-  pv=chi2$p.value
-  signif="ns"
-  if(pv < 1e-200) {
-    signif="****"
-  } else {
-    if(pv < 1e-100) {
-      signif="***"
-    } else {   
-      
-      if(pv < 1e-20) {
-        signif="**"
-      } else {
-        if(pv < 1e-10) {
-          signif="*"
-        }
-      }
-    }
-  }
-  
-  return(paste(format(pv,digits=3), signif))
-}
-
-
+# Calculate the enrichment in a profile of a gene list
 Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
-  
   data_tab = as.data.frame(data_tab)
   colnames(data_tab) = c("ID", "PROFIL")
   
@@ -974,7 +653,7 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
   Profils = unique(data_tab$PROFIL)
   all = length(data_tab$ID)
   for (l in names(LIST)){
-    ## Calcul des p-value
+    ## Calculate the experimental p-value
     pval = c()
     nb_genes = length(LIST[[l]][which(is.element(LIST[[l]], data_tab$ID))])
     for (p in Profils){
@@ -985,11 +664,10 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     }
     names(pval) = Profils
     
-    ##  Correction des p-value
+    ## p-values correction by simulation for multiple-test
     nb_simulation = 1000
     
-    # Création de données séléction aléatoirement
-    
+    # Create random data set and calculate theoretical p-values
     if (length(data_tab$ID)>=length(LIST[[l]])){
       theoric_ID = matrix(NA, nrow = length(LIST[[l]]), ncol = nb_simulation)
       for (c in 1:ncol(theoric_ID)){
@@ -1016,7 +694,7 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
       theoric_pval[,s] = pvals
     }
     
-    # Ajuster les pvalue
+    # Calculate the adjusted p-value based on the simulated data
     pval_adj = c()
     for (p in Profils){
       th_pvals = theoric_pval[p,]
@@ -1033,7 +711,7 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     
     rownames(tab) = tab$Var1
     tab = tab[,-1]
-    colnames(tab) = c("nb_Motif", "pval_adj", "pval_adj < 0.05")
+    colnames(tab) = c("nb_event", "pval_adj", "pval_adj < 0.05")
     print(tab)
     
   }

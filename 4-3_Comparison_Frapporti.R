@@ -1,16 +1,16 @@
-###################
-#### Comparison of the deregulated genes obtain 
-#### with this procedure 
-#### and those obtain in Frapporti et al. 2019
-###################
+####
+# Comparison of the deregulated genes obtain #### 
+# with this procedure 
+# and those obtain in Frapporti et al. 2019
+####
 options(stringsAsFactors = FALSE)
 library(ggvenn)
 library("VennDiagram")
 
 #### To re-open the files ####
-# path = "./Analyse/2022-02-21_Analyse_DESeq2_FC-1.5_pval-0.05/HiSeqvsNextSeq/"
-# data_tab = read.table(paste0(path, "HiSeqvsNextSeq_expression_table_vst.tab"), sep = "\t", header = T)
-# infodata_collapse = read.table(paste0(path, "HiSeqvsNextSeq_infodata_collapse.tab"), sep = "\t", header = T)
+# save_path = "./Analyse/2022-02-21_Analyse_DESeq2/HiSeqvsNextSeq_FC-1.5_pval-0.05/Frapporti_comparison_FC-2_pval-0.05/"
+# data_tab = read.table(paste0(save_path, "HiSeqvsNextSeq_expression_table_vst.tab"), sep = "\t", header = T)
+# infodata_collapse = read.table(paste0(save_path, "HiSeqvsNextSeq_infodata_collapse.tab"), sep = "\t", header = T)
 ###################################
 
 for (deg in c("DOWN", "UP")){

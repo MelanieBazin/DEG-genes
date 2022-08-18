@@ -14,11 +14,6 @@ set.seed(10111)
 source("0_Cluster.R") # Groups parameters
 source("0_Functions.R") # Library of homemade function
 
-# Formatting the table with gene annotation
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation = annotation[,c(1,3:5,13,6:11,2)]
-rownames(annotation)=annotation$ID
-
 ##### To reopen files ###
 # path_dir = "./Analyse/2022-02-21_Analyse_DESeq2_FC-1.5_pval-0.05/"
 # condition = names(rnai_list)[2]
@@ -129,7 +124,7 @@ for (condition in names(rnai_list)){
     frapp_FC = 2
     frapp_pvalue = 0.05
     
-    save_path = paste0(path,"/Frapporti_Comparison/")
+    save_path = paste0(path,"/Frapporti_Comparison_FC-",frapp_FC, "_pval-",frapp_pvalue,"/")
     dir.create(save_path,recursive=T,showWarnings=F)
     
     source("4-3_Comparison_Frapporti.R")

@@ -1,8 +1,8 @@
-###################
-#### DESeq2 data visualization
-#### -> Boxplot of the normalized count
-#### -> PCA and hierarchical clustering
-###################
+####
+# DESeq2 data visualization
+# -> Boxplot of the normalized count
+# -> PCA and hierarchical clustering
+####
 options(stringsAsFactors = FALSE)
 
 #### Boxplot of normalized count ####

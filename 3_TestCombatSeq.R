@@ -1,8 +1,8 @@
-###################
-#### Validation of ComBat-seq on Paramecium data
-#### -> Comparison of the data with or without correction
-#### -> On the data sequenced twice (IC7 and EZL1 time courses)
-###################
+####
+# Validation of ComBat-seq on Paramecium data
+# -> Comparison of the data with or without correction
+# -> On the data sequenced twice (IC7 and EZL1 time courses)
+####
 
 options(stringsAsFactors = FALSE)
 library(sva)
@@ -97,6 +97,7 @@ for (correction in c("corrected","uncorrected")){
   
 }
 
+#### Print R status ####
 sink(paste0("./Analyse/",analyseName,"/sessionInfo.txt"))
 print(sessionInfo())
 sink()

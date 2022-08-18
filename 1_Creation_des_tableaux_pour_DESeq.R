@@ -1,8 +1,8 @@
-###################
-#### Put all data that need will be analysed together in a table
-#### + corrected the expression count by ComBat-seq
-#### + creation of the infodata table containing all information about the samples
-###################
+####
+# Put all data that need will be analysed together in a table
+# + corrected the expression count by ComBat-seq
+# + creation of the infodata table containing all information about the samples
+####
 
 options(stringsAsFactors = FALSE)
 library(sva)
@@ -33,6 +33,7 @@ for (i in names(rnai_list)){
   print(paste("Table done for",i))
 }
 
+#### Print R status ####
 sink(paste0("./DATA/Pour_DESeq/sessionInfo.txt"))
 print(sessionInfo())
 sink()

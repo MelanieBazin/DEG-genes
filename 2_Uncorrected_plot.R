@@ -1,7 +1,7 @@
-###################
-#### Visualization of the data befor correction
-#### -> On the data used for DESeq2 analysis
-###################
+####
+# Visualization of the data befor correction
+# -> On the data used for DESeq2 analysis
+####
 
 options(stringsAsFactors = FALSE)
 library(sva)
@@ -85,6 +85,7 @@ for (color_type in c("methods","replicates")){
   dev.off()
 }
 
+#### Print R status ####
 sink(paste0(path,"/sessionInfo.txt"))
 print(sessionInfo())
 sink()

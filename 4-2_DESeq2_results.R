@@ -1,8 +1,8 @@
-###################
-#### DESeq2 result extraction
-#### -> Extract the comparison of expression level of a KD compared to a control for each autogamy stages
-#### -> Visualization of the data by Volcanoplot
-###################
+####
+# DESeq2 result extraction
+# -> Extract the comparison of expression level of a KD compared to a control for each autogamy stages
+# -> Visualization of the data by Volcanoplot
+####
 options(stringsAsFactors = FALSE)
 
 # For each autogamy stage

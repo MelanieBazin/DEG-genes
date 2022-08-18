@@ -161,7 +161,7 @@ Enrichment_padj(DE_genes, my_data)
 sink()
 
 
-##### Reapartition of genes with IEs among the filters ####
+##### Repartition of genes with IES among the filters ####
 print("Gene with IES repartition barplot")
 save_path2 = paste0(save_path,"Barplot_IES/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
@@ -169,7 +169,7 @@ dir.create(save_path2 ,recursive=T,showWarnings=F)
 # Sur UP PGM KU80c & XRCC4
 IES_Barplot(UP_PKX, save_path2, "UP")
 
-#### Imprimer l'état de R ####
+#### Print R status ####
 sink(paste0(save_path,"/sessionInfo.txt"))
 print(sessionInfo())
 sink()

@@ -1,8 +1,8 @@
-###################
-#### DESeq2 data analysis
-#### -> Comparison of the data with or without correction
-#### -> On the data sequenced twice (IC7 and EZL1 time courses)
-###################
+####
+# DESeq2 data analysis
+# -> Comparison of the data with or without correction
+# -> On the data sequenced twice (IC7 and EZL1 time courses)
+####
 options(stringsAsFactors = FALSE)
 library(sva)
 library(DESeq2)
@@ -132,6 +132,7 @@ for (condition in names(rnai_list)){
   }
 }
 
+#### Print R status ####
 sink(paste0("./Analyse/",analyseName,"/sessionInfo.txt"))
 print(sessionInfo())
 sink()

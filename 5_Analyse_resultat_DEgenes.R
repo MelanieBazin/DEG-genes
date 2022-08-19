@@ -1,5 +1,5 @@
 ####
-# Analysis of the deregulated genes ####
+# Analysis of the deregulated genes
 # -> Expression profiles checking
 # -> Venn diagram
 # -> Proportion of the different profil cluster
@@ -20,7 +20,7 @@ path = paste0("./Analyse/",date,"_DESeq2_analysis/")
 path = paste0(path,
               list.files(path)[grep(condition,list.files(path))],"/")
 
-infodata = read.table(paste0(path, condition,"_infodata_collapse.tab"))
+
 data_tab = read.table(paste0(path, condition,"_expression_table_vst.tab"))
 data_mean = read.table(paste0(path, condition,"_MEANexpression_table_vst.tab"))
 
@@ -28,24 +28,8 @@ data_mean = read.table(paste0(path, condition,"_MEANexpression_table_vst.tab"))
 save_path = paste0(path, "Analyse/")
 dir.create(save_path,recursive=T,showWarnings=F)
 
-# Definition of the time course that will be analysed
-RNAi = unique(infodata$KnockDown)
-RNAi = RNAi[RNAi != "ctrl"]
-
 #### Creation of a summary table with all the data ####
 print("Summary table creation")
-
-# Creation of a list contain the table used for the analysis 
-DEtab_list = list()
-for (R in RNAi){
-  if (R == "CTIP"){
-    DEtab_list = c(DEtab_list, CTIP_early = list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_EARLY.tab"), header=T,sep="\t",quote='')))
-    DEtab_list = c(DEtab_list, CTIP_inter = list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_INTER.tab"), header=T,sep="\t",quote='')))
-  }else {
-    DEtab_list = c(DEtab_list, list(read.table(paste0(path,"DESeq/",R,"/DEgenes_",condition,"_LATE.tab"), header=T,sep="\t",quote='')))
-  }
-}
-names(DEtab_list)[3:length(names(DEtab_list))]= RNAi[-1]
 
 # Merge table of deregulation and annotation information
 summary_tab = annotation
@@ -76,8 +60,8 @@ selection = sort(selection)
 select_ID =c()
 name = c()
 for( i in 1:length(selection)){
-  select_ID = c(select_ID,annotation$ID[grep(selection[i],annotation$NAME, ignore.case = T)]) 
-  name = c(name,annotation$NAME[grep(selection[i],annotation$NAME, ignore.case = T)]) 
+  select_ID = c(select_ID,annotation$ID[grep(selection[i],annotation$Name, ignore.case = T)]) 
+  name = c(name,annotation$Name[grep(selection[i],annotation$Name, ignore.case = T)]) 
 }
 names(select_ID)=name
 rm(selection,i,name)
@@ -91,6 +75,7 @@ ExpressionProfils(type = "vst",
 ### Comparison of deregulated genes lists ####
 
 source("5-1_Filters_candidats.R") # Comparison filter
+UP_PKX.DOWN_C = Crossinglist(UP_filter,DOWN_filter)
 
 ##### Venn Diagram ####
 print("Venn Diagramm in progress")
@@ -137,7 +122,7 @@ draw.pairwise.venn(area1 = length(a1),
 dev.off()
 
 
-##### Repartition of the gene expression cluster depending on the filter ####
+##### Expression cluster representation depending on the filter ####
 print("Profiles repartition barplot")
 save_path2 = paste0(save_path,"Barplot_profil/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
@@ -147,27 +132,48 @@ Profile_Barplot(DOWN_filter, "DOWN_C", save_path2)
 Profile_Barplot(UP_PKX.DOWN_C, "UPpkx-DOWNc", save_path2, w= 40)
 Profile_Barplot(DE_genes, "Candidates", save_path2)
 
-# Statistic on enrichment
+# Statistic of the enrichment
 my_data = cbind(annotation$ID, annotation$EXPRESSION_PROFIL)
 
 sink(paste0(save_path2,"/Enrichissement_profile_UP_PKX.txt"))
 Enrichment_padj(UP_filter, my_data)
-
+sink()
 sink(paste0(save_path2,"/Enrichissement_profile_DOWN_C.txt"))
 Enrichment_padj(DOWN_filter, my_data)
-
+sink()
 sink(paste0(save_path2,"/Enrichissement_profile_Candidates.txt"))
 Enrichment_padj(DE_genes, my_data)
 sink()
 
 
-##### Repartition of genes with IES among the filters ####
+##### IES+ genes among the filters ####
 print("Gene with IES repartition barplot")
 save_path2 = paste0(save_path,"Barplot_IES/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
 
-# Sur UP PGM KU80c & XRCC4
-IES_Barplot(UP_PKX, save_path2, "UP")
+IES_Barplot(UP_filter, "UP_PKX", save_path2, w= 14)
+IES_Barplot(DOWN_filter, "DOWN_C", save_path2)
+IES_Barplot(UP_PKX.DOWN_C, "UPpkx-DOWNc", save_path2, w= 40)
+IES_Barplot(DE_genes, "Candidates", save_path2)
+IES_Barplot(AUTOGAMY, "ExpressionProfile", save_path2, w= 14)
+
+# Statistic of the enrichment
+my_data = cbind(annotation$ID, annotation$NB_IES)
+my_data[my_data[,2] != 0,2] = "IES+"
+my_data[my_data[,2] == 0,2] = "IES-"
+
+sink(paste0(save_path2,"/Enrichissement_IES_UP_PKX.txt"))
+Chi2_pvalue(UP_filter, my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_IES_DOWN_C.txt"))
+Chi2_pvalue(DOWN_filter, my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_IES_Candidates.txt"))
+Chi2_pvalue(DE_genes, my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_IES_ExpProfile.txt"))
+Chi2_pvalue(DE_genes, my_data)
+sink()
 
 #### Print R status ####
 sink(paste0(save_path,"/sessionInfo.txt"))

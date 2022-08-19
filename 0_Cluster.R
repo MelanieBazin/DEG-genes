@@ -1,14 +1,11 @@
-###################
-#### Definition of analyse variable
-###################
+####
+# Definition of analyse variable
+####
 options(stringsAsFactors = FALSE)
 library(stringr)
 
-# Formatting the table with gene annotation
+# Open the table with gene annotation
 annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
-annotation = annotation[,c(1,3:5,13,6:11,2)]
-rownames(annotation)=annotation$ID
-
 
 #### Definition of the time course that will be analysed together ####
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))

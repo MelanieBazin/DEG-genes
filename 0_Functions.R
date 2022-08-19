@@ -1,9 +1,17 @@
 ####
-# Homemade function used in the analysis ####
+# Homemade function used in the analysis
 ####
 options(stringsAsFactors = FALSE)
-library("stringr")
+library(stringr)
+library(RColorBrewer)
 library(dendextend)
+library(FactoMineR)
+library(factoextra)
+library(ggplot2)
+library(gtools)
+library(ggrepel)
+library(ggbiplot)
+
 
 ###### Table creation/modification ####
 # Merge count table in one table to be analysed by DESeq2
@@ -63,34 +71,6 @@ MeanTabCalculation <- function(data_tab, infodata){
   colnames(mean_data_tab) = unique(infodata$Condition)
   
   return(mean_data_tab)
-  
-}
-
-OrderColumn <- function(data_tab, infodata){
-  colum_order_ctrl = c()
-  colum_order_rnai = c()
-  
-  infodata$RNAi = str_remove_all(str_split_fixed(infodata$Names, "_T", n=2)[,1], "_Veg")
-  
-  for (r in unique(infodata$RNAi)){
-    rnai_position = str_which(colnames(data_tab),r)
-    Timing = infodata$Timing[grep(r, infodata$Names)]
-    Timing = sub("Veg","-1", Timing)
-    
-    cluster_position = rnai_position[order(as.numeric(Timing))]
-    
-    
-    if(infodata$KnockDown[rnai_position[1]] == "ctrl"){
-      colum_order_ctrl = c(colum_order_ctrl, cluster_position)
-    }else{
-      colum_order_rnai = c(colum_order_rnai, cluster_position)
-    }
-  }
-  
-  colum_order = c(colum_order_ctrl, colum_order_rnai)
-  ordered_tab = data_tab[,colum_order]
-  
-  return(ordered_tab)
   
 }
 
@@ -178,7 +158,8 @@ Crossinglist <- function (list1, list2){
   return(LIST)
 }
 
-#### All data graphical analysis ####
+
+#### Data exploration ####
 # Define the color vector that will be used
 Color_type <- function(data_tab, infodata, type){
   if(type == "methods"){
@@ -210,12 +191,6 @@ Color_type <- function(data_tab, infodata, type){
 }
 
 # PCA analysis using ggplot representation
-library(FactoMineR)
-library("factoextra")
-library(ggplot2)
-library(gtools)
-library(ggrepel)
-library(ggbiplot)
 PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main,  max_dim=3,barplot_max_dim=3,
                                image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", h = 5, w = 5,
                                label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, 
@@ -310,8 +285,6 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   return(gp)
 }
 
-
-
 # Boxplot of the reads count for each time point of each time course
 CountBoxplot <- function (tab, type, color = "lightgray"){
   boxplot(log(tab + 1), ylab = "count values (log scale)",
@@ -330,8 +303,8 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
        cex = 0.5)
 }
 
-# Draw the expression profiles for al or selected genes in all time courses
-library("RColorBrewer")
+# Draw the expression profiles for all or selected genes in all time courses
+
 ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = NULL, rnai = NULL, infodata = NULL){
   
   if (type  == "vst"){
@@ -425,10 +398,10 @@ ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = N
   dev.off()
 }
 
-#### Deregulated genes graphical analysis ####
+# Creation of pil-chart representing the proportion of each expression cluster for lists of genes
 Profile_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
   
-  # Create a table with the number of genes in each cathegory
+  # Create a table with the number of genes in each category
   profil = as.data.frame(table(annotation$EXPRESSION_PROFIL))
   colnames(profil) = c("Expression_cluster", "ALL")
   for (n in names(filtre_list)){
@@ -448,7 +421,7 @@ Profile_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
   profil_prct = t(t(profil)/apply(profil, 2, sum)*100)
   profil_prct = profil_prct[names(profile_color),] # reorder the lines
   
-  # Creation a a piled-barplot with the different graphs
+  # Creation of a piled-barplot with the different expression profile proportion
   pdf(paste0(save_path,"Profils_barplot_",nom,"_prct.pdf"),width = w, height = h)
   barplot(as.matrix(profil_prct),
           col = profile_color,
@@ -457,19 +430,22 @@ Profile_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
           names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
   dev.off()
   
+  # Add a file with the legend
   pdf(paste0(save_path,"Profils_barplot_legends.pdf"),width = 4.3, height = 5.3)
   plot.new()
   legend("center",
          x.intersp=0.1,
-         legend = rownames(profil),
-         fill = profile_color,
+         legend = rev(rownames(profil)),
+         fill = rev(profile_color),
          bty = "n")
   dev.off()
   
 }
 
-
-IES_Barplot <- function(filtre_list, path, nom){
+# Creation of pil-chart representing the proportion of genes with IES in lists of genes
+IES_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
+  
+  # Create a table with the number of genes in each category
   profil = as.data.frame(c(sum(annotation$NB_IES != 0), 
                            sum(annotation$NB_IES == 0)), 
                          row.names = c("IES+", "IES-"))
@@ -479,173 +455,40 @@ IES_Barplot <- function(filtre_list, path, nom){
     profil = cbind(profil, tab)
     
   }
-  
   colnames(profil) = c("ALL", names(filtre_list))
+  write.table(profil, paste0(save_path, "IES_tab_",nom,".tab"), sep="\t",row.names=T,quote=F)
   
+  # Transform the table in percentages
+  profil_prct = t(t(profil)/apply(profil, 2, sum)*100)
   
-  ### Histogramme empilés
-  pdf(paste0(path,"Profils_barplot",nom,".pdf"),width = 550, height = 500)
-  barplot(as.matrix(profil),
-          col = colors,
-          main = "Profil repartition",
-          ylab = "gene nb")
-  
-  legend("topright",
-         legend = rownames(profil),
-         fill = colors,
-         bty = "n")
-  dev.off()
-  
-  # Création d'un tableau avec ses pourcentages
-  profil_prct = profil
-  for (n in 1:ncol(profil)){
-    profil_prct[,n] = profil_prct[,n]/sum(profil[,n])*100
-  }
-  
-  pdf(paste0(path,"Profils_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
+  # Creation of a piled-barplot with the different proportion of genes with IES
+  pdf(paste0(save_path,"IES_barplot_",nom,"_prct.pdf"),width = w, height = h)
   barplot(as.matrix(profil_prct),
-          col = colors,
+          col = c("navyblue","snow2"),
           main = "Profil repartition",
           ylab = "% of genes",
           names.arg = paste(colnames(profil_prct), apply(profil, 2, sum), sep = "\n"))
   dev.off()
-}
-
-
-###### Motif graphical analysis ######
-BoxnBarpolt_repartion <- function(LIST, path){
-  for(i in 1:ncol(LIST[[1]])){
-    pdf(paste0(path, colnames(LIST[[1]][i]),".pdf"))
-    boxplot(c(LIST[[1]][i],LIST[[2]][i]), 
-            names = c("Avec_Motif","Sans_motif"),
-            main =  colnames(LIST[[1]][i]),
-            outline = F)
-    dev.off()
-    
-    pdf(paste0(path, colnames(LIST[[1]][i]),"_avecMotif.pdf"))
-    hist(LIST[[1]][[i]],
-         main =  paste0(colnames(LIST[[1]][i]),"_avecMotif"),
-         breaks = 50,
-         xlim = c(1,8))
-    abline(v = mean(LIST[[1]][[i]]), col = "grey", lty = "dashed")
-    abline(v = median(LIST[[1]][[i]]), col = "red", lty = "dashed")
-    dev.off()
-    
-    pdf(paste0(path, colnames(LIST[[2]][i]),"_sansMotif.pdf"))
-    hist(LIST[[2]][[i]],
-         main =  paste0(colnames(LIST[[2]][i]),"_sansMotif"),
-         breaks = 50,
-         xlim = c(1,8))
-    abline(v = mean(LIST[[2]][[i]]), col = "grey", lty = "dashed")
-    abline(v = median(LIST[[2]][[i]]), col = "red", lty = "dashed")
-    dev.off()
-  }
-}
-
-PositionHistogram <- function (filtre_list, path, name){
-  pos_list = list()
-  for (n in names(filtre_list)){
-    filtre = filtre_list[[n]]
-    if (length(filtre) != 0){
-      position = prom_motif$START[is.element(prom_motif$ID, filtre)]
-      pos_list = c(pos_list, list(position) ) 
-      pdf(paste0(path, "Histogramme_STARTposition_", n,".pdf"))
-      hist(position, breaks = 75, xlim = c(-150,0), axes = F,
-           xlab = paste("Distance from", debut),
-           ylab = "Nb of motif",
-           main = n)
-      axis(2)
-      axis(1, at = seq(-150,0,10))
-      dev.off()
-    }
-  }
-  pdf(paste0(path, "Boxplot_STARTposition_", name,".pdf"))
-  names(pos_list) = names(filtre_list)
-  boxplot(pos_list)
-  dev.off()
-}
-
-
-
-PilBarplot <- function(strand_tab,filtre_list, nom, path, colors, row_order){
   
-  tab_stand = as.data.frame(table(strand_tab[,2]))
-  for (n in names(filtre_list)){
-    tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[n]])),2]))
-    tab_stand = merge(tab_stand, tab, by = "Var1", all = T)
-    
-  }
-  
-  rownames(tab_stand) = tab_stand$Var1
-  tab_stand = tab_stand[,-1]
-  colnames(tab_stand) = c("ALL", names(filtre_list))
-  tab_stand = tab_stand[row_order,]
-  
-  ### Histogramme empilés
-  pdf(paste0(path,"Pil_barplot_",nom,".pdf"),width = 550, height = 500)
-  barplot(as.matrix(tab_stand),
-          col = colors)
-  legend("topright",
-         legend = rev(rownames(tab_stand)),
-         fill = rev(colors),
+  # Add a file with the legend
+  pdf(paste0(save_path,"IES_barplot_legends.pdf"),width = 4.3, height = 5.3)
+  plot.new()
+  legend("center",
+         x.intersp=0.1,
+         legend = rev(rownames(profil)),
+         fill = rev(c("navyblue","snow2")),
          bty = "n")
   dev.off()
-  
-  # Création d'un tableau avec ses pourcentages
-  profil_prct = tab_stand
-  for (n in 1:ncol(tab_stand)){
-    profil_prct[,n] = profil_prct[,n]/sum(tab_stand[,n])*100
-  }
-  
-  pdf(paste0(path,"Pil_barplot_",nom,"_prct.pdf"),width = 550, height = 500)
-  barplot(as.matrix(profil_prct),
-          col = colors,
-          main = "Profil repartition",
-          ylab = "% of genes",
-          names.arg = paste(colnames(profil_prct), apply(tab_stand, 2, sum), sep = "\n"))
-  dev.off()
 }
 
-EnrichmentBarplot <- function (strand_tab, filtre_list, names, path, colors){
-  
-  tab_stand = as.data.frame(table(strand_tab[,2]))
-  for(up in names(filtre_list)){
-    tab = as.data.frame(table(strand_tab[which(is.element(strand_tab$ID, filtre_list[[up]])),2]))
-    tab = merge(tab_stand, tab, by = "Var1")
-    rownames(tab) = tab[,"Var1"]
-    tab = tab[,-1]
-    colnames(tab) = c("ALL",up)
-    
-    tab_prct = tab
-    tab_prct[,"ALL"] = tab[,"ALL"]/length(strand_tab$ID)*100
-    for (n in rownames(tab)){
-      tab_prct[n,2] = tab[n,2]/tab[n,"ALL"]*100
-    }
-    
-    
-    pdf(paste0(path,"Enrichment_barplot_",names,"_",up,".pdf"),width = 800, height = 500)
-    barplot(t(as.matrix(tab_prct)),
-            beside = T,
-            main = paste("Profil repartition of", up ),
-            ylab = "% of genes",
-            ylim = c(0,60),
-            col = c("grey", "indianred2"),
-            names.arg = sub(" "," \n ",rownames(tab)))
-    
-    legend("topleft",
-           legend = paste0(colnames(tab)," (", apply(tab, 2, sum)," genes)"),
-           fill = c("grey", "indianred2"),
-           bty = "n")
-    dev.off()
-  }
-}
 
 #### Statistics ####
-
-# Calculate the enrichment in a profile of a gene list
+# Calculate the enrichment in a profile of a gene list with correction for multiple tests
 Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
   data_tab = as.data.frame(data_tab)
   colnames(data_tab) = c("ID", "PROFIL")
+  
+  TAB_list = list()
   
   print("Table of all data")
   print(table(data_tab$PROFIL))
@@ -702,18 +545,73 @@ Enrichment_padj <- function(LIST, data_tab, nb_simulation = 1000){
     }
     
     names(pval_adj) = Profils
-    pval_adj = format(pval_adj, scientific = T, digit = 3)
+    pval_adj = format(pval_adj, scientific = T, digit = 5)
     
     print(l)
     freq = as.data.frame(table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))]))
-    tab = cbind(as.data.frame(pval_adj),as.numeric(pval_adj) < 0.05)
+    tab = cbind(as.data.frame(pval_adj),as.numeric(pval_adj) < 0.01)
     tab = merge(freq, tab, by.x = "Var1", by.y = 0)
     
     rownames(tab) = tab$Var1
     tab = tab[,-1]
-    colnames(tab) = c("nb_event", "pval_adj", "pval_adj < 0.05")
+    colnames(tab) = c("nb_event", "pval_adj", "pval_adj < 0.01")
+    print(tab)
+    
+    TAB_list = c(TAB_list,list(tab))
+  }
+  
+  names(TAB_list) = names(LIST)
+  
+  return(TAB_list)
+}
+
+# Calculate the enrichment in a profile of a gene list
+Chi2_pvalue <- function(LIST, data_tab){
+  data_tab = as.data.frame(data_tab)
+  colnames(data_tab) = c("ID", "PROFIL")
+  
+  print("Table of all data")
+  print(table(data_tab$PROFIL))
+  
+  Profils = unique(data_tab$PROFIL)
+  all = length(data_tab$ID)
+  for (l in names(LIST)){
+    ## Calculate the p-value
+    pval = c()
+    signif = c()
+    nb_genes = length(LIST[[l]][which(is.element(LIST[[l]], data_tab$ID))])
+    for (p in Profils){
+      nb_profil = sum(data_tab$PROFIL == p)
+      nb_genes_profil = length(LIST[l][which(is.element(LIST[[l]], data_tab$ID[data_tab$PROFIL == p]))])
+      
+      # Format the data for chi2
+      data_mat = matrix(data=NA, ncol=2, nrow=2)
+      data_mat[ , 1] = c(nb_genes_profil, nb_profil)
+      data_mat[ , 2] = c(nb_genes-nb_genes_profil , all-nb_profil)
+      rownames(data_mat) = c("IN_LIST", "ALL")
+      colnames(data_mat) = c("With_profile","Without_profile")
+      
+      # Calculate the p-value
+      chi2 = chisq.test(data_mat, correct = F)
+      
+      pval=c(pval, chi2$p.value)
+      
+      # Add stars to the significant value
+      if(chi2$p.value < 1e-200) {sign="****"
+      }else if(chi2$p.value < 1e-100) {sign="***"
+      }else if(chi2$p.value < 1e-20) {sign="**"
+      }else if(chi2$p.value < 1e-10) {sign="*"
+      }else {sign="ns"}
+      signif = c(signif, sign)
+      
+    }
+    names(pval) = Profils
+    pval = format(pval, scientific = T, digit = 5)
+    nb = table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))])
+    tab = t(rbind(nb,rbind(pval,signif)))
+            
+    print(l)
     print(tab)
     
   }
 }
-

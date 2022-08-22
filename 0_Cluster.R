@@ -5,7 +5,7 @@ options(stringsAsFactors = FALSE)
 library(stringr)
 
 # Open the table with gene annotation
-annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
+annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
 
 #### Definition of the time course that will be analysed together ####
 tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))

@@ -53,7 +53,7 @@ dir.create(save_path2 ,recursive=T,showWarnings=F)
 # Motif among the genes of interest
 a1 = DE_genes$UPpkx_Dc
 a2 = AUTOGAMY$`Intermediate peak`
-a3 = prom_motif$ID
+a3 = unique(prom_motif$ID)
 
 pdf(paste0(save_path2,"VennProp_UPpkx.pdf"))
 grid.newpage() 

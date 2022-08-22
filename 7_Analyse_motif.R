@@ -40,7 +40,7 @@ prom = prom[!duplicated(prom$ID),]
 nb_selected = round(length(candidats)*enrichment_STREME)
 p_value = round(prom$p.value[nb_selected], digit = 7)
 
-save_path = paste0(save_path,"/p-value_",p_value,"/")
+save_path = paste0(save_path,"p-value_",p_value,"/")
 
 prom_motif = prom_motif_raw[prom_motif_raw$p.value <= p_value,]
 prom_motif = merge(annotation[,c("ID","Name", "Aliases")], prom_motif[,-(1:2)], by = "ID")
@@ -120,7 +120,13 @@ dev.off()
 # Stat of the enrichment
 my_data = cbind(annotation$ID, is.element(annotation$ID, MOTIF$uniqMOTIF))
 
-sink(paste0(save_path2,"/Chi2_IES_candidates.txt"))
+sink(paste0(save_path2,"Chi2_candidates_vs_ALL.txt"))
+Chi2_pvalue(ForAnalysis, my_data)
+sink()
+
+my_data = my_data[which(is.element(my_data[,1], AUTOGAMY$`Intermediate peak`)),]
+
+sink(paste0(save_path2,"Chi2_candidates_vs_InterP.txt"))
 Chi2_pvalue(ForAnalysis, my_data)
 sink()
 

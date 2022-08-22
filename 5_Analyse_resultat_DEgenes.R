@@ -28,30 +28,6 @@ data_mean = read.table(paste0(path, condition,"_MEANexpression_table_vst.tab"))
 save_path = paste0(path, "Analyse/")
 dir.create(save_path,recursive=T,showWarnings=F)
 
-#### Creation of a summary table with all the data ####
-print("Summary table creation")
-
-# Merge table of deregulation and annotation information
-summary_tab = annotation
-for (cond in names(DEtab_list)){
-  tab = DEtab_list[[cond]]
-  mini_tab = cbind(tab$ID, tab$log2FoldChange, tab$padj, tab$REGULATION)
-  colnames(mini_tab) = c("ID", paste(cond, c("log2FC", "padj", "REG"), sep = "_"))
-  summary_tab = merge(summary_tab, mini_tab, by = "ID", all = T)
-}
-rm(mini_tab,cond)
-
-# Add the information of turoID data (Guérinau et al.2020)
-TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")
-TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
-
-colnames(TurboPGM) = c("PROTEIN_NAME", paste0("TurboPGM_", c("log2FC", "-log10pval")))
-summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
-colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
-summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
-
-write.table(summary_tab,paste0(path,"Summary_",condition,".tab"), sep = "\t", row.names = F)
-
 #### Draw expression profile for a set of genes ####
 selection = c("Ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", 
               "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
@@ -71,6 +47,7 @@ ExpressionProfils(type = "vst",
                   path = path,
                   name = "forRNAi",
                   select_ID = select_ID)
+
 
 ### Comparison of deregulated genes lists ####
 
@@ -105,7 +82,7 @@ draw.triple.venn(area1 = length(a1),
                  scaled = TRUE)
 dev.off()
 
-# Crossing LATE UP-deregulated genes with DOWN-dergulated genes in CTIP time course
+# Crossing LATE UP-deregulated genes with DOWN-deregulated genes in CTIP time course
 a1 = UP_filter$UP_PKX
 a2 = DOWN_filter$DOWN_CTIP
 
@@ -129,7 +106,7 @@ dir.create(save_path2 ,recursive=T,showWarnings=F)
 
 Profile_Barplot(UP_filter, "UP_PKX", save_path2, w= 14)
 Profile_Barplot(DOWN_filter, "DOWN_C", save_path2)
-Profile_Barplot(UP_PKX.DOWN_C, "UPpkx-DOWNc", save_path2, w= 40)
+Profile_Barplot(UP_PKX.DOWN_C, "UPpkx-DOWNc", save_path2, w= 30)
 Profile_Barplot(DE_genes, "Candidates", save_path2)
 
 # Statistic of the enrichment
@@ -162,18 +139,40 @@ my_data = cbind(annotation$ID, annotation$NB_IES)
 my_data[my_data[,2] != 0,2] = "IES+"
 my_data[my_data[,2] == 0,2] = "IES-"
 
-sink(paste0(save_path2,"/Enrichissement_IES_UP_PKX.txt"))
+sink(paste0(save_path2,"/Chi2_IES_UP_PKX.txt"))
 Chi2_pvalue(UP_filter, my_data)
 sink()
-sink(paste0(save_path2,"/Enrichissement_IES_DOWN_C.txt"))
+sink(paste0(save_path2,"/Chi2_IES_DOWN_C.txt"))
 Chi2_pvalue(DOWN_filter, my_data)
 sink()
-sink(paste0(save_path2,"/Enrichissement_IES_Candidates.txt"))
+sink(paste0(save_path2,"/Chi2_IES_Candidates.txt"))
 Chi2_pvalue(DE_genes, my_data)
 sink()
-sink(paste0(save_path2,"/Enrichissement_IES_ExpProfile.txt"))
-Chi2_pvalue(DE_genes, my_data)
+sink(paste0(save_path2,"/Chi2_IES_ExpProfile.txt"))
+Chi2_pvalue(AUTOGAMY, my_data)
 sink()
+
+#### Creation of a summary table with all the data ####
+# Merge table of deregulation and annotation information
+summary_tab = annotation
+for (cond in names(DEtab_list)){
+  tab = DEtab_list[[cond]]
+  mini_tab = cbind(tab$ID, tab$log2FoldChange, tab$padj, tab$REGULATION)
+  colnames(mini_tab) = c("ID", paste(cond, c("log2FC", "padj", "REG"), sep = "_"))
+  summary_tab = merge(summary_tab, mini_tab, by = "ID", all = T)
+}
+rm(mini_tab,cond)
+
+# Add the information of turoID data (Guérinau et al.2020)
+TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")
+TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
+
+colnames(TurboPGM) = c("PROTEIN_NAME", paste0("TurboPGM_", c("log2FC", "-log10pval")))
+summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
+colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
+summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
+
+write.table(summary_tab,paste0(path,"Summary_",condition,".tab"), sep = "\t", row.names = F)
 
 #### Print R status ####
 sink(paste0(save_path,"/sessionInfo.txt"))

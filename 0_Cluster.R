@@ -35,7 +35,8 @@ cluster = list(
 
 
 #### Definition of the different color set ####
-cluster_color = c("VEG" = "darkorange1",
+# "darkorange1"
+cluster_color = c("VEG" = "mediumpurple4",
                   "EARLY" = "deepskyblue",
                   "INTER" = "chartreuse3",
                   "LATE" = "red")

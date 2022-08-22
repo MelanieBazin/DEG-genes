@@ -29,8 +29,9 @@ save_path = paste0(path, "Analyse/")
 dir.create(save_path,recursive=T,showWarnings=F)
 
 #### Draw expression profile for a set of genes ####
-selection = c("Ku","PGM","NOWA","PTIWI","mt","TFIIS4","Spo11","Mre11","CER","Rad51", 
-              "Lig", "EZL", "SPT", "DCL", "CtIP", "XRCC4", "PDSG2", "PolX", "CAF1")
+selection = c("NOWA","SPT", "PTIWI","DCL","mt","TFIIS4","Spo11", "CtIP" ,"Mre11",
+              "CER","Rad51", "Ku","PGM", "XRCC4","Lig",
+              "EZL","EED", "EAP","RF" ,"SUZ", "CAF1")
 selection = sort(selection)
 
 select_ID =c()
@@ -124,7 +125,6 @@ sink()
 
 
 ##### IES+ genes among the filters ####
-print("Gene with IES repartition barplot")
 save_path2 = paste0(save_path,"Barplot_IES/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
 
@@ -152,6 +152,18 @@ sink(paste0(save_path2,"/Chi2_IES_ExpProfile.txt"))
 Chi2_pvalue(AUTOGAMY, my_data)
 sink()
 
+#### GO therm analysis ####
+save_path2 = paste0(path,"GO_therm/")
+dir.create(save_path2 ,recursive=T,showWarnings=F)
+
+GO_therm = read.table(paste0(save_path2,"resultsGO_BioMart2.txt"), header = T, sep = "\t")
+
+source("5-2_GO_therm_curation.R") # Hand curation of GO therm
+write.table(GO_therm, paste0(save_path2,"resultsGO_BioMart2_treated.txt"), sep = "\t")
+
+GO_tab = table(GO_therm$Function)
+write.table(GO_tab, paste0(save_path2,"resultsGO_BioMart2_table.txt"), sep = "\t")
+
 #### Creation of a summary table with all the data ####
 # Merge table of deregulation and annotation information
 summary_tab = annotation
@@ -163,6 +175,12 @@ for (cond in names(DEtab_list)){
 }
 rm(mini_tab,cond)
 
+write.table(summary_tab,paste0(path,"Summary_",condition,".tab"), sep = "\t", row.names = F)
+
+# Extracted the raw corresponding to the candidates
+candidats_tab = summary_tab[which(is.element(summary_tab$ID, candidats)),]
+write.table(summary_tab,paste0(path,"Summary-candidats_",condition,".tab"), sep = "\t", row.names = F)
+
 # Add the information of turoID data (Guérinau et al.2020)
 TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",header=T,sep="\t")
 TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
@@ -172,7 +190,7 @@ summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
 colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
 summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
 
-write.table(summary_tab,paste0(path,"Summary_",condition,".tab"), sep = "\t", row.names = F)
+write.table(summary_tab,paste0(path,"Summary-turbo_",condition,".tab"), sep = "\t", row.names = F)
 
 #### Print R status ####
 sink(paste0(save_path,"/sessionInfo.txt"))

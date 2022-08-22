@@ -1,12 +1,5 @@
 options(stringsAsFactors = FALSE)
 
-path = "./Analyse/2022-02-21_Analyse_DESeq2_FC-1.5_pval-0.05/analyseDE/"
-file = paste0(path,"Motif/From_TSS_IN_MAC/UP_CTIP_inter/FIMO_1E-4/p-value_1.4e-05/Summary2_analyseDE.tab")
-summary = read.table(file, header = T, sep = "\t")
-
-file = paste0(path,"GO_therm/resultsGO_BioMart2.txt")
-GO_therm = read.table(file, header = T, sep = "\t")
-
 Function = rep("", nrow(GO_therm))
 GO_therm$Function = Function
 

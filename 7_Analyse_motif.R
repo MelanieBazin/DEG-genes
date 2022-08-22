@@ -294,7 +294,7 @@ nb_motif = as.data.frame(nb_motif)
 colnames(nb_motif)= c("ID", "Motif")
 summary_tab = merge(summary_tab, nb_motif, by = "ID", all = T)
 
-# Addition of the stard of the motif
+# Addition of the motif strand
 strand_tab = matrix(ncol = 2, nrow = 0, dimnames = list(NULL, c("ID", "Motif_STRAND")))
 for (S in names(MOTIF_strand)){
   tab = rep(S, length(MOTIF_strand[[S]]))
@@ -310,6 +310,9 @@ summary_tab$Pos = is.element(summary_tab$ID, MOTIF_pos$uniqMOTIF)
 colnames(summary_tab)[ncol(summary_tab)] = paste0("Motif_",a,"_",b)
 
 write.table(summary_tab,paste0(save_path,"/Summary2_",condition,".tab"), sep = "\t", row.names = F) 
+
+summary_tab = summary_tab[which(is.element(summary_tab$ID, candidats)),]
+write.table(summary_tab,paste0(save_path,"/Summary2-candidats_",condition,".tab"), sep = "\t", row.names = F) 
 
 #### Print R status ####
 sink(paste0(save_path,"/sessionInfo.txt"))

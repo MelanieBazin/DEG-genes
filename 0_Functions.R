@@ -142,6 +142,35 @@ CreatInfoData <- function(countdata, conditions, rnai_list, cluster, Timing = NU
 }
 
 
+# Reordering the table by time and time course
+OrderColumn <- function(data_tab, infodata){
+  colum_order_ctrl = c()
+  colum_order_rnai = c()
+  
+  infodata$RNAi = str_remove_all(str_split_fixed(infodata$Names, "_T", n=2)[,1], "_Veg")
+  
+  for (r in unique(infodata$RNAi)){
+    rnai_position = str_which(colnames(data_tab),r)
+    Timing = infodata$Timing[grep(r, infodata$Names)]
+    Timing = sub("Veg","-1", Timing)
+    
+    cluster_position = rnai_position[order(as.numeric(Timing))]
+    
+    
+    if(infodata$KnockDown[rnai_position[1]] == "ctrl"){
+      colum_order_ctrl = c(colum_order_ctrl, cluster_position)
+    }else{
+      colum_order_rnai = c(colum_order_rnai, cluster_position)
+    }
+  }
+  
+  colum_order = c(colum_order_ctrl, colum_order_rnai)
+  ordered_tab = data_tab[,colum_order]
+  
+  return(ordered_tab)
+  
+}
+
 #### List modification ####
 # Cross two list
 Crossinglist <- function (list1, list2){

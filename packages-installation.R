@@ -44,6 +44,10 @@ colnames(annotation)[grep("Number.of.IESs.within.gene",colnames(annotation))] = 
 colnames(annotation)[grep("Autogamy.time.course.expression.group",colnames(annotation))] = "EXPRESSION_PROFIL"
 annotation = annotation[,c(12,1:4,11,5:10)]
 
+write.table(annotation, "./DATA/My_annotation.tab", sep = "\t", row.names = F)
+
+# Add private annotation
+
 annotation$Name[grep("PTET.51.1.G0720019",annotation$ID)]="LIG4b"
 
 annotation$Name[grep("PTET.51.1.G0640198",annotation$ID)]="Mre11a?"

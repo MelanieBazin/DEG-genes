@@ -29,10 +29,11 @@ for (deg in c("DOWN", "UP")){
     MyData = read.table(paste0(path, "DESeq/EZL1/DEgenes_HiSeqvsNextSeq_",timing,".tab"), sep = "\t", header = T, quote = "")
     
     sign_MyData = MyData[ !is.na(MyData$padj) & MyData$padj < frapp_pvalue ,]
-    sign_MyData = sign_MyData[sign_MyData$log2FoldChange > log2(frapp_FC) | sign_MyData$log2FoldChange < log2(1/frapp_FC),]
+    sign_MyData = sign_MyData[sign_MyData$log2FoldChange > log2(frapp_FC) | 
+                                sign_MyData$log2FoldChange < log2(1/frapp_FC),]
     
     # Save the merge
-    CrossData = merge(sign_MyData, sign_Frapporti, by = "ID")
+    CrossData = merge(sign_MyData, sign_Frapporti, by = "ID", all = T)
     write.table(CrossData, paste0(save_path, "Common_",deg,"_genes_", timing,".tab"), sep = "\t")
     
     #### Splitting UP and DOWN deregualted genes ####
@@ -49,17 +50,19 @@ for (deg in c("DOWN", "UP")){
     #### Graphical data comparison ####
     # Venn diagram
     pdf(paste0(save_path,"Venn_",timing,"_sig",deg,".pdf"))
+    a1 = sign_MyData$ID
+    a2 = sign_Frapporti$ID
     grid.newpage() 
-    draw.pairwise.venn(area1 = length(sign_MyData$ID),
-                       area2 = length(sign_Frapporti$ID),
-                       cross.area = length(intersect(sign_MyData$ID, sign_Frapporti$ID)),
+    draw.pairwise.venn(area1 = length(a1),
+                       area2 = length(a2),
+                       cross.area = length(intersect(a1, a2)),
                        category = c("My_data", "Frapporti"),
                        lwd = rep(0.5, 2),
                        fill = c("dodgerblue", "gold1"),
                        alpha = rep(0.5, 2),
                        scaled = TRUE)
     dev.off()
-
+    
   }
   
 }
@@ -79,7 +82,7 @@ for (d in names(diff_ID)){
   
   # Add the profile information to the normalized expression table
   rownames(annotation) = annotation$ID
-  profil = annotation[, c("NAME" , "EXPRESSION_PROFIL")]
+  profil = annotation[, c("Name" , "EXPRESSION_PROFIL")]
   profil = profil[rownames(diff_My_Frapp),]
   
   diff_My_Frapp = merge(profil, diff_My_Frapp, by= 0)
@@ -95,7 +98,7 @@ for (d in names(diff_ID)){
     data = diff_My_Frapp[diff_My_Frapp$EXPRESSION_PROFIL == p,]
     data = data[,which(is.element(colnames(data),colnames(data_tab)))]
     data = as.matrix(data)
-
+    
     # For each time course
     for (r in c("ICL7", "EZL1")){
       data_box = data[,grep(r,colnames(data))]

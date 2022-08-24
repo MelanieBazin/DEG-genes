@@ -39,13 +39,13 @@ for (condition in names(rnai_list)){
   dir.create(graph_path,recursive=T,showWarnings=F)
   
   # Boxplot visualization of raw data (no ComBat-seq correction nor normalisation)
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
+  countdata = read.table(paste0("./DATA/For_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
   pdf(paste0(graph_path,"Comptage_bolxplot_uncorrected.pdf"))
     CountBoxplot(countdata, "row", color = c(rep("darkolivegreen2",28), rep("chartreuse4",21)))
   dev.off()
   
   # Open files with or without ComBat-seq correction
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_corrected.tab"), sep="\t",row.names=1,header =  T)
+  countdata = read.table(paste0("./DATA/For_DESeq/",condition ,"_expression_table_corrected.tab"), sep="\t",row.names=1,header =  T)
   
   # Generation the appropriate infodata
   infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)
@@ -104,10 +104,10 @@ for (condition in names(rnai_list)){
     print(paste(condition, ": Definition of deregulated genes in", RNAi, "time course" ))
     
     # Saving folder creation
-    img_dir=paste0(path,"/DESeq/",RNAi,"/Images/")
+    img_dir=paste0(path,"DESeq/",RNAi,"/Images/")
     dir.create(img_dir,recursive=T,showWarnings=F)
     
-    res_dir=paste0(path,"/DESeq/",RNAi,"/")
+    res_dir=paste0(path,"DESeq/",RNAi,"/")
     dir.create(res_dir, recursive=T,showWarnings=F)
     
     # For each time course
@@ -124,7 +124,7 @@ for (condition in names(rnai_list)){
     frapp_FC = 2
     frapp_pvalue = 0.05
     
-    save_path = paste0(path,"/Frapporti_Comparison_FC-",frapp_FC, "_pval-",frapp_pvalue,"/")
+    save_path = paste0(path,"Frapporti_Comparison_FC-",frapp_FC, "_pval-",frapp_pvalue,"/")
     dir.create(save_path,recursive=T,showWarnings=F)
     
     source("4-3_Comparison_Frapporti.R")

@@ -14,7 +14,6 @@ source("0_Functions.R") # Library of homemade function
 
 # Access to the files folder
 date = Sys.Date()
-date = "2022-08-17"
 condition =  names(rnai_list)[2]
 path = paste0("./Analyse/",date,"_DESeq2_analysis/")
 path = paste0(path,
@@ -54,6 +53,7 @@ ExpressionProfils(type = "vst",
 
 source("5-1_Filters_candidats.R") # Comparison filter
 UP_PKX.DOWN_C = Crossinglist(UP_filter,DOWN_filter)
+UP_PKX.DOWN_C = UP_PKX.DOWN_C[rapply(UP_PKX.DOWN_C, length, how="list") != 0]
 
 ##### Venn Diagram ####
 print("Venn Diagramm in progress")
@@ -125,6 +125,7 @@ sink()
 
 
 ##### IES+ genes among the filters ####
+print("IES repartition barplot")
 save_path2 = paste0(save_path,"Barplot_IES/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
 
@@ -153,18 +154,119 @@ Chi2_pvalue(AUTOGAMY, my_data)
 sink()
 
 #### GO therm analysis ####
+print("GO analysis")
 save_path2 = paste0(path,"GO_therm/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
 
-GO_therm = read.table(paste0(save_path2,"resultsGO_BioMart2.txt"), header = T, sep = "\t")
+interestGenes = candidats
+analysis_name = "Candidats"
 
-source("5-2_GO_therm_curation.R") # Hand curation of GO therm
-write.table(GO_therm, paste0(save_path2,"resultsGO_BioMart2_treated.txt"), sep = "\t")
+##### Plot the different therms ####
+gene_tab = "./DATA/GOenrichment/paramecium_gene_association.fb"
+gene_tab=read.table(gene_tab,sep="\t",quote='',comment.char='')[,c(3,2,9,5,10)]
+colnames(gene_tab) = c("ID","NAME","VOCABULARY","GO_ID","DESC")
 
-GO_tab = table(GO_therm$Function)
-write.table(GO_tab, paste0(save_path2,"resultsGO_BioMart2_table.txt"), sep = "\t")
+gene_tab_slim = "./DATA/GOenrichment/paramecium_gene_association.slim.fb"
+gene_tab_slim=read.table(gene_tab_slim,sep="\t",quote='',comment.char='')[,c(3,2,9,5,10)]
+colnames(gene_tab_slim) = c("ID","NAME","VOCABULARY","GO_ID","DESC")
+
+for(voc in c("MF","BP")){
+  # Selection of the GO therm type
+  if (voc == "MF"){
+    tab = gene_tab[gene_tab$VOCABULARY == "F",]
+    tab_slim = gene_tab_slim[gene_tab_slim$VOCABULARY == "F",]
+  }else if (voc == "BP"){
+    tab = gene_tab[gene_tab$VOCABULARY == "P",]
+    tab_slim = gene_tab_slim[gene_tab_slim$VOCABULARY == "P",]
+  }
+  
+  # Selection of the gene of interest
+  tab.select = tab[which(is.element(tab$ID, interestGenes)),]
+  tab.select = as.data.frame(table(tab.select$DESC))
+  colnames(tab.select) = c("DESC","Nb")
+  
+  tab = as.data.frame(table(tab$DESC))
+  colnames(tab) = c("DESC","Nb")
+
+  # Table with the nb of genes in each category for all or selected genes
+  GO_tab = merge(tab,tab.select, by = "DESC", all = T)
+  colnames(GO_tab) = c("DESC", "ALL", analysis_name)
+  write.table(GO_tab, paste0(save_path2,voc,"_",analysis_name,"_Nb_GOtherm.tab"),row.names=F,quote=F,sep="\t")
+  
+  # Barplot of the therm frequency for the selected genes
+  tab.select$class = with(tab.select, reorder(DESC, Nb))
+  gp = ggplot(tab.select, aes(class,Nb)) + 
+    geom_bar(stat = 'identity') +
+    coord_flip() +
+    theme_classic()
+  ggsave(paste0(save_path2,voc,"_",analysis_name,"_GOtherm.pdf"),
+         height = 7, width = 8, device = "pdf", )
+  
+  ## Same with slim therms
+  # Selection of the gene of interest
+  tab_slim.select = tab_slim[which(is.element(tab_slim$ID, interestGenes)),]
+  tab_slim.select = as.data.frame(table(tab_slim.select$DESC))
+  colnames(tab_slim.select) = c("DESC","Nb")
+  
+  tab_slim = as.data.frame(table(tab_slim$DESC))
+  colnames(tab_slim) = c("DESC","Nb")
+  
+  # Table with the nb of genes in each category for all or selected genes
+  GO_tab_slim = merge(tab_slim,tab_slim.select, by = "DESC", all = T)
+  colnames(GO_tab_slim) = c("DESC", "ALL", analysis_name)
+  write.table(GO_tab, paste0(save_path2,voc,"_",analysis_name,"_Nb_GOtherm_slim.tab"),row.names=F,quote=F,sep="\t")
+  
+  # Barplot of the therm frequency for the selected genes
+  tab_slim.select$class = with(tab_slim.select, reorder(DESC, Nb))
+  gp = ggplot(tab_slim.select, aes(class,Nb)) + 
+    geom_bar(stat = 'identity') +
+    coord_flip() +
+    theme_classic()
+  ggsave(paste0(save_path2,voc,"_",analysis_name,"_GOtherm_slim.pdf"),
+         height = 7, width = 8, device = "pdf", )
+}
+
+##### Identified enriched therms ####
+print("GO analysis")
+map_file_path = "./DATA/GOenrichment/ptetraurelia_mac_51_annotation_v2.0.protein.InterProScan.tab.gene_association.map"
+map_file = readMappings(file =map_file_path)
+names(map_file) = sub(".P",".G", names(map_file))
+
+map_slim_path = "./DATA/GOenrichment/paramecium_gene_association.slim.fb"
+gene_tab=read.table(map_slim_path,sep="\t",quote='',comment.char='')[,c(3,9,5)]
+colnames(gene_tab) = c("ID","VOCABULARY","GO_ID")
+
+for(voc in c("MF","BP")) {
+  # Test with all GO therm
+  enrichedGenes = top_go_enrichment(map_file,
+                                    interestGenes,
+                                    voc,
+                                    pvalue=0.05, 
+                                    adjust_pvalue=T,
+                                    prefix=paste0(save_path2,voc,"_",analysis_name,"_"))
+  write.table(enrichedGenes, paste0(save_path2,voc,"_",analysis_name,"_enriched_GO.tab"),row.names=F,quote=F,sep="\t")
+  
+  # Test with slim GO therm
+  if (voc == "MF"){
+    tab = gene_tab[gene_tab$VOCABULARY == "F",]
+  }else if (voc == "BP"){
+    tab = gene_tab[gene_tab$VOCABULARY == "P",]
+  }
+  map_file_slim = as.list(tab$GO_ID)
+  names(map_file_slim) = tab$ID
+  
+  enrichedGenes = top_go_enrichment(map_file_slim,
+                                    interestGenes,
+                                    voc,
+                                    pvalue=0.05, 
+                                    adjust_pvalue=T,
+                                    prefix=paste0(save_path2,voc,"_",analysis_name,"_",))
+  write.table(enrichedGenes, paste0(save_path2,voc,"_",analysis_name,"_enriched_GOslim.tab"),row.names=F,quote=F,sep="\t")
+}
+
 
 #### Creation of a summary table with all the data ####
+print("Summary table")
 # Merge table of deregulation and annotation information
 summary_tab = annotation
 for (cond in names(DEtab_list)){
@@ -186,9 +288,9 @@ TurboPGM = read.table("./DATA/TurboID/2114003-Pgm-ProteinMeasurements.txt",heade
 TurboPGML4 = read.table("./DATA/TurboID/2114003-PgmL4-ProteinMeasurements.txt",header=T,sep="\t",quote='')
 
 colnames(TurboPGM) = c("PROTEIN_NAME", paste0("TurboPGM_", c("log2FC", "-log10pval")))
-summary_tab = merge(summary_tab, TurboPGM, by = "PROTEIN_NAME", all = T)
+summary_tab = merge(summary_tab, TurboPGM, by.x = "Protein.name",  by.y = "PROTEIN_NAME", all = T)
 colnames(TurboPGML4) = c("PROTEIN_NAME", paste0("TurboPGML4_", c("log2FC", "-log10pval")))
-summary_tab = merge(summary_tab, TurboPGML4, by = "PROTEIN_NAME", all = T)
+summary_tab = merge(summary_tab, TurboPGML4, by.x = "Protein.name", by.y = "PROTEIN_NAME", all = T)
 
 write.table(summary_tab,paste0(path,"Summary-turbo_",condition,".tab"), sep = "\t", row.names = F)
 

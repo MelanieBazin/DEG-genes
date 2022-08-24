@@ -8,7 +8,7 @@ library(stringr)
 annotation = read.table("./DATA/My_annotation.tab",header=T,sep="\t")
 
 #### Definition of the time course that will be analysed together ####
-tout = sub(".tab","",list.files("./DATA/EXPRESSION/"))
+tout = sub(".tab","",list.files("./DATA/EXPRESSION/", pattern = ".tab"))
 
 rnai_list = list(
   HiSeqvsNextSeq = tout[which(is.element(tout,c("EZL1bis","ICL7bis","EZL1", "ICL7" )))],
@@ -27,10 +27,10 @@ cluster = list(
   PGM = c(rep("VEG",1),rep("INTER",3),rep("LATE",3)),
   KU80c = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   
-  ND7_L = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",2)),
+  ND7_L = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",3)),
   CTIP = c(rep("VEG",1),rep("EARLY",1),rep("INTER",2),rep("LATE",1)),
-  ND7_X = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2)),
-  XRCC4 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",2))
+  ND7_X = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",3)),
+  XRCC4 = c(rep("VEG",1),rep("EARLY",1),rep("INTER",1),rep("LATE",3))
 )
 
 
@@ -55,7 +55,7 @@ profile_color = c("Early peak" = "purple3",
 
 
 #### Definition autogamy timing list for all time course #####
-tabs = list.files("./DATA/EXPRESSION")
+tabs = list.files("./DATA/EXPRESSION", pattern = ".tab")
 timing_list = as.list(tabs)
 for (k in 1:length(tabs)){
   table = read.table(paste0("./DATA/EXPRESSION/",tabs[k]), header = T, row.names = 1)

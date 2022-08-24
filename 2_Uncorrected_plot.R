@@ -24,7 +24,7 @@ dir.create(path,recursive=T,showWarnings=F)
 
 
 # Open files without ComBat-seq correction
-countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
+countdata = read.table(paste0("./DATA/For_DESeq/",condition ,"_expression_table_uncorrected.tab"), sep="\t",row.names=1,header =  T)
 
 
 # Generation the appropriate infodata

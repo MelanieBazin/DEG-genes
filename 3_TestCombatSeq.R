@@ -29,7 +29,7 @@ for (correction in c("corrected","uncorrected")){
   dir.create(path,recursive=T,showWarnings=F)
   
   # Open files with or without ComBat-seq correction
-  countdata = read.table(paste0("./DATA/Pour_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)
+  countdata = read.table(paste0("./DATA/For_DESeq/",condition ,"_expression_table_",correction,".tab"), sep="\t",row.names=1,header =  T)
   
   # Generation the appropriate infodata
   infodata = CreatInfoData(countdata, conditions = condition , rnai_list, cluster)

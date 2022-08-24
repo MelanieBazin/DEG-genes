@@ -16,7 +16,6 @@ promoteur = read.fasta(paste0("./DATA/Promoteur/IN_MAC", IES, "_upstream_150nt_"
 
 # Define the analyse to open
 date = Sys.Date()
-date = "2022-08-17"
 condition =  names(rnai_list)[2]
 
 source("5-1_Filters_candidats.R")
@@ -58,6 +57,7 @@ file_name = list.files(save_path2)[grep("sequences",list.files(save_path2))]
 genes_motif = NULL
 for (f in file_name){
   liste = read.table(paste0(save_path2, f), sep = "\t", header = T)
+  liste = liste[which(is.element(liste$motif_ID, "1")),]
   liste = unique(liste$seq_ID)
   genes_motif = c(genes_motif,list(liste))
 }

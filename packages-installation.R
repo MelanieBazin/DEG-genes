@@ -13,16 +13,16 @@
 # install.packages("devtools")
 # install.packages("ggseqlogo")
 # install.packages("stringr")
-#
+# 
 # if (!require("BiocManager", quietly = TRUE))
 #   install.packages("BiocManager")
 # BiocManager::install("BiocVersion")
 # BiocManager::install("vsn")
 # BiocManager::install("DESeq2")
 # BiocManager::install("topGO")
-# BiocManager::install("latticeExtra") 
+# BiocManager::install("latticeExtra")
 # BiocManager::install("lifecycle")
-# BiocManager::install("heatmaps") 
+# BiocManager::install("heatmaps")
 # BiocManager::install("sva")
 # BiocManager::install("klaR")
 # BiocManager::install("ComplexHeatmap")
@@ -35,7 +35,7 @@
 # install_github("vqv/ggbiplot")
 
 options(stringsAsFactors = FALSE)
-library(stringr) 
+library(stringr)
 
 annotation = read.table("./DATA/Annotation_ptetraurelia_mac_51_Sherlock20220819.tab",header=T,sep="\t",quote='')
 

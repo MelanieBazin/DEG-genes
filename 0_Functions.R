@@ -11,12 +11,11 @@ library(ggplot2)
 library(gtools)
 library(ggrepel)
 library(ggbiplot)
-
+library(topGO)
 
 ###### Table creation/modification ####
 # Merge count table in one table to be analysed by DESeq2
 ConcatTab <- function(type, conditions = NULL){
-  annotation = read.table("./DATA/My_annotation2.tab",header=T,sep="\t")
   path = paste0("./DATA/", type, "/")
   
   if (type == "EXPRESSION"){
@@ -221,9 +220,9 @@ Color_type <- function(data_tab, infodata, type){
 
 # PCA analysis using ggplot representation
 PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main,  max_dim=3,barplot_max_dim=3,
-                               image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", h = 5, w = 5,
-                               label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, 
-                               rename = F, collapse = F, ...) {
+                                 image_prefix="PCA_",show_barplot=T, selection = NULL, vline=0, sortie = "pdf", h = 5, w = 5,
+                                 label = c("all","none","ind","ind.sup","quali","var","quanti.sup"),police_seize = 3, point_seize = 0.5, 
+                                 rename = F, collapse = F, ...) {
   
   save_path = paste0(save_path,"/",color_type,"/ggPCA/")
   dir.create(save_path,recursive=T,showWarnings=F)
@@ -231,6 +230,16 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   # Identification of the different time courses to be ploted
   TimeCourses = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
   TimeCourses = str_split_fixed(TimeCourses,"_V", n= 2)[,1]
+  # Definition of the shape to apply
+  shape_palette = c("CTIP" = 4,
+                    "ICL7" = 1,
+                    "KU80c" = 15,
+                    "ND7_K" = 0,
+                    "ND7_X" = 2,
+                    "ND7_L" = 3,
+                    "PGM" = 18,
+                    "XRCC4" = 17,
+                    "EZL1" = 16)
   
   # Shorten the name of the points
   shortname = colnames(data_tab)
@@ -278,20 +287,23 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   } else if (color_type == "methods"){
     if (collapse == T){
       for (t in c("T0", "T10"))
-      infodata$Seq_method[grep(",", infodata$runsCollapsed)] = "Both"
+        infodata$Seq_method[grep(",", infodata$runsCollapsed)] = "Both"
     }
     color_info = infodata$Seq_method
     color_palette = method_color
   }
-    
+  
+  # Definition of the shape to apply
+
+  
   # PCA plot
   for (i in 1:dim(combn(1:max_dim,2))[2]){
     gp = ggplot(data = as.data.frame(data_tab2), aes(x = get(paste0("Dim",combn(1:max_dim,2)[1,i])), y = get(paste0("Dim",combn(1:max_dim,2)[2,i])), 
                                                      color = color_info, 
                                                      label = shortname,
                                                      shape = TimeCourses)) + 
-      geom_point(alpha = 0.8, size = point_seize) +
-      scale_shape_manual(values = c(15:18,3,4,0:2,5,6)[1:length(unique(TimeCourses))]) +
+      geom_point(alpha = 0.85, size = point_seize) +
+      scale_shape_manual(values = shape_palette) +
       scale_color_manual(values = color_palette) +
       theme_classic(base_size = 9, base_line_size = 0.25) +
       geom_hline(yintercept = 0, lty = 2, size = 0.25) +
@@ -307,7 +319,7 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
     }
     gp
     
-    ggsave(paste0(save_path,image_prefix,i,".",sortie), height = h, width = w, device = sortie, plot = gp)
+    ggsave(paste0(save_path,image_prefix,i,".",sortie), plot = gp, height = h, width = w, device = sortie, )
     
   }
   
@@ -333,7 +345,6 @@ CountBoxplot <- function (tab, type, color = "lightgray"){
 }
 
 # Draw the expression profiles for all or selected genes in all time courses
-
 ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = NULL, rnai = NULL, infodata = NULL){
   
   if (type  == "vst"){
@@ -349,8 +360,8 @@ ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = N
     rnai = rnai[-grep("bis",rnai)]
     
   }else{
-    path = "./Analyse/Profils/"
-    dir.create(path,recursive=T,showWarnings=F)
+    path2 = "./Analyse/Profils/"
+    dir.create(path2,recursive=T,showWarnings=F)
     EXPRESSION = ConcatTab(type, conditions = rnai)
     
   }
@@ -366,12 +377,12 @@ ExpressionProfils <- function(type , condition, path, name = NULL, select_ID = N
     }
     names(select_ID) = NAMES
     select = "selectedID"
-  
+    
   } else {
     select_ID = annotation$ID
     names(select_ID) = annotation$NAME
     select = "all_genes"
-  
+    
   }
   
   EXPRESSION = OrderColumn(EXPRESSION, infodata)
@@ -443,7 +454,7 @@ Profile_Barplot <- function(filtre_list, nom, save_path, w= 6.8, h = 7.2){
   profil[is.na(profil)] = 0
   rownames(profil) = profil$Expression_cluster
   profil = profil[,-grep("Expression_cluster", colnames(profil))]
-   
+  
   write.table(profil, paste0(save_path, "Profils_tab_",nom,".tab"), sep="\t",row.names=T,quote=F)
   
   # Transform the table in percentages
@@ -638,9 +649,49 @@ Chi2_pvalue <- function(LIST, data_tab){
     pval = format(pval, scientific = T, digit = 5)
     nb = table(data_tab$PROFIL[which(is.element(data_tab$ID, LIST[[l]]))])
     tab = t(rbind(nb,rbind(pval,signif)))
-            
+    
     print(l)
     print(tab)
     
   }
 }
+
+# GO enrichment calculation
+
+top_go_enrichment <- function(map_file,myInterestingGenes,vocabulary="MF", 
+                              random=FALSE, pvalue=0.05, adjust_pvalue=TRUE,prefix="",
+                              geneUniverse=c()) {
+
+  geneID2GO = map_file
+  GO2geneID = inverseList(geneID2GO)
+  
+  geneNames = names(geneID2GO)
+  if(random==TRUE) {
+    print("Random")
+    myInterestingGenes = sample(geneNames, length(myInterestingGenes))
+  }
+  
+  if(length(geneUniverse) != 0) {
+    myInterestingGenes = intersect(geneNames,geneUniverse)
+  }
+  
+  geneList = factor(as.integer(geneNames %in% myInterestingGenes))
+  names(geneList) = geneNames
+
+  GOdata = new("topGOdata",
+               ontology = vocabulary,
+               allGenes = geneList,
+               annot = annFUN.gene2GO,
+               gene2GO = geneID2GO)
+  
+  resultFisher = runTest(GOdata, algorithm = "classic", statistic = "fisher")
+  results.table = GenTable(GOdata, classicFisher = resultFisher , topNodes = length(resultFisher@score))
+  
+  results.table.bh = results.table[results.table$classicFisher<=pvalue,]
+  if(adjust_pvalue==TRUE) {
+    results.table.bh = results.table[which(p.adjust(results.table[,"classicFisher"],method="BH")<=pvalue),] 
+  }
+  
+  results.table.bh
+}
+

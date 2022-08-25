@@ -17,7 +17,7 @@ date = Sys.Date()
 condition =  names(rnai_list)[2]
 path = paste0("./Analyse/",date,"_DESeq2_analysis/")
 path = paste0(path,
-              list.files(path)[grep(condition,list.files(path))],"/")
+              list.files(path)[grep(paste0(condition,"_FC-", FC, "_pval-", pvalue),list.files(path))],"/")
 
 
 data_tab = read.table(paste0(path, condition,"_expression_table_vst.tab"))

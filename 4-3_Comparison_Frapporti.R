@@ -5,7 +5,7 @@
 ####
 options(stringsAsFactors = FALSE)
 library(ggvenn)
-library("VennDiagram")
+library(VennDiagram)
 
 #### To re-open the files ####
 # save_path = "./Analyse/2022-02-21_Analyse_DESeq2/HiSeqvsNextSeq_FC-1.5_pval-0.05/Frapporti_comparison_FC-2_pval-0.05/"
@@ -67,7 +67,7 @@ for (deg in c("DOWN", "UP")){
   
 }
 
-### Comparison of the 
+### Comparison of the Vennpart
 data_tab = OrderColumn(data_tab, infodata_collapse)
 
 # Split the deregulated gene list :

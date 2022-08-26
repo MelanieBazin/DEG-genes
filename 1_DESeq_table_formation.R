@@ -31,7 +31,7 @@ dir.create(save_path,recursive=T,showWarnings=F)
 
 for (i in data_directories){
   list= list.files(paste0(data_path,i))
-  list = list[grep("HISAT", list)]
+  list = list[grep("TOPHAT", list)]
   
   # Extract the timing form file names
   timing = str_split(list, '_', simplify=TRUE)

@@ -10,13 +10,12 @@ library(factoextra)
 library(ggplot2)
 library(gtools)
 library(ggrepel)
-library(ggbiplot)
+# library(ggbiplot)
 library(topGO)
 
 ###### Table creation/modification ####
 # Merge count table in one table to be analysed by DESeq2
-ConcatTab <- function(type, conditions = NULL){
-  path = paste0("./DATA/", type, "/")
+ConcatTab <- function(type, conditions = NULL, path = paste0("./DATA/", type, "/")){
   
   if (type == "EXPRESSION"){
     extention = ".tab"
@@ -231,15 +230,17 @@ PCA_ggplot_generator <- function(data_tab, infodata, save_path, color_type, main
   TimeCourses = str_split_fixed(colnames(data_tab),"_T", n= 2)[,1]
   TimeCourses = str_split_fixed(TimeCourses,"_V", n= 2)[,1]
   # Definition of the shape to apply
-  shape_palette = c("CTIP" = 4,
-                    "ICL7" = 1,
+  shape_palette = c("CTIP" = 16,
+                    "ICL7" = 4,
+                    "ICL7bis" = 4,
                     "KU80c" = 15,
                     "ND7_K" = 0,
                     "ND7_X" = 2,
-                    "ND7_L" = 3,
+                    "ND7_L" = 1,
                     "PGM" = 18,
                     "XRCC4" = 17,
-                    "EZL1" = 16)
+                    "EZL1" = 6,
+                    "EZL1bis" = 6)
   
   # Shorten the name of the points
   shortname = colnames(data_tab)

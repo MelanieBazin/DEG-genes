@@ -52,7 +52,7 @@ ExpressionProfils(type = "vst",
 ### Comparison of deregulated genes lists ####
 
 source("5-1_Filters_candidats.R") # Comparison filter
-UP_PKX.DOWN_C = Crossinglist(UP_filter,DOWN_filter)
+UP_PKX.DOWN_C = Crossinglist(UP_filter,list(DOWN_CTIP = DOWN_filter$DOWN_CTIP))
 UP_PKX.DOWN_C = UP_PKX.DOWN_C[rapply(UP_PKX.DOWN_C, length, how="list") != 0]
 
 ##### Venn Diagram ####
@@ -105,19 +105,30 @@ print("Profiles repartition barplot")
 save_path2 = paste0(save_path,"Barplot_profil/")
 dir.create(save_path2 ,recursive=T,showWarnings=F)
 
-Profile_Barplot(UP_filter, "UP_PKX", save_path2, w= 14)
-Profile_Barplot(DOWN_filter, "DOWN_C", save_path2)
+Profile_Barplot(list(UP = UP_filter$UP_KU80c, DOWN = DOWN_pkx_filter$DOWN_KU80c), "KU80c", save_path2)
+Profile_Barplot(list(UP = UP_filter$UP_PGM, DOWN = DOWN_pkx_filter$DOWN_PGM), "PGM", save_path2)
+Profile_Barplot(list(UP = UP_filter$UP_XRCC4, DOWN = DOWN_pkx_filter$DOWN_XRCC4), "XRCC4", save_path2)
+Profile_Barplot(list(UP = UP_C_filter$UP_CTIP, DOWN = DOWN_filter$DOWN_CTIP), "CTIP", save_path2)
 Profile_Barplot(UP_PKX.DOWN_C, "UPpkx-DOWNc", save_path2, w= 30)
 Profile_Barplot(DE_genes, "Candidates", save_path2)
 
 # Statistic of the enrichment
 my_data = cbind(annotation$ID, annotation$EXPRESSION_PROFIL)
 
-sink(paste0(save_path2,"/Enrichissement_profile_UP_PKX.txt"))
-Enrichment_padj(UP_filter, my_data)
+sink(paste0(save_path2,"/Enrichissement_profile_KU80c.txt"))
+Enrichment_padj(list(UP = UP_filter$UP_KU80c, DOWN = DOWN_pkx_filter$DOWN_KU80c), my_data)
 sink()
-sink(paste0(save_path2,"/Enrichissement_profile_DOWN_C.txt"))
-Enrichment_padj(DOWN_filter, my_data)
+sink(paste0(save_path2,"/Enrichissement_profile_PGM.txt"))
+Enrichment_padj(list(UP = UP_filter$UP_PGM, DOWN = DOWN_pkx_filter$DOWN_PGM), my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_profile_XRCC4.txt"))
+Enrichment_padj(list(UP = UP_filter$UP_XRCC4, DOWN = DOWN_pkx_filter$DOWN_XRCC4), my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_profile_CTIP.txt"))
+Enrichment_padj(list(UP = UP_C_filter$UP_CTIP, DOWN = DOWN_filter$DOWN_CTIP), my_data)
+sink()
+sink(paste0(save_path2,"/Enrichissement_profile_UPpkx_DOWNc.txt"))
+Enrichment_padj(UP_PKX.DOWN_C, my_data)
 sink()
 sink(paste0(save_path2,"/Enrichissement_profile_Candidates.txt"))
 Enrichment_padj(DE_genes, my_data)
@@ -298,3 +309,4 @@ write.table(summary_tab,paste0(path,"Summary-turbo_",condition,".tab"), sep = "\
 sink(paste0(save_path,"/sessionInfo.txt"))
 print(sessionInfo())
 sink()
+
